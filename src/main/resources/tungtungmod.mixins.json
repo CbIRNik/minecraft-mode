@@ -1,0 +1,14 @@
+{
+	"required": true,
+	"package": "com.tungtung.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"mixins": [
+      "tungMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"overwrites": {
+		"requireAnnotations": true
+	}
+}

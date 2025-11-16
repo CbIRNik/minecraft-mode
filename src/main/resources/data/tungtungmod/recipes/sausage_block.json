@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "tungtungmod:sausage",
+    "tungtungmod:sausage",
+    "tungtungmod:sausage",
+    "tungtungmod:sausage",
+    "tungtungmod:sausage",
+    "tungtungmod:sausage",
+    "tungtungmod:sausage",
+    "tungtungmod:sausage",
+    "tungtungmod:sausage"
+  ],
+  "result": {
+    "id": "tungtungmod:sausage_block",
+    "count": 1
+  }
+}
+
+
+
+
+

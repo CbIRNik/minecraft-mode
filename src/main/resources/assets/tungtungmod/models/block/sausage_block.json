@@ -1,0 +1,6 @@
+{
+  "parent": "block/cube_all",
+  "textures": {
+    "all": "tungtungmod:block/sausage_block"
+  }
+}
