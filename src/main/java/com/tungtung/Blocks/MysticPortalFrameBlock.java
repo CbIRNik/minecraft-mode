@@ -23,10 +23,15 @@ public class MysticPortalFrameBlock extends Block {
         
         if (stack.isOf(Items.FLINT_AND_STEEL)) {
             if (!world.isClient) {
-                if (MysticPortalBlock.tryCreatePortal(world, pos)) {
-                    world.playSound(null, pos, SoundEvents.ITEM_FLINTANDSTEEL_USE, SoundCategory.BLOCKS, 1.0f, 1.0f);
-                    stack.damage(1, player, net.minecraft.entity.EquipmentSlot.MAINHAND);
-                    return ActionResult.SUCCESS;
+                for (Direction dir : Direction.values()) {
+                    BlockPos checkPos = pos.offset(dir);
+                    if (world.getBlockState(checkPos).isAir()) {
+                        if (MysticPortalBlock.tryCreatePortal(world, checkPos)) {
+                            world.playSound(null, pos, SoundEvents.ITEM_FLINTANDSTEEL_USE, SoundCategory.BLOCKS, 1.0f, 1.0f);
+                            stack.damage(1, player, net.minecraft.entity.EquipmentSlot.MAINHAND);
+                            return ActionResult.SUCCESS;
+                        }
+                    }
                 }
             }
             return ActionResult.success(world.isClient);
