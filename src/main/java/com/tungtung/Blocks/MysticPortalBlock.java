@@ -1,7 +1,6 @@
 package com.tungtung.Blocks;
 
 import com.tungtung.world.ModDimensions;
-import net.fabricmc.fabric.api.dimension.v1.FabricDimensions;
 import net.minecraft.block.*;
 import net.minecraft.entity.Entity;
 import net.minecraft.particle.ParticleTypes;
@@ -14,7 +13,6 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
@@ -61,9 +59,9 @@ public class MysticPortalBlock extends Block {
 
                 ServerWorld destinationWorld = serverWorld.getServer().getWorld(destination);
                 if (destinationWorld != null) {
-                    FabricDimensions.teleport(entity, destinationWorld, 
-                        new TeleportTarget(new Vec3d(entity.getX(), entity.getY(), entity.getZ()), 
-                        entity.getVelocity(), entity.getYaw(), entity.getPitch()));
+                    Vec3d targetPos = new Vec3d(entity.getX(), entity.getY(), entity.getZ());
+                    TeleportTarget target = new TeleportTarget(destinationWorld, targetPos, Vec3d.ZERO, entity.getYaw(), entity.getPitch(), TeleportTarget.NO_OP);
+                    entity.teleportTo(target);
                 }
             }
         }
