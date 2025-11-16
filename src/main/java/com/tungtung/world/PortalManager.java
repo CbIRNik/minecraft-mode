@@ -4,6 +4,7 @@ import com.tungtung.Blocks.TungBlocks;
 import net.minecraft.block.Blocks;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.PersistentState;
@@ -34,12 +35,12 @@ public class PortalManager extends PersistentState {
         );
     }
 
-    public static PortalManager fromNbt(NbtCompound nbt) {
+    public static PortalManager fromNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup lookup) {
         return new PortalManager();
     }
 
     @Override
-    public NbtCompound writeNbt(NbtCompound nbt) {
+    public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup lookup) {
         return nbt;
     }
 
