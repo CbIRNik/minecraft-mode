@@ -68,7 +68,7 @@ public class PortalManager extends PersistentState {
                 boolean isEdge = x == 0 || x == 4 || y == 0 || y == 4;
                 
                 if (isEdge) {
-                    world.setBlockState(framePos, TungBlocks.SausageBlock.getDefaultState());
+                    world.setBlockState(framePos, TungBlocks.MYSTIC_PORTAL_FRAME.getDefaultState());
                 } else {
                     world.setBlockState(framePos, TungBlocks.MYSTIC_PORTAL.getDefaultState());
                 }

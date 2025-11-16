@@ -103,7 +103,7 @@ public class MysticPortalBlock extends Block {
     private boolean isValidPortal(WorldAccess world, BlockPos pos) {
         for (Direction direction : Direction.values()) {
             BlockState neighbor = world.getBlockState(pos.offset(direction));
-            if (neighbor.isOf(TungBlocks.SausageBlock) || neighbor.isOf(this)) {
+            if (neighbor.isOf(TungBlocks.MYSTIC_PORTAL_FRAME) || neighbor.isOf(this)) {
                 return true;
             }
         }
@@ -125,7 +125,7 @@ public class MysticPortalBlock extends Block {
                 if (axis == null) {
                     if (dir.getAxis() == Direction.Axis.X || dir.getAxis() == Direction.Axis.Z) {
                         BlockPos neighbor = current.offset(dir);
-                        if (world.getBlockState(neighbor).isOf(TungBlocks.SausageBlock)) {
+                        if (world.getBlockState(neighbor).isOf(TungBlocks.MYSTIC_PORTAL_FRAME)) {
                             axis = dir.getAxis() == Direction.Axis.X ? Direction.Axis.Z : Direction.Axis.X;
                         }
                     }
@@ -156,7 +156,7 @@ public class MysticPortalBlock extends Block {
             boolean hasFrame = false;
             for (Direction dir : Direction.values()) {
                 if (dir.getAxis() != axis) {
-                    if (world.getBlockState(airPos.offset(dir)).isOf(TungBlocks.SausageBlock)) {
+                    if (world.getBlockState(airPos.offset(dir)).isOf(TungBlocks.MYSTIC_PORTAL_FRAME)) {
                         hasFrame = true;
                         break;
                     }
