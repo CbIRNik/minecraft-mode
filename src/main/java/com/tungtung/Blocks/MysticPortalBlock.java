@@ -1,6 +1,7 @@
 package com.tungtung.Blocks;
 
 import com.tungtung.world.ModDimensions;
+import com.tungtung.world.PortalManager;
 import net.minecraft.block.*;
 import net.minecraft.entity.Entity;
 import net.minecraft.particle.ParticleTypes;
@@ -53,18 +54,41 @@ public class MysticPortalBlock extends Block {
     public void onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity) {
         if (!world.isClient && !entity.hasVehicle() && !entity.hasPassengers() && entity.canUsePortals(false)) {
             if (world instanceof ServerWorld serverWorld) {
-                RegistryKey<World> destination = serverWorld.getRegistryKey() == ModDimensions.MYSTIC_WORLD_KEY
-                        ? World.OVERWORLD
-                        : ModDimensions.MYSTIC_WORLD_KEY;
+                PortalManager manager = PortalManager.get(serverWorld);
+                RegistryKey<World> destination = manager.getDestination(pos);
+                
+                if (destination == null) {
+                    destination = serverWorld.getRegistryKey() == ModDimensions.MYSTIC_WORLD_KEY
+                            ? World.OVERWORLD
+                            : ModDimensions.MYSTIC_WORLD_KEY;
+                }
 
                 ServerWorld destinationWorld = serverWorld.getServer().getWorld(destination);
                 if (destinationWorld != null) {
-                    Vec3d targetPos = new Vec3d(entity.getX(), entity.getY(), entity.getZ());
-                    TeleportTarget target = new TeleportTarget(destinationWorld, targetPos, Vec3d.ZERO, entity.getYaw(), entity.getPitch(), TeleportTarget.NO_OP);
+                    BlockPos targetPos = PortalManager.findSafeSpawnLocation(destinationWorld, 
+                        new BlockPos((int)entity.getX(), 65, (int)entity.getZ()));
+                    
+                    if (!hasNearbyPortal(destinationWorld, targetPos, 10)) {
+                        PortalManager.createReturnPortal(destinationWorld, targetPos);
+                        BlockPos returnPortalCenter = targetPos.add(0, 1, 0);
+                        PortalManager.get(destinationWorld).linkPortal(returnPortalCenter, serverWorld.getRegistryKey());
+                    }
+                    
+                    Vec3d teleportPos = new Vec3d(targetPos.getX() + 0.5, targetPos.getY(), targetPos.getZ() + 0.5);
+                    TeleportTarget target = new TeleportTarget(destinationWorld, teleportPos, Vec3d.ZERO, entity.getYaw(), entity.getPitch(), TeleportTarget.NO_OP);
                     entity.teleportTo(target);
                 }
             }
         }
+    }
+
+    private static boolean hasNearbyPortal(ServerWorld world, BlockPos center, int radius) {
+        for (BlockPos pos : BlockPos.iterate(center.add(-radius, -radius, -radius), center.add(radius, radius, radius))) {
+            if (world.getBlockState(pos).isOf(TungBlocks.MYSTIC_PORTAL)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -87,17 +111,16 @@ public class MysticPortalBlock extends Block {
     }
 
     public static boolean tryCreatePortal(World world, BlockPos pos) {
-        // Проверяем вертикальный портал (3x3)
-        for (int dx = -1; dx <= 1; dx++) {
-            for (int dy = -1; dy <= 1; dy++) {
+        for (int dx = -2; dx <= 2; dx++) {
+            for (int dy = -2; dy <= 2; dy++) {
                 BlockPos checkPos = pos.add(dx, dy, 0);
-                if (isValidPortalFrame(world, checkPos, dx, dy)) {
+                if (isValidPortalFrame(world, checkPos)) {
                     createPortal(world, checkPos);
                     return true;
                 }
                 
                 checkPos = pos.add(0, dy, dx);
-                if (isValidPortalFrame(world, checkPos, dx, dy)) {
+                if (isValidPortalFrame(world, checkPos)) {
                     createPortalZ(world, checkPos);
                     return true;
                 }
@@ -106,13 +129,11 @@ public class MysticPortalBlock extends Block {
         return false;
     }
 
-    private static boolean isValidPortalFrame(World world, BlockPos corner, int dx, int dy) {
-        // Проверяем рамку 3x3
-        for (int x = 0; x < 3; x++) {
-            for (int y = 0; y < 3; y++) {
+    private static boolean isValidPortalFrame(World world, BlockPos corner) {
+        for (int x = 0; x < 5; x++) {
+            for (int y = 0; y < 5; y++) {
                 BlockPos checkPos = corner.add(x, y, 0);
-                boolean isEdge = x == 0 || x == 2 || y == 0 || y == 2;
-                boolean isCorner = (x == 0 || x == 2) && (y == 0 || y == 2);
+                boolean isEdge = x == 0 || x == 4 || y == 0 || y == 4;
                 
                 if (isEdge) {
                     if (!world.getBlockState(checkPos).isOf(TungBlocks.MYSTIC_PORTAL_FRAME)) {
@@ -127,16 +148,16 @@ public class MysticPortalBlock extends Block {
     }
 
     private static void createPortal(World world, BlockPos corner) {
-        for (int x = 1; x < 2; x++) {
-            for (int y = 1; y < 2; y++) {
+        for (int x = 1; x < 4; x++) {
+            for (int y = 1; y < 4; y++) {
                 world.setBlockState(corner.add(x, y, 0), TungBlocks.MYSTIC_PORTAL.getDefaultState());
             }
         }
     }
 
     private static void createPortalZ(World world, BlockPos corner) {
-        for (int z = 1; z < 2; z++) {
-            for (int y = 1; y < 2; y++) {
+        for (int z = 1; z < 4; z++) {
+            for (int y = 1; y < 4; y++) {
                 world.setBlockState(corner.add(0, y, z), TungBlocks.MYSTIC_PORTAL.getDefaultState());
             }
         }
