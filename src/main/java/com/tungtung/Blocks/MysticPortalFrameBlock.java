@@ -25,7 +25,7 @@ public class MysticPortalFrameBlock extends Block {
             if (!world.isClient) {
                 if (MysticPortalBlock.tryCreatePortal(world, pos)) {
                     world.playSound(null, pos, SoundEvents.ITEM_FLINTANDSTEEL_USE, SoundCategory.BLOCKS, 1.0f, 1.0f);
-                    stack.damage(1, player, p -> p.sendToolBreakStatus(player.getActiveHand()));
+                    stack.damage(1, player, net.minecraft.entity.EquipmentSlot.MAINHAND);
                     return ActionResult.SUCCESS;
                 }
             }

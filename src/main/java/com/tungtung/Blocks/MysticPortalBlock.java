@@ -58,7 +58,7 @@ public class MysticPortalBlock extends Block {
 
                 ServerWorld destinationWorld = serverWorld.getServer().getWorld(destination);
                 if (destinationWorld != null) {
-                    entity.teleportTo(destinationWorld, entity.getX(), entity.getY(), entity.getZ(), entity.getYaw(), entity.getPitch());
+                    entity.moveToWorld(destinationWorld);
                 }
             }
         }
