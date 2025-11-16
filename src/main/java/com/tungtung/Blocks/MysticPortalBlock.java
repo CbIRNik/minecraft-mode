@@ -111,55 +111,59 @@ public class MysticPortalBlock extends Block {
     }
 
     public static boolean tryCreatePortal(World world, BlockPos pos) {
-        for (int dx = -2; dx <= 2; dx++) {
-            for (int dy = -2; dy <= 2; dy++) {
-                BlockPos checkPos = pos.add(dx, dy, 0);
-                if (isValidPortalFrame(world, checkPos)) {
-                    createPortal(world, checkPos);
-                    return true;
+        java.util.Set<BlockPos> airBlocks = new java.util.HashSet<>();
+        java.util.Queue<BlockPos> queue = new java.util.LinkedList<>();
+        queue.add(pos);
+        airBlocks.add(pos);
+        
+        Direction.Axis axis = null;
+        
+        while (!queue.isEmpty() && airBlocks.size() < 200) {
+            BlockPos current = queue.poll();
+            
+            for (Direction dir : Direction.values()) {
+                if (axis == null) {
+                    if (dir.getAxis() == Direction.Axis.X || dir.getAxis() == Direction.Axis.Z) {
+                        BlockPos neighbor = current.offset(dir);
+                        if (world.getBlockState(neighbor).isOf(TungBlocks.MYSTIC_PORTAL_FRAME)) {
+                            axis = dir.getAxis() == Direction.Axis.X ? Direction.Axis.Z : Direction.Axis.X;
+                        }
+                    }
                 }
                 
-                checkPos = pos.add(0, dy, dx);
-                if (isValidPortalFrame(world, checkPos)) {
-                    createPortalZ(world, checkPos);
-                    return true;
+                if (axis != null && dir.getAxis() != axis) {
+                    BlockPos neighbor = current.offset(dir);
+                    if (world.getBlockState(neighbor).isAir() && !airBlocks.contains(neighbor)) {
+                        airBlocks.add(neighbor);
+                        queue.add(neighbor);
+                    }
                 }
             }
         }
+        
+        if (axis != null && airBlocks.size() >= 1 && isValidFrame(world, airBlocks, axis)) {
+            for (BlockPos airPos : airBlocks) {
+                world.setBlockState(airPos, TungBlocks.MYSTIC_PORTAL.getDefaultState());
+            }
+            return true;
+        }
+        
         return false;
     }
-
-    private static boolean isValidPortalFrame(World world, BlockPos corner) {
-        for (int x = 0; x < 5; x++) {
-            for (int y = 0; y < 5; y++) {
-                BlockPos checkPos = corner.add(x, y, 0);
-                boolean isEdge = x == 0 || x == 4 || y == 0 || y == 4;
-                
-                if (isEdge) {
-                    if (!world.getBlockState(checkPos).isOf(TungBlocks.MYSTIC_PORTAL_FRAME)) {
-                        return false;
+    
+    private static boolean isValidFrame(World world, java.util.Set<BlockPos> airBlocks, Direction.Axis axis) {
+        for (BlockPos airPos : airBlocks) {
+            boolean hasFrame = false;
+            for (Direction dir : Direction.values()) {
+                if (dir.getAxis() != axis) {
+                    if (world.getBlockState(airPos.offset(dir)).isOf(TungBlocks.MYSTIC_PORTAL_FRAME)) {
+                        hasFrame = true;
+                        break;
                     }
-                } else if (!world.getBlockState(checkPos).isAir()) {
-                    return false;
                 }
             }
+            if (!hasFrame) return false;
         }
         return true;
-    }
-
-    private static void createPortal(World world, BlockPos corner) {
-        for (int x = 1; x < 4; x++) {
-            for (int y = 1; y < 4; y++) {
-                world.setBlockState(corner.add(x, y, 0), TungBlocks.MYSTIC_PORTAL.getDefaultState());
-            }
-        }
-    }
-
-    private static void createPortalZ(World world, BlockPos corner) {
-        for (int z = 1; z < 4; z++) {
-            for (int y = 1; y < 4; y++) {
-                world.setBlockState(corner.add(0, y, z), TungBlocks.MYSTIC_PORTAL.getDefaultState());
-            }
-        }
     }
 }
