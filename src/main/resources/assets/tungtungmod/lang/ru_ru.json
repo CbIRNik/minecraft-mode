@@ -1,5 +1,7 @@
 {
   "item.tungtungmod.sausage": "Сосиска",
   "itemTooltip.tungtungmod.sausage": "Вкусно!",
-  "block.tungtungmod.sausage_block": "Блок сосисок"
+  "block.tungtungmod.sausage_block": "Блок сосисок",
+  "block.tungtungmod.mystic_portal_frame": "Рамка мистического портала",
+  "block.tungtungmod.mystic_portal": "Мистический портал"
 }

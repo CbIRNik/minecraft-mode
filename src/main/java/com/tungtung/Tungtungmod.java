@@ -2,6 +2,7 @@ package com.tungtung;
 
 import com.tungtung.Blocks.TungBlocks;
 import com.tungtung.items.TungItems;
+import com.tungtung.world.ModDimensions;
 import net.fabricmc.api.ModInitializer;
 
 import org.slf4j.Logger;
@@ -16,5 +17,6 @@ public class Tungtungmod implements ModInitializer {
 	public void onInitialize() {
         TungItems.initialize();
         TungBlocks.initialize();
+        ModDimensions.initialize();
 	}
 }
