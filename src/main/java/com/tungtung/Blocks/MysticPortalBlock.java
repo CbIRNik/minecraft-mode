@@ -84,7 +84,7 @@ public class MysticPortalBlock extends Block {
 
     private static boolean hasNearbyPortal(ServerWorld world, BlockPos center, int radius) {
         for (BlockPos pos : BlockPos.iterate(center.add(-radius, -radius, -radius), center.add(radius, radius, radius))) {
-            if (world.getBlockState(pos).isOf(TungBlocks.MYSTIC_PORTAL)) {
+            if (world.getBlockState(pos).isOf(ModBlocks.MYSTIC_PORTAL)) {
                 return true;
             }
         }
@@ -103,7 +103,7 @@ public class MysticPortalBlock extends Block {
     private boolean isValidPortal(WorldAccess world, BlockPos pos) {
         for (Direction direction : Direction.values()) {
             BlockState neighbor = world.getBlockState(pos.offset(direction));
-            if (neighbor.isOf(TungBlocks.MYSTIC_PORTAL_FRAME) || neighbor.isOf(this)) {
+            if (neighbor.isOf(ModBlocks.MYSTIC_PORTAL_FRAME) || neighbor.isOf(this)) {
                 return true;
             }
         }
@@ -125,7 +125,7 @@ public class MysticPortalBlock extends Block {
                 if (axis == null) {
                     if (dir.getAxis() == Direction.Axis.X || dir.getAxis() == Direction.Axis.Z) {
                         BlockPos neighbor = current.offset(dir);
-                        if (world.getBlockState(neighbor).isOf(TungBlocks.MYSTIC_PORTAL_FRAME)) {
+                        if (world.getBlockState(neighbor).isOf(ModBlocks.MYSTIC_PORTAL_FRAME)) {
                             axis = dir.getAxis() == Direction.Axis.X ? Direction.Axis.Z : Direction.Axis.X;
                         }
                     }
@@ -143,7 +143,7 @@ public class MysticPortalBlock extends Block {
         
         if (axis != null && airBlocks.size() >= 1 && isValidFrame(world, airBlocks, axis)) {
             for (BlockPos airPos : airBlocks) {
-                world.setBlockState(airPos, TungBlocks.MYSTIC_PORTAL.getDefaultState());
+                world.setBlockState(airPos, ModBlocks.MYSTIC_PORTAL.getDefaultState());
             }
             return true;
         }
@@ -156,7 +156,7 @@ public class MysticPortalBlock extends Block {
             boolean hasFrame = false;
             for (Direction dir : Direction.values()) {
                 if (dir.getAxis() != axis) {
-                    if (world.getBlockState(airPos.offset(dir)).isOf(TungBlocks.MYSTIC_PORTAL_FRAME)) {
+                    if (world.getBlockState(airPos.offset(dir)).isOf(ModBlocks.MYSTIC_PORTAL_FRAME)) {
                         hasFrame = true;
                         break;
                     }

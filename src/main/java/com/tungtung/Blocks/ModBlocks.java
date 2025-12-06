@@ -1,7 +1,6 @@
 package com.tungtung.Blocks;
 
 import com.tungtung.Tungtungmod;
-import com.tungtung.items.TungItems;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
@@ -14,7 +13,7 @@ import net.minecraft.registry.Registry;
 import net.minecraft.sound.BlockSoundGroup;
 import net.minecraft.util.Identifier;
 
-public class TungBlocks {
+public class ModBlocks {
     public static final Block SausageBlock = register(
             new Block(AbstractBlock.Settings.create().sounds(BlockSoundGroup.NETHERRACK).strength(1.5f)),
             "sausage_block",
@@ -61,11 +60,11 @@ public class TungBlocks {
 
     public static void initialize() {
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.FOOD_AND_DRINK).register((itemGroup) -> {
-            itemGroup.add(TungBlocks.SausageBlock.asItem());
+            itemGroup.add(ModBlocks.SausageBlock.asItem());
         });
         
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.BUILDING_BLOCKS).register((itemGroup) -> {
-            itemGroup.add(TungBlocks.MYSTIC_PORTAL_FRAME.asItem());
+            itemGroup.add(ModBlocks.MYSTIC_PORTAL_FRAME.asItem());
         });
     }
 }

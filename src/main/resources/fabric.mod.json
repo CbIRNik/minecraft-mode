@@ -1,8 +1,8 @@
 {
 	"schemaVersion": 1,
-	"id": "tungtungmod",
+	"id": "infdimmod",
 	"version": "${version}",
-	"name": "tungtungmod",
+	"name": "Infinite dimensions",
 	"description": "modsahur",
 	"authors": [
 		"AlexG & KS"

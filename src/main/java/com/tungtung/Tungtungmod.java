@@ -1,7 +1,7 @@
 package com.tungtung;
 
-import com.tungtung.Blocks.TungBlocks;
-import com.tungtung.items.TungItems;
+import com.tungtung.Blocks.ModBlocks;
+import com.tungtung.items.ModItems;
 import com.tungtung.world.ModDimensions;
 import net.fabricmc.api.ModInitializer;
 
@@ -15,8 +15,8 @@ public class Tungtungmod implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-        TungItems.initialize();
-        TungBlocks.initialize();
+        ModItems.initialize();
+        ModBlocks.initialize();
         ModDimensions.initialize();
 	}
 }

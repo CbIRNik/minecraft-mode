@@ -1,6 +1,6 @@
 package com.tungtung.world;
 
-import com.tungtung.Blocks.TungBlocks;
+import com.tungtung.Blocks.ModBlocks;
 import net.minecraft.block.Blocks;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryKey;
@@ -68,9 +68,9 @@ public class PortalManager extends PersistentState {
                 boolean isEdge = x == 0 || x == 4 || y == 0 || y == 4;
                 
                 if (isEdge) {
-                    world.setBlockState(framePos, TungBlocks.MYSTIC_PORTAL_FRAME.getDefaultState());
+                    world.setBlockState(framePos, ModBlocks.MYSTIC_PORTAL_FRAME.getDefaultState());
                 } else {
-                    world.setBlockState(framePos, TungBlocks.MYSTIC_PORTAL.getDefaultState());
+                    world.setBlockState(framePos, ModBlocks.MYSTIC_PORTAL.getDefaultState());
                 }
             }
         }

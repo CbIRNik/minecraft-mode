@@ -12,7 +12,7 @@ import net.minecraft.util.Identifier;
 
 import static com.tungtung.items.custom.Sosiska.Sosiska;
 
-public class TungItems {
+public class ModItems {
 
     public static final Item Sausage = register(new CustomDescriptionItem(new Item.Settings().food(Sosiska)), "sausage");
 
@@ -29,7 +29,7 @@ public class TungItems {
 
     public static void initialize() {
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.FOOD_AND_DRINK)
-            .register((itemGroup) -> itemGroup.add(TungItems.Sausage)); }
+            .register((itemGroup) -> itemGroup.add(ModItems.Sausage)); }
 
 
 }
