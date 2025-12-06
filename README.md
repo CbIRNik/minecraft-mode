@@ -1,4 +1,5 @@
-# InfiniteDimensions Minecraft mod
+# InfiniteDimensions
+##Minecraft mod
 Grachev Alexander & Klokov Svyatoslav
 06.12.25
 
