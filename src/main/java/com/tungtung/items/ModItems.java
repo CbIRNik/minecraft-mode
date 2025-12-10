@@ -18,6 +18,9 @@ public class ModItems {
 
     public static final Item BlockOfSausage = register(new CustomDescriptionItem(new Item.Settings()), "sausageblock");
 
+    public static final Item PortalGun = register(new Item (new Item.Settings().maxCount(1)), "portal_gun");
+
+
     public static Item register(Item item, String id) {
         Identifier itemID = Identifier.of(Tungtungmod.MOD_ID, id);
         Item registeredItem = Registry.register(Registries.ITEM, itemID, item);
@@ -29,7 +32,11 @@ public class ModItems {
 
     public static void initialize() {
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.FOOD_AND_DRINK)
-            .register((itemGroup) -> itemGroup.add(ModItems.Sausage)); }
+            .register((itemGroup) -> itemGroup.add(ModItems.Sausage));
+
+        ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS)
+                .register((itemGroup) -> itemGroup.add(ModItems.PortalGun));
+    }
 
 
 }
