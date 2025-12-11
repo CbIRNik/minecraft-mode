@@ -1,6 +1,6 @@
 package com.tungtung.Blocks;
 
-import com.tungtung.Tungtungmod;
+import com.tungtung.InfDimMod;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
@@ -45,7 +45,7 @@ public class ModBlocks {
 
     public static Block register(Block block, String name, boolean shouldRegisterItem) {
 
-        Identifier id = Identifier.of(Tungtungmod.MOD_ID, name);
+        Identifier id = Identifier.of(InfDimMod.MOD_ID, name);
 
 
         if (shouldRegisterItem) {

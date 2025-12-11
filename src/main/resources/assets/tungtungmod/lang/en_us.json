@@ -4,5 +4,6 @@
   "block.tungtungmod.sausage_block": "Sausage block",
   "block.tungtungmod.mystic_portal_frame": "Mystic Portal Frame",
   "block.tungtungmod.mystic_portal": "Mystic Portal",
-  "item.tungtungmod.portal_gun": "Portal gun"
+  "item.tungtungmod.portal_gun": "Portal gun",
+  "itemGroup.idm": "InfDimMod"
 }

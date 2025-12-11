@@ -1,6 +1,6 @@
 {
 	"schemaVersion": 1,
-	"id": "infdimmod",
+	"id": "tungtungmod",
 	"version": "${version}",
 	"name": "Infinite dimensions",
 	"description": "modsahur",
@@ -16,7 +16,7 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"com.tungtung.Tungtungmod"
+          "com.tungtung.InfDimMod"
 		],
 		"client": [
 			"com.tungtung.TungtungmodClient"

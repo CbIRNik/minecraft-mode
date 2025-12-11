@@ -4,5 +4,6 @@
   "block.tungtungmod.sausage_block": "Блок сосисок",
   "block.tungtungmod.mystic_portal_frame": "Рамка мистического портала",
   "block.tungtungmod.mystic_portal": "Мистический портал",
-  "item.tungtungmod.portal_gun": "Портальная пушка"
+  "item.tungtungmod.portal_gun": "Портальная пушка",
+  "itemGroup.idm": "InfDimMod"
 }
