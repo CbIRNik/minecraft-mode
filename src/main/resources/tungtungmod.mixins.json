@@ -1,9 +1,9 @@
 {
 	"required": true,
-	"package": "com.tungtung.mixin",
+	"package": "com.infdimmod.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
-      "tungMixin"
+      "infdimmodMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

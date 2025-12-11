@@ -1,0 +1,9 @@
+{
+  "item.infdimmod.sausage": "Сосиска",
+  "itemTooltip.infdimmod.sausage": "Вкусно!",
+  "block.infdimmod.sausage_block": "Блок сосисок",
+  "block.infdimmod.mystic_portal_frame": "Рамка мистического портала",
+  "block.infdimmod.mystic_portal": "Мистический портал",
+  "item.infdimmod.portal_gun": "Портальная пушка",
+  "itemGroup.idm": "InfDimMod"
+}

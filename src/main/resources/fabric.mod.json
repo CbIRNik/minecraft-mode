@@ -1,6 +1,6 @@
 {
 	"schemaVersion": 1,
-	"id": "tungtungmod",
+	"id": "infdimmod",
 	"version": "${version}",
 	"name": "Infinite dimensions",
 	"description": "modsahur",
@@ -12,20 +12,20 @@
 		"sources": "https://github.com/CbIRNik/minecraft-mode"
 	},
 	"license": "CC0-1.0",
-	"icon": "assets/tungtungmod/icon.png",
+	"icon": "assets/infdimmod/icon.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-          "com.tungtung.InfDimMod"
+          "com.infdimmod.InfDimMod"
 		],
 		"client": [
-			"com.tungtung.TungtungmodClient"
+          "com.infdimmod.InfDimModClient"
 		]
 	},
 	"mixins": [
 		"tungtungmod.mixins.json",
 		{
-			"config": "tungtungmod.client.mixins.json",
+			"config": "infdimmod.client.mixins.json",
 			"environment": "client"
 		}
 	],

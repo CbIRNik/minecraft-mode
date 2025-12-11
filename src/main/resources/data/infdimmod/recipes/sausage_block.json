@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "infdimmod:sausage",
+    "infdimmod:sausage",
+    "infdimmod:sausage",
+    "infdimmod:sausage",
+    "infdimmod:sausage",
+    "infdimmod:sausage",
+    "infdimmod:sausage",
+    "infdimmod:sausage",
+    "infdimmod:sausage"
+  ],
+  "result": {
+    "id": "infdimmod:sausage_block",
+    "count": 1
+  }
+}
+
+
+
+
+

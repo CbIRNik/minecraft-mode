@@ -1,0 +1,9 @@
+{
+  "item.infdimmod.sausage": "Sausage",
+  "itemTooltip.infdimmod.sausage": "Tasty!",
+  "block.infdimmod.sausage_block": "Sausage block",
+  "block.infdimmod.mystic_portal_frame": "Mystic Portal Frame",
+  "block.infdimmod.mystic_portal": "Mystic Portal",
+  "item.infdimmod.portal_gun": "Portal gun",
+  "itemGroup.idm": "InfDimMod"
+}
