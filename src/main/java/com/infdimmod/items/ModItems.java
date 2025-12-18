@@ -13,6 +13,7 @@ import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Rarity;
 
 import static com.infdimmod.items.custom.Sosiska.Sosiska;
 
@@ -27,7 +28,7 @@ public class ModItems {
 
     public static final Item Sausage = register(new Item(new Item.Settings().food(Sosiska)), "sausage");
 
-    public static final Item PortalGun = register(new Item (new Item.Settings().maxCount(1)), "portal_gun");
+    public static final Item PortalGun = register(new Item (new Item.Settings().maxCount(1).fireproof().rarity(Rarity.EPIC)), "portal_gun");
 
 
     public static Item register(Item item, String id) {
