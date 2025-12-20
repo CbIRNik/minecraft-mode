@@ -38,8 +38,7 @@ public class ModItems {
 
     public static Item register(Item item, String id) {
         Identifier itemID = Identifier.of(InfDimMod.MOD_ID, id);
-        Item registeredItem = Registry.register(Registries.ITEM, itemID, item);
-        return registeredItem;
+        return Registry.register(Registries.ITEM, itemID, item);
     }
 
 
