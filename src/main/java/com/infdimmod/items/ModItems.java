@@ -33,6 +33,8 @@ public class ModItems {
 
     public static final Item PortalFluid = register(new Item (new Item.Settings().maxCount(1).fireproof().rarity(Rarity.RARE)), "portal_fluid");
 
+    public static final Item UnloadedPortalGun = register(new Item (new Item.Settings().maxCount(1).fireproof().rarity(Rarity.RARE)), "portal_unloaded_gun");
+
 
     public static Item register(Item item, String id) {
         Identifier itemID = Identifier.of(InfDimMod.MOD_ID, id);
@@ -44,13 +46,14 @@ public class ModItems {
     public static void initialize() {
 
         Registry.register(Registries.ITEM_GROUP, MODGROUPKEY, MODGROUP);
-        ItemGroupEvents.modifyEntriesEvent(MODGROUPKEY).register(itemGroup -> {
+        ItemGroupEvents.modifyEntriesEvent(MODGROUPKEY).register(itemGroup ->
+        {
             itemGroup.add(ModItems.Sausage);
             itemGroup.add(ModBlocks.SausageBlock);
             itemGroup.add(ModItems.PortalGun);
+            itemGroup.add(ModItems.PortalFluid);
+            itemGroup.add(ModItems.UnloadedPortalGun);
         });
     }
-
-
 }
 
