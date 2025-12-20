@@ -3,6 +3,7 @@ package com.infdimmod.items;
 
 import com.infdimmod.Blocks.ModBlocks;
 import com.infdimmod.InfDimMod;
+import com.infdimmod.items.custom.PortalGun;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.item.Item;
@@ -28,7 +29,9 @@ public class ModItems {
 
     public static final Item Sausage = register(new Item(new Item.Settings().food(Sosiska)), "sausage");
 
-    public static final Item PortalGun = register(new Item (new Item.Settings().maxCount(1).fireproof().rarity(Rarity.EPIC)), "portal_gun");
+    public static final Item PortalGun = register(new PortalGun(new Item.Settings().maxCount(1).fireproof().rarity(Rarity.EPIC)), "portal_gun");
+
+    public static final Item PortalFluid = register(new Item (new Item.Settings().maxCount(1).fireproof().rarity(Rarity.RARE)), "portal_fluid");
 
 
     public static Item register(Item item, String id) {

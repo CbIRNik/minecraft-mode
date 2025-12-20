@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SSS",
+    "SSS",
+    "SSS"
+  ],
+  "key": {
+    "S": {
+      "id": "minecraft:paper"
+    }
+  },
+  "result": {
+    "id": "minecraft:redstone",
+    "count": 1
+  }
+}
+
+

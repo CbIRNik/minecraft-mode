@@ -16,21 +16,14 @@ public class PortalGun extends Item {
     }
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
-        // Ensure we don't spawn the lightning only on the client.
-        // This is to prevent desync.
         if (world.isClient) {
             return TypedActionResult.pass(user.getStackInHand(hand));
         }
-
         BlockPos frontOfPlayer = user.getBlockPos().offset(user.getHorizontalFacing(), 10);
-
-        // Spawn the lightning bolt.
         LightningEntity lightningBolt = new LightningEntity(EntityType.LIGHTNING_BOLT, world);
         lightningBolt.setPosition(frontOfPlayer.toCenterPos());
         world.spawnEntity(lightningBolt);
 
-        // Nothing has changed to the item stack,
-        // so we just return it how it was.
         return TypedActionResult.success(user.getStackInHand(hand));
     }
 
