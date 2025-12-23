@@ -33,7 +33,7 @@ public class ModItems {
 
     public static final Item PortalFluid = register(new Item (new Item.Settings().maxCount(1).fireproof().rarity(Rarity.RARE)), "portal_fluid");
 
-    public static final Item UnloadedPortalGun = register(new Item (new Item.Settings().maxCount(1).fireproof().rarity(Rarity.RARE)), "portal_unloaded_gun");
+    public static final Item UnloadedPortalGun = register(new Item (new Item.Settings().maxCount(1).fireproof().rarity(Rarity.EPIC)), "unloaded_portal_gun");
 
 
     public static Item register(Item item, String id) {
