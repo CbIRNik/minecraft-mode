@@ -27,7 +27,7 @@ public class ModItems {
             .build();
 
     public static final Item Sausage = register(new Item(new Item.Settings().food(Sosiska)), "sausage");
-    public static final Item PortalGun = register(new PortalGun(new Item.Settings().maxCount(1).fireproof().rarity(Rarity.EPIC)), "portal_gun");
+    public static final Item PortalGun = register(new PortalGun(new Item.Settings().maxCount(1).maxDamage(420).fireproof().rarity(Rarity.EPIC)), "portal_gun");
     public static final Item PortalFluid = register(new Item (new Item.Settings().maxCount(1).fireproof().rarity(Rarity.RARE)), "portal_fluid");
     public static final Item UnloadedPortalGun = register(new Item (new Item.Settings().maxCount(1).fireproof().rarity(Rarity.EPIC)), "unloaded_portal_gun");
 
