@@ -1,10 +1,11 @@
 package com.infdimmod;
 
+import com.infdimmod.items.custom.PortalGunClient;
 import net.fabricmc.api.ClientModInitializer;
 
 public class InfDimModClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
-		// This entrypoint is suitable for setting up client-specific logic, such as rendering.
+        PortalGunClient.registerModelPredicates();
 	}
 }

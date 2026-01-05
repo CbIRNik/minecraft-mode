@@ -150,8 +150,8 @@
 			}
 		},
 		{
-			"from": [6.5, 14, 8],
-			"to": [9.5, 20, 11],
+			"from": [6.5, 12.35, 8],
+			"to": [9.5, 18.35, 11],
 			"rotation": {"angle": 0, "axis": "y", "origin": [7, 14, 8]},
 			"faces": {
 				"north": {"uv": [9.5, 0, 10, 1.25], "texture": "#1"},
@@ -209,25 +209,5 @@
 			"translation": [-3, -0.5, -2.75],
 			"scale": [0.8, 0.8, 0.8]
 		}
-	},
-  "overrides": [
-    {
-      "predicate": {
-        "infdimmod:broken_state": 0.7
-      },
-      "model": "infdimmod:item/portal_gun_33"
-    },
-    {
-      "predicate": {
-        "infdimmod:broken_state": 0.8
-      },
-      "model": "infdimmod:item/portal_gun_66"
-    },
-    {
-      "predicate": {
-        "infdimmod:broken_state": 1.0
-      },
-      "model": "infdimmod:item/unloaded_portal_gun"
-    }
-  ]
+	}
 }

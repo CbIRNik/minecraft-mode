@@ -29,7 +29,6 @@ public class ModItems {
     public static final Item Sausage = register(new Item(new Item.Settings().food(Sosiska)), "sausage");
     public static final Item PortalGun = register(new PortalGun(new Item.Settings().maxCount(1).maxDamage(420).fireproof().rarity(Rarity.EPIC)), "portal_gun");
     public static final Item PortalFluid = register(new Item (new Item.Settings().maxCount(1).fireproof().rarity(Rarity.RARE)), "portal_fluid");
-    public static final Item UnloadedPortalGun = register(new Item (new Item.Settings().maxCount(1).fireproof().rarity(Rarity.EPIC)), "unloaded_portal_gun");
 
     public static Item register(Item item, String id) {
         Identifier itemID = Identifier.of(InfDimMod.MOD_ID, id);
@@ -46,7 +45,6 @@ public class ModItems {
             itemGroup.add(ModBlocks.SausageBlock);
             itemGroup.add(ModItems.PortalGun);
             itemGroup.add(ModItems.PortalFluid);
-            itemGroup.add(ModItems.UnloadedPortalGun);
         });
     }
 }
