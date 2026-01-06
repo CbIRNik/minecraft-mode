@@ -6,12 +6,20 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
+import java.util.*;
+
 public class PortalGun extends Item {
+    // Храним информацию о поставленных блоках: мир -> список позиций с временем
+    private static final Map<RegistryKey<World>, Map<BlockPos, Long>> placedBlocks = new HashMap<>();
+
     public PortalGun(Settings settings){
         super(settings.maxDamage(420));
     }
@@ -51,13 +59,70 @@ public class PortalGun extends Item {
                 // Ставим блоки
                 world.setBlockState(posAbove, Blocks.STONE.getDefaultState());
                 world.setBlockState(posAbove.up(), Blocks.STONE.getDefaultState());
+                // Сохраняем информацию о поставленных блоках
+                savePlacedBlocks(world, posAbove, posAbove.up());
                 // Устанавливаем перезарядку на 0.5 секунды
                 player.getItemCooldownManager().set(this, 10);
-
+                // Запускаем проверку удаления блоков (асинхронно через планировщик)
+                scheduleBlockRemoval(world);
                 return ActionResult.SUCCESS;
             }
         }
         return ActionResult.PASS;
+    }
+    // Метод для сохранения информации о поставленных блоках
+    private void savePlacedBlocks(World world, BlockPos... positions) {
+        RegistryKey<World> worldKey = world.getRegistryKey();
+        long removalTime = world.getTime() + 80; // 4 секунды = 80 тиков
+        // Получаем или создаем мапу для этого мира
+        Map<BlockPos, Long> worldBlocks = placedBlocks.getOrDefault(worldKey, new HashMap<>());
+        // Добавляем блоки с временем удаления
+        for (BlockPos pos : positions) {
+            worldBlocks.put(pos.toImmutable(), removalTime);
+        }
+        placedBlocks.put(worldKey, worldBlocks);
+    }
+    // Метод для планирования удаления блоков
+    private void scheduleBlockRemoval(World world) {
+        if (world instanceof ServerWorld serverWorld) {
+            // Используем планировщик мира для проверки через 4 секунды
+            serverWorld.getServer().execute(() -> {
+                checkAndRemoveBlocks(serverWorld.getServer());
+            });
+        }
+    }
+    // Метод для проверки и удаления блоков (должен вызываться на сервере)
+    public static void checkAndRemoveBlocks(MinecraftServer server) {
+        for (Map.Entry<RegistryKey<World>, Map<BlockPos, Long>> worldEntry : placedBlocks.entrySet()) {
+            RegistryKey<World> worldKey = worldEntry.getKey();
+            Map<BlockPos, Long> blocks = worldEntry.getValue();
+            // Получаем мир по ключу
+            ServerWorld world = server.getWorld(worldKey);
+            if (world == null) continue;
+            // Проверяем каждый блок в этом мире
+            Map<BlockPos, Long> blocksToKeep = new HashMap<>();
+            for (Map.Entry<BlockPos, Long> blockEntry : blocks.entrySet()) {
+                BlockPos pos = blockEntry.getKey();
+                Long removalTime = blockEntry.getValue();
+                // Если время удаления наступило
+                if (world.getTime() >= removalTime) {
+                    // Удаляем блок, если он камень (чтобы не удалить случайно поставленные игроком блоки)
+                    BlockState state = world.getBlockState(pos);
+                    if (state.isOf(Blocks.STONE)) {
+                        world.setBlockState(pos, Blocks.AIR.getDefaultState());
+                    }
+                } else {
+                    // Сохраняем блок для будущей проверки
+                    blocksToKeep.put(pos, removalTime);
+                }
+            }
+            // Обновляем список блоков для этого мира
+            if (blocksToKeep.isEmpty()) {
+                placedBlocks.remove(worldKey);
+            } else {
+                placedBlocks.put(worldKey, blocksToKeep);
+            }
+        }
     }
     // Метод для проверки, сломан ли предмет
     public boolean isItemBroken(ItemStack stack) {
