@@ -1,5 +1,6 @@
 package com.infdimmod.Blocks;
 
+import com.infdimmod.Blocks.custom.Gunportal;
 import com.infdimmod.InfDimMod;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.block.AbstractBlock;
@@ -19,7 +20,18 @@ public class ModBlocks {
             "sausage_block",
             true
     );
-
+    public static final Block GUNPORTAL_TOP = register(
+            new Gunportal(AbstractBlock.Settings.create()
+                    .mapColor(MapColor.LIME)),
+            "gunportal_top",
+            false
+    );
+    public static final Block GUNPORTAL_BOTTOM = register(
+            new Gunportal(AbstractBlock.Settings.create()
+                    .mapColor(MapColor.LIME)),
+            "gunportal_bottom",
+            false
+    );
     public static final Block MYSTIC_PORTAL_FRAME = register(
             new MysticPortalFrameBlock(AbstractBlock.Settings.create()
                     .mapColor(MapColor.PURPLE)
@@ -29,7 +41,6 @@ public class ModBlocks {
             "mystic_portal_frame",
             true
     );
-
     public static final Block MYSTIC_PORTAL = register(
             new MysticPortalBlock(AbstractBlock.Settings.create()
                     .mapColor(MapColor.PURPLE)
@@ -40,8 +51,6 @@ public class ModBlocks {
             "mystic_portal",
             false
     );
-
-
 
     public static Block register(Block block, String name, boolean shouldRegisterItem) {
 

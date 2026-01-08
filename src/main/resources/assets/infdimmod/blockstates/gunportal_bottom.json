@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "portal_direction=north_south": {
+      "model": "infdimmod:block/gunportal_bottom_north_south"
+    },
+    "portal_direction=east_west": {
+      "model": "infdimmod:block/gunportal_bottom_east_west"
+    }
+  }
+}

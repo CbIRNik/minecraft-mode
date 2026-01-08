@@ -1,0 +1,20 @@
+{
+  "parent": "block/block",
+  "textures": {
+    "portal": "infdimmod:block/gunportal_top"
+  },
+  "elements": [
+    {
+      "from": [0, 0, 7.5],
+      "to": [16, 16, 8.5],
+      "faces": {
+        "north": {"uv": [0, 0, 16, 16], "texture": "#portal", "rotation": 180},
+        "south": {"uv": [0, 0, 16, 16], "texture": "#portal"},
+        "up": {"uv": [0, 0, 16, 1], "texture": "#portal"},
+        "down": {"uv": [0, 0, 16, 1], "texture": "#portal"},
+        "west": {"uv": [0, 0, 1, 16], "texture": "#portal"},
+        "east": {"uv": [0, 0, 1, 16], "texture": "#portal"}
+      }
+    }
+  ]
+}

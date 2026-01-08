@@ -1,5 +1,7 @@
 package com.infdimmod.items.custom;
 
+import com.infdimmod.Blocks.ModBlocks;
+import com.infdimmod.Blocks.custom.Gunportal;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.player.PlayerEntity;
@@ -12,6 +14,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 
 import java.util.*;
@@ -19,7 +22,6 @@ import java.util.*;
 public class PortalGun extends Item {
     // Храним информацию о поставленных блоках: мир -> список позиций с временем
     private static final Map<RegistryKey<World>, Map<BlockPos, Long>> placedBlocks = new HashMap<>();
-
     public PortalGun(Settings settings){
         super(settings.maxDamage(420));
     }
@@ -56,9 +58,17 @@ public class PortalGun extends Item {
                     // Устанавливаем новое значение повреждения
                     stack.setDamage(newDamage);
                 }
+                // Определяем направление портала на основе направления игрока
+                Direction playerFacing = player.getHorizontalFacing();
+                Gunportal.PortalDirection portalDir;
+                if (playerFacing == Direction.NORTH || playerFacing == Direction.SOUTH) {
+                    portalDir = Gunportal.PortalDirection.NORTH_SOUTH;
+                } else {
+                    portalDir = Gunportal.PortalDirection.EAST_WEST;
+                }
                 // Ставим блоки
-                world.setBlockState(posAbove, Blocks.STONE.getDefaultState());
-                world.setBlockState(posAbove.up(), Blocks.STONE.getDefaultState());
+                world.setBlockState(posAbove, ModBlocks.GUNPORTAL_BOTTOM.getDefaultState().with(Gunportal.PORTAL_DIRECTION, portalDir));
+                world.setBlockState(posAbove.up(), ModBlocks.GUNPORTAL_TOP.getDefaultState().with(Gunportal.PORTAL_DIRECTION, portalDir));
                 // Сохраняем информацию о поставленных блоках
                 savePlacedBlocks(world, posAbove, posAbove.up());
                 // Устанавливаем перезарядку на 0.5 секунды
@@ -106,11 +116,8 @@ public class PortalGun extends Item {
                 Long removalTime = blockEntry.getValue();
                 // Если время удаления наступило
                 if (world.getTime() >= removalTime) {
-                    // Удаляем блок, если он камень (чтобы не удалить случайно поставленные игроком блоки)
-                    BlockState state = world.getBlockState(pos);
-                    if (state.isOf(Blocks.STONE)) {
-                        world.setBlockState(pos, Blocks.AIR.getDefaultState());
-                    }
+                    //удаляем портал
+                    world.setBlockState(pos, Blocks.AIR.getDefaultState());
                 } else {
                     // Сохраняем блок для будущей проверки
                     blocksToKeep.put(pos, removalTime);
