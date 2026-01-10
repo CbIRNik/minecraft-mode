@@ -1,20 +1,19 @@
 {
-  "type": "minecraft:crafting_shaped",
+  "type": "minecraft:crafting_shapeless",
   "category": "misc",
-  "pattern": [
-    "SSS",
-    "SSS",
-    "SSS"
+  "ingredients": [
+    {"item": "minecraft:paper"},
+    {"item": "minecraft:paper"},
+    {"item": "minecraft:paper"},
+    {"item": "minecraft:paper"},
+    {"item": "minecraft:paper"},
+    {"item": "minecraft:paper"},
+    {"item": "minecraft:paper"},
+    {"item": "minecraft:paper"},
+    {"item": "minecraft:paper"}
   ],
-  "key": {
-    "S": {
-      "id": "minecraft:paper"
-    }
-  },
   "result": {
     "id": "minecraft:redstone",
     "count": 1
   }
 }
-
-

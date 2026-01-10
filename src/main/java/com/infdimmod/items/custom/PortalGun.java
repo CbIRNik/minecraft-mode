@@ -156,8 +156,8 @@ public class PortalGun extends Item {
 
     private boolean canPlaceBlock(World world, BlockPos pos) {
         BlockState state = world.getBlockState(pos);
-        return state.isAir() ||
-                state.isReplaceable() ||
+        return (state.isAir() ||
+                state.isReplaceable()) &&
                 !state.isFullCube(world, pos);
     }
 }
