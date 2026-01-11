@@ -6,6 +6,5 @@
   "block.infdimmod.mystic_portal": "Mystic Portal",
   "item.infdimmod.portal_gun": "Portal gun",
   "itemGroup.idm": "InfDimMod",
-  "item.infdimmod.portal_fluid": "Portal fluid",
-  "item.infdimmod.unloaded_portal_gun": "Unloaded portal gun"
+  "item.infdimmod.portal_fluid": "Portal fluid"
 }

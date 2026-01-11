@@ -1,5 +1,4 @@
 package com.infdimmod.items;
-//ПЭПЭ
 
 import com.infdimmod.Blocks.ModBlocks;
 import com.infdimmod.InfDimMod;

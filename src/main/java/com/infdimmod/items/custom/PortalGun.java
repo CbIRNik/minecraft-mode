@@ -1,5 +1,5 @@
 package com.infdimmod.items.custom;
-//ПЭПЭ
+
 import com.infdimmod.Blocks.ModBlocks;
 import com.infdimmod.Blocks.custom.Gunportal;
 import net.minecraft.block.BlockState;
@@ -158,6 +158,8 @@ public class PortalGun extends Item {
         BlockState state = world.getBlockState(pos);
         return (state.isAir() ||
                 state.isReplaceable()) &&
+                state.getBlock()!= ModBlocks.GUNPORTAL_TOP &&
+                state.getBlock()!= ModBlocks.GUNPORTAL_BOTTOM &&
                 !state.isFullCube(world, pos);
     }
 }
