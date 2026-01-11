@@ -22,7 +22,7 @@ public class PortalFluid extends Item {
         if (hand != Hand.OFF_HAND) {
             return TypedActionResult.pass(stack);
         }
-        // Изменения предметов выполняем только на сервере. Клиенту возвращаем pass,
+        //  Изменения предметов выполняем только на сервере. Клиенту возвращаем pass,
         // чтобы сервер позже отправил актуальное состояние предметов.
         if (world.isClient) {
             return TypedActionResult.pass(stack);
@@ -36,7 +36,7 @@ public class PortalFluid extends Item {
         // Получаем идентификатор предмета в правой руке для проверки типа предмета
         Identifier id = Registries.ITEM.getId(mainHand.getItem());
         // Если идентификатор не найден или путь не совпадает с portal_gun -> пропускаем
-        if (id == null || !"portal_gun".equals(id.getPath())) {
+        if (!"portal_gun".equals(id.getPath())) {
             return TypedActionResult.pass(stack);
         }
         // Если portal_gun действительно повреждён, восстанавливаем его прочность
