@@ -42,8 +42,14 @@ public class PortalFluid extends Item {
         // Если portal_gun действительно повреждён, восстанавливаем его прочность
         if (mainHand.isDamaged()) {
             mainHand.setDamage(0); // Сброс повреждения -> максимальная прочность
-            // Возвращаем успех, чтобы действие было заметно (анимация/звуки клиенту и т.д.)
-            return TypedActionResult.success(stack);
+
+            // В творчестве предметы не тратятся; проверяем через abilities.creativeMode
+            if (!user.getAbilities().creativeMode) {
+                stack.decrement(1); // уменьшаем количество portal_fluid в offhand на 1
+            }
+            if (!stack.isEmpty()) {
+                stack.setDamage(0);
+            }
         }
         // Если нет повреждений — нечего делать
         return TypedActionResult.pass(stack);
