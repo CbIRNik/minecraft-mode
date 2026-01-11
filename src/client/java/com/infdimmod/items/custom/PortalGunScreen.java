@@ -25,7 +25,7 @@ public class PortalGunScreen extends Screen {
 
         // Создаем текстовое поле для ввода кода
         this.codeInput = new TextFieldWidget(this.textRenderer, this.width / 2 - 75, this.height / 2 - 30, 150, 20, Text.literal("Code"));
-        this.codeInput.setMaxLength(32);
+        this.codeInput.setMaxLength(8);
         this.addDrawableChild(this.codeInput);
         this.setFocused(this.codeInput);
 
