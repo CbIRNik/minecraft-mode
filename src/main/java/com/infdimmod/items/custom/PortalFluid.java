@@ -15,43 +15,23 @@ public class PortalFluid extends Item {
     }
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
-        // Текущий стек, которым игрок пытается воспользоваться
         ItemStack stack = user.getStackInHand(hand);
-        // Требуется именно левая рука (offhand): действие срабатывает при клике правой кнопкой,
-        // держа portal_fluid в offhand. Если это не offhand, ничего не делаем.
-        if (hand != Hand.OFF_HAND) {
-            return TypedActionResult.pass(stack);
-        }
-        //  Изменения предметов выполняем только на сервере. Клиенту возвращаем pass,
-        // чтобы сервер позже отправил актуальное состояние предметов.
         if (world.isClient) {
             return TypedActionResult.pass(stack);
         }
-        // Берём предмет из правой руки — ожидаем portal_gun
-        ItemStack mainHand = user.getMainHandStack();
-        if (mainHand.isEmpty()) {
-            // Правой руки нет -> ничего восстанавливать
+        ItemStack otherHand = user.getMainHandStack();
+        if (hand == Hand.MAIN_HAND) {
+            otherHand = user.getOffHandStack();
+        }
+        if (otherHand.isEmpty()) {
             return TypedActionResult.pass(stack);
         }
-        // Получаем идентификатор предмета в правой руке для проверки типа предмета
-        Identifier id = Registries.ITEM.getId(mainHand.getItem());
-        // Если идентификатор не найден или путь не совпадает с portal_gun -> пропускаем
-        if (!"portal_gun".equals(id.getPath())) {
-            return TypedActionResult.pass(stack);
-        }
-        // Если portal_gun действительно повреждён, восстанавливаем его прочность
-        if (mainHand.isDamaged()) {
-            mainHand.setDamage(0); // Сброс повреждения -> максимальная прочность
-
-            // В творчестве предметы не тратятся; проверяем через abilities.creativeMode
+        if (("portal_gun".equals(Registries.ITEM.getId(otherHand.getItem()).getPath()))&&(otherHand.getDamage()>0)) {
+            otherHand.setDamage(0);
             if (!user.getAbilities().creativeMode) {
-                stack.decrement(1); // уменьшаем количество portal_fluid в offhand на 1
-            }
-            if (!stack.isEmpty()) {
-                stack.setDamage(0);
+                stack.decrement(1);
             }
         }
-        // Если нет повреждений — нечего делать
         return TypedActionResult.pass(stack);
     }
 }
