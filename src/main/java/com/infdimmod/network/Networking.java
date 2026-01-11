@@ -12,4 +12,14 @@ public class Networking {
     public static PacketByteBuf makeBuffer() {
         return new PacketByteBuf(Unpooled.buffer());
     }
+
+    public static void registerServer() {
+        // Регистрируем пакеты в реестре (только серверные)
+        PayloadRegistry.registerServer();
+
+        // Регистрируем обработчики
+        SetPortalGunCodePayload.register();
+        PlayerConnectionHandler.register();
+    }
 }
+

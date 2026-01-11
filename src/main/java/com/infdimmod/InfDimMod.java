@@ -20,5 +20,6 @@ public class InfDimMod implements ModInitializer {
         ModBlocks.initialize();
         ModDimensions.initialize();
         PortalGunTickHandler.register();
+        Networking.registerServer();
 	}
 }
