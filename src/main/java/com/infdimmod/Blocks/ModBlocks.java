@@ -1,11 +1,13 @@
 package com.infdimmod.Blocks;
 
 import com.infdimmod.Blocks.custom.Gunportal;
+import com.infdimmod.Blocks.custom.PortalFluidBlock;
 import com.infdimmod.InfDimMod;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
-import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.MapColor;
+import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
+import net.minecraft.block.*;
+import net.minecraft.fluid.FlowableFluid;
+import net.minecraft.fluid.WaterFluid;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroups;
@@ -15,6 +17,18 @@ import net.minecraft.sound.BlockSoundGroup;
 import net.minecraft.util.Identifier;
 
 public class ModBlocks {
+
+    public static final FlowableFluid STILL_CUSTOM_FLUID = register("custom_fluid", new PortalFluidBlock.Still());
+
+    public static final FlowableFluid FLOWING_CUSTOM_FLUID = register("custom_fluid_flowing", new PortalFluidBlock.Flowing());
+
+    public static final Block CUSTOM_FLUID_BLOCK = register(
+            new FluidBlock(STILL_CUSTOM_FLUID, AbstractBlock.Settings.copy(Blocks.WATER)
+                    .mapColor(MapColor.LIME)),
+            "fluid_block",
+            false
+    );
+
     public static final Block SausageBlock = register(
             new Block(AbstractBlock.Settings.create().sounds(BlockSoundGroup.NETHERRACK).strength(1.5f)),
             "sausage_block",
@@ -53,19 +67,17 @@ public class ModBlocks {
     );
 
     public static Block register(Block block, String name, boolean shouldRegisterItem) {
-
         Identifier id = Identifier.of(InfDimMod.MOD_ID, name);
-
-
         if (shouldRegisterItem) {
             BlockItem blockItem = new BlockItem(block, new Item.Settings());
             Registry.register(Registries.ITEM, id, blockItem);
         }
-
         return Registry.register(Registries.BLOCK, id, block);
     }
 
-
+    private static FlowableFluid register(String name, FlowableFluid fluid) {
+        return Registry.register(Registries.FLUID, Identifier.of(InfDimMod.MOD_ID, name), fluid);
+    }
 
     public static void initialize() {
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.FOOD_AND_DRINK).register((itemGroup) -> {
