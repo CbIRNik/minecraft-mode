@@ -5,19 +5,23 @@ import com.infdimmod.items.ModItems;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.FluidBlock;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.FlowableFluid;
 import net.minecraft.item.Item;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvent;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.StateManager;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.World;
-import net.minecraft.world.WorldAccess;
-import net.minecraft.world.WorldView;
+import net.minecraft.util.math.random.Random;
+import net.minecraft.world.*;
 
-public abstract class PortalFluidBlock extends FlowableFluid {
+import java.util.Optional;
+
+public abstract class PortalFluid extends FlowableFluid {
 
     @Override
     public Fluid getFlowing() {
@@ -36,24 +40,45 @@ public abstract class PortalFluidBlock extends FlowableFluid {
 
     @Override
     protected void beforeBreakingBlock(WorldAccess world, BlockPos pos, BlockState state) {
-        // выпадение предметов вроде редстоуна при смывании их жидкостью
-        Block.dropStacks(state, (World) world, pos);
+        BlockEntity blockEntity = state.hasBlockEntity() ? world.getBlockEntity(pos) : null;
+        Block.dropStacks(state, world, pos, blockEntity);
+    }
+
+    @Override
+    public void randomDisplayTick(World world, BlockPos pos, FluidState state, Random random) {
+        BlockPos blockPos = pos.up();
+        if (world.getBlockState(blockPos).isAir() && !world.getBlockState(blockPos).isOpaqueFullCube(world, blockPos)) {
+            if (random.nextInt(100) == 0) {
+                double d = (double)pos.getX() + random.nextDouble();
+                double e = (double)pos.getY() + (double)1.0F;
+                double f = (double)pos.getZ() + random.nextDouble();
+                world.playSound(d, e, f, SoundEvents.BLOCK_LAVA_POP, SoundCategory.BLOCKS, 0.2F + random.nextFloat() * 0.2F, 0.9F + random.nextFloat() * 0.15F, false);
+            }
+            if (random.nextInt(200) == 0) {
+                world.playSound((double)pos.getX(), (double)pos.getY(), (double)pos.getZ(), SoundEvents.BLOCK_LAVA_AMBIENT, SoundCategory.BLOCKS, 0.2F + random.nextFloat() * 0.2F, 0.9F + random.nextFloat() * 0.15F, false);
+            }
+        }
+
+    }
+
+    @Override
+    public Optional<SoundEvent> getBucketFillSound() {
+        return Optional.of(SoundEvents.ITEM_BUCKET_FILL_LAVA);
     }
 
     @Override
     protected boolean canBeReplacedWith(FluidState state, BlockView world, BlockPos pos, Fluid fluid, Direction direction) {
-        // Разрешаем замену, если текущая жидкость находится выше или если это та же жидкость
         return direction == Direction.DOWN && !fluid.matchesType(this);
     }
 
     @Override
     protected int getLevelDecreasePerBlock(WorldView world) {
-        return 1;
+        return 2;
     }
 
     @Override
     public int getTickRate(WorldView world) {
-        return 5;
+        return 8;
     }
 
     @Override
@@ -63,15 +88,12 @@ public abstract class PortalFluidBlock extends FlowableFluid {
 
     @Override
     protected int getMaxFlowDistance(WorldView world) {
-        return 4;
+        return 2;
     }
 
     @Override
     protected BlockState toBlockState(FluidState state) {
-        // level 0 = полный блок, level 8 = пустота
-        int level = Math.max(0, 8 - state.getLevel() * 8 / 8);
-        return ModBlocks.CUSTOM_FLUID_BLOCK.getDefaultState()
-                .with(FluidBlock.LEVEL, level);
+        return ModBlocks.CUSTOM_FLUID_BLOCK.getDefaultState().with(FluidBlock.LEVEL, getBlockStateLevel(state));
     }
 
     @Override
@@ -89,18 +111,7 @@ public abstract class PortalFluidBlock extends FlowableFluid {
         return true;
     }
 
-
-
-    // Исправленный метод для получения уровня жидкости
-    public static int getBlockStateLevel(FluidState state) {
-        if (state.isStill()) {
-            return 8;
-        } else {
-            return state.get(LEVEL);
-        }
-    }
-
-    public static class Still extends PortalFluidBlock {
+    public static class Still extends PortalFluid {
 
         @Override
         public int getLevel(FluidState state) {
@@ -113,7 +124,7 @@ public abstract class PortalFluidBlock extends FlowableFluid {
         }
     }
 
-    public static class Flowing extends PortalFluidBlock {
+    public static class Flowing extends PortalFluid {
         @Override
         protected void appendProperties(StateManager.Builder<Fluid, FluidState> builder) {
             super.appendProperties(builder);

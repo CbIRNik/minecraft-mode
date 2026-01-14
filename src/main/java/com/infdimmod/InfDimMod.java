@@ -6,7 +6,6 @@ import com.infdimmod.items.custom.PortalGunTickHandler;
 import com.infdimmod.world.ModDimensions;
 import com.infdimmod.network.Networking;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

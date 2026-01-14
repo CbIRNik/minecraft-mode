@@ -1,13 +1,11 @@
 package com.infdimmod.Blocks;
 
 import com.infdimmod.Blocks.custom.Gunportal;
-import com.infdimmod.Blocks.custom.PortalFluidBlock;
+import com.infdimmod.Blocks.custom.PortalFluid;
 import com.infdimmod.InfDimMod;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
-import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.minecraft.block.*;
 import net.minecraft.fluid.FlowableFluid;
-import net.minecraft.fluid.WaterFluid;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroups;
@@ -18,12 +16,18 @@ import net.minecraft.util.Identifier;
 
 public class ModBlocks {
 
-    public static final FlowableFluid STILL_CUSTOM_FLUID = register("custom_fluid", new PortalFluidBlock.Still());
+    public static final FlowableFluid STILL_CUSTOM_FLUID = register("custom_fluid", new PortalFluid.Still());
 
-    public static final FlowableFluid FLOWING_CUSTOM_FLUID = register("custom_fluid_flowing", new PortalFluidBlock.Flowing());
+    public static final FlowableFluid FLOWING_CUSTOM_FLUID = register("custom_fluid_flowing", new PortalFluid.Flowing());
 
     public static final Block CUSTOM_FLUID_BLOCK = register(
-            new FluidBlock(STILL_CUSTOM_FLUID, AbstractBlock.Settings.copy(Blocks.WATER)
+            new FluidBlock(STILL_CUSTOM_FLUID, AbstractBlock.Settings.create()
+                    .mapColor(MapColor.LIME)
+                    .replaceable()
+                    .noCollision()
+                    .strength(100.0f)
+                    .dropsNothing()
+                    .nonOpaque()
                     .mapColor(MapColor.LIME)),
             "fluid_block",
             false

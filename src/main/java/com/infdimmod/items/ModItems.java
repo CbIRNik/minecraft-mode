@@ -1,9 +1,8 @@
 package com.infdimmod.items;
 
 import com.infdimmod.Blocks.ModBlocks;
-import com.infdimmod.Blocks.custom.PortalFluidBlock;
 import com.infdimmod.InfDimMod;
-import com.infdimmod.items.custom.PortalFluid;
+import com.infdimmod.items.custom.PortalFluidItem;
 import com.infdimmod.items.custom.PortalGun;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
@@ -30,14 +29,13 @@ public class ModItems {
 
     public static final Item Sausage = register(new Item(new Item.Settings().food(Sosiska)), "sausage");
     public static final Item PortalGun = register(new PortalGun(new Item.Settings().maxCount(1).maxDamage(420).fireproof().rarity(Rarity.EPIC)), "portal_gun");
-    public static final Item PortalFluid = register(new PortalFluid(new Item.Settings().maxCount(1).fireproof().rarity(Rarity.RARE)), "portal_fluid");
+    public static final Item PortalFluidItem = register(new PortalFluidItem(new Item.Settings().maxCount(1).fireproof().rarity(Rarity.RARE)), "portal_fluid_item");
     public static final Item PortalFluidBucket = register(new BucketItem(ModBlocks.STILL_CUSTOM_FLUID, new Item.Settings().maxCount(1)), "portal_fluid_bucket");
 
     public static Item register(Item item, String id) {
         Identifier itemID = Identifier.of(InfDimMod.MOD_ID, id);
         return Registry.register(Registries.ITEM, itemID, item);
     }
-
 
     public static void initialize() {
 
@@ -47,7 +45,8 @@ public class ModItems {
             itemGroup.add(ModItems.Sausage);
             itemGroup.add(ModBlocks.SausageBlock);
             itemGroup.add(ModItems.PortalGun);
-            itemGroup.add(ModItems.PortalFluid);
+            itemGroup.add(ModItems.PortalFluidItem);
+            itemGroup.add(ModItems.PortalFluidBucket);
         });
     }
 }

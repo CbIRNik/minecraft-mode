@@ -3,7 +3,6 @@ package com.infdimmod.network;
 import com.infdimmod.items.custom.PortalGunData;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.server.MinecraftServer;
 
 public class PlayerConnectionHandler {
     public static void register() {

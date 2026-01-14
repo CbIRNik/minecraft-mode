@@ -8,8 +8,8 @@ import net.minecraft.world.World;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 
-public class PortalFluid extends Item {
-    public PortalFluid(Settings settings) {
+public class PortalFluidItem extends Item {
+    public PortalFluidItem(Settings settings) {
         super(settings);
     }
     @Override
