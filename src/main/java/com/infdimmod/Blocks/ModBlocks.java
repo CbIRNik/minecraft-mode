@@ -2,6 +2,7 @@ package com.infdimmod.Blocks;
 
 import com.infdimmod.Blocks.custom.Gunportal;
 import com.infdimmod.Blocks.custom.PortalFluid;
+import com.infdimmod.Blocks.custom.PortalFluidBlock;
 import com.infdimmod.InfDimMod;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.block.*;
@@ -21,13 +22,14 @@ public class ModBlocks {
     public static final FlowableFluid FLOWING_CUSTOM_FLUID = register("custom_fluid_flowing", new PortalFluid.Flowing());
 
     public static final Block CUSTOM_FLUID_BLOCK = register(
-            new FluidBlock(STILL_CUSTOM_FLUID, AbstractBlock.Settings.create()
+            new PortalFluidBlock(STILL_CUSTOM_FLUID, AbstractBlock.Settings.create()
                     .mapColor(MapColor.LIME)
                     .replaceable()
                     .noCollision()
                     .strength(100.0f)
                     .dropsNothing()
                     .nonOpaque()
+                    .luminance(state -> 8)
                     .mapColor(MapColor.LIME)),
             "fluid_block",
             false

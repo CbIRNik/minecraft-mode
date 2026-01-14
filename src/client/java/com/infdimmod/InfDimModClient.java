@@ -1,5 +1,6 @@
 package com.infdimmod;
 
+import com.infdimmod.Blocks.ModBlocks;
 import com.infdimmod.items.ModItems;
 import com.infdimmod.items.custom.PortalGunClient;
 import com.infdimmod.items.custom.PortalGunScreen;
@@ -8,10 +9,13 @@ import com.infdimmod.network.ClientNetworking;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandlerRegistry;
+import net.fabricmc.fabric.api.client.render.fluid.v1.SimpleFluidRenderHandler;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
 
 public class InfDimModClient implements ClientModInitializer {
@@ -20,6 +24,19 @@ public class InfDimModClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
+
+        Identifier stillTextureId = Identifier.of(InfDimMod.MOD_ID, "block/custom_fluid");
+        Identifier flowingTextureId = Identifier.of(InfDimMod.MOD_ID, "block/custom_fluid_flowing");
+        // Регистрация рендера жидкости
+        FluidRenderHandlerRegistry.INSTANCE.register(
+                ModBlocks.STILL_CUSTOM_FLUID,
+                ModBlocks.FLOWING_CUSTOM_FLUID,
+                new SimpleFluidRenderHandler(
+                        stillTextureId,
+                        flowingTextureId
+                )
+        );
+
         PortalGunClient.registerModelPredicates();
         PortalGunHudRenderer.register();
         ClientNetworking.register();
