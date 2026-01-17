@@ -23,7 +23,7 @@
 		]
 	},
 	"mixins": [
-		"tungtungmod.mixins.json",
+		"infdimmod.mixins.json",
 		{
 			"config": "infdimmod.client.mixins.json",
 			"environment": "client"

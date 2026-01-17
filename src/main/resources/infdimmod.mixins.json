@@ -3,7 +3,8 @@
 	"package": "com.infdimmod.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
-      "infdimmodMixin"
+      "infdimmodMixin",
+	  "PortalFluidMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
