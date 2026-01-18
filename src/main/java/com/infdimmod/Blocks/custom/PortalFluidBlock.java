@@ -32,7 +32,7 @@ public class PortalFluidBlock extends FluidBlock {
 
             if (entity.groundCollision) {
                 Vec3d velocity = entity.getVelocity();
-                velocity = velocity.multiply(0.7f, 1.43f, 0.7f);
+                velocity = velocity.multiply(0.7f, 1.0f, 0.7f);
                 entity.setVelocity(velocity);
                 entity.velocityModified = true;
             }

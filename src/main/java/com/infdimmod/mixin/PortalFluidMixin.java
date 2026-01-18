@@ -6,6 +6,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.MovementType;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
@@ -33,7 +34,15 @@ public abstract class PortalFluidMixin extends Entity {
     @Inject(method = "travel", at = @At("HEAD"), cancellable = true)
     private void onTravel(Vec3d movementInput, CallbackInfo ci) {
         if (this.isSubmergedInCustomFluid()) {
+            if (self.isPlayer()) {
+                PlayerEntity player = (PlayerEntity) self;
+                if (!player.getAbilities().flying) {
+                    handleCustomFluidMovement(movementInput);
+                }
+            }
+            else {
             handleCustomFluidMovement(movementInput);
+            }
         }
     }
 
