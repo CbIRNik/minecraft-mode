@@ -20,6 +20,9 @@
 		],
 		"client": [
           "com.infdimmod.InfDimModClient"
+		],
+		"fabric-datagen": [
+			"com.infdimmod.datagen.InfDimModDataGenerator"
 		]
 	},
 	"mixins": [
