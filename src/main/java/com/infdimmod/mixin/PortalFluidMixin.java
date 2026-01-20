@@ -1,7 +1,10 @@
 package com.infdimmod.mixin;
 
 import com.infdimmod.Blocks.ModBlocks;
+import com.infdimmod.Blocks.custom.PortalFluid;
+import com.infdimmod.Blocks.custom.PortalFluidBlock;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.FluidBlock;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
@@ -27,39 +30,42 @@ public abstract class PortalFluidMixin extends Entity {
     @Shadow
     protected boolean jumping;
 
+    @Shadow
+    public abstract void jump();
+
     protected PortalFluidMixin(EntityType<?> type, World world) {
         super(type, world);
     }
 
     @Inject(method = "travel", at = @At("HEAD"), cancellable = true)
     private void onTravel(Vec3d movementInput, CallbackInfo ci) {
-        if (this.isSubmergedInCustomFluid()) {
+        if (this.isSubmergedInPortalFluid() && (this.getWorld().getBlockState(BlockPos.ofFloored(this.getX(), this.getY(), this.getZ())).getFluidState().getLevel() > 3)) {
             if (self.isPlayer()) {
                 PlayerEntity player = (PlayerEntity) self;
                 if (!player.getAbilities().flying) {
-                    handleCustomFluidMovement(movementInput);
+                    handlePortalFluidMovement(movementInput);
                 }
             }
             else {
-            handleCustomFluidMovement(movementInput);
+            handlePortalFluidMovement(movementInput);
             }
         }
     }
 
     @Unique
-    private boolean isSubmergedInCustomFluid() {
+    private boolean isSubmergedInPortalFluid() {
         BlockPos feetPos = BlockPos.ofFloored(this.getX(), this.getY(), this.getZ());
-        BlockPos headPos = BlockPos.ofFloored(this.getX(), this.getEyeY(), this.getZ());
+        BlockPos headPos = BlockPos.ofFloored(this.getX(), this.getY()+1, this.getZ());
         BlockState feetState = this.getWorld().getBlockState(feetPos);
         BlockState headState = this.getWorld().getBlockState(headPos);
-        return feetState.getFluidState().isOf(ModBlocks.STILL_CUSTOM_FLUID) ||
-                feetState.getFluidState().isOf(ModBlocks.FLOWING_CUSTOM_FLUID) ||
-                headState.getFluidState().isOf(ModBlocks.STILL_CUSTOM_FLUID) ||
-                headState.getFluidState().isOf(ModBlocks.FLOWING_CUSTOM_FLUID);
+        return headState.getFluidState().isOf(ModBlocks.STILL_PORTAL_FLUID) ||
+                feetState.getFluidState().isOf(ModBlocks.STILL_PORTAL_FLUID) ||
+                headState.getFluidState().isOf(ModBlocks.FLOWING_PORTAL_FLUID) ||
+                feetState.getFluidState().isOf(ModBlocks.FLOWING_PORTAL_FLUID);
     }
 
     @Unique
-    private void handleCustomFluidMovement(Vec3d movementInput) {
+    private void handlePortalFluidMovement(Vec3d movementInput) {
         LivingEntity entity = (LivingEntity)(Object)this;
         float dragCoefficient = 0.7f;
         float farch = 0.062f;

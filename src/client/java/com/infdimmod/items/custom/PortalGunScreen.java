@@ -1,12 +1,15 @@
 package com.infdimmod.items.custom;
 
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import com.infdimmod.items.custom.portalgun.PortalGun;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
-import com.infdimmod.network.SetPortalGunCodePayload;
+
+import static com.infdimmod.items.custom.PortalGunHudRenderer.setCurrentCode;
 
 public class PortalGunScreen extends Screen {
     private TextFieldWidget codeInput;
@@ -19,9 +22,14 @@ public class PortalGunScreen extends Screen {
     @Override
     protected void init() {
         super.init();
+        MinecraftClient client = MinecraftClient.getInstance();
 
-        // Загружаем текущий код из HUD
-        this.displayedCode = PortalGunHudRenderer.getCurrentCode();
+        if (client.player != null) {
+            ItemStack currentStack = client.player.getMainHandStack().copy();
+            if (currentStack.getItem() instanceof PortalGun) {
+                this.displayedCode = PortalGun.getPortalCode(currentStack);
+            }
+        }
 
         // Создаем текстовое поле для ввода кода
         this.codeInput = new TextFieldWidget(this.textRenderer, this.width / 2 - 75, this.height / 2 - 30, 150, 20, Text.literal("Code"));
@@ -48,10 +56,25 @@ public class PortalGunScreen extends Screen {
         String input = this.codeInput.getText();
         // Проверяем, что строка содержит только цифры и английские буквы
         if (input.matches("^[a-zA-Z0-9]*$") && !input.isEmpty()) {
-            this.displayedCode = input;
-            // Отправляем код на сервер
-            ClientPlayNetworking.send(new SetPortalGunCodePayload(input));
-            this.codeInput.setText("");
+            MinecraftClient client = MinecraftClient.getInstance();
+            if (client.player != null) {
+                ItemStack currentStack = client.player.getMainHandStack().copy();
+                if (currentStack.getItem() instanceof PortalGun) {
+                this.displayedCode = input;
+                setCurrentCode(input);
+
+                // Обновляем локальную копию
+                PortalGun.setPortalCode(currentStack, input);
+
+                //отправляем на сервер СДЕЛАТЬ СДЕЛАТЬ СДЕЛАТЬ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+                // Обновляем стек в руке игрока (клиентская сторона)
+                client.player.getInventory().main.set(
+                        client.player.getInventory().selectedSlot,
+                        currentStack.copy()
+                );
+                }
+            }
         }
     }
 

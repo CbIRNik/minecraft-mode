@@ -1,4 +1,4 @@
-package com.infdimmod.items.custom;
+package com.infdimmod.items.custom.portalgun;
 
 import com.infdimmod.Blocks.ModBlocks;
 import com.infdimmod.Blocks.custom.Gunportal;
@@ -8,15 +8,19 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
+import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 public class PortalGun extends Item {
@@ -161,5 +165,20 @@ public class PortalGun extends Item {
                 state.getBlock()!= ModBlocks.GUNPORTAL_TOP &&
                 state.getBlock()!= ModBlocks.GUNPORTAL_BOTTOM &&
                 !state.isFullCube(world, pos);
+    }
+
+    public static void setPortalCode(ItemStack stack, String code) {
+        stack.set(PortalGunCodeComponent.PORTALCODETYPE, new PortalGunCodeComponent(code));
+    }
+
+    public static String getPortalCode(ItemStack stack) {
+        PortalGunCodeComponent component = stack.get(PortalGunCodeComponent.PORTALCODETYPE);
+        return component != null ? component.portalcode() : "";
+    }
+
+    @Override
+    public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
+        tooltip.add(Text.translatable("itemTooltip.infdimmod.portal_gun").formatted(Formatting.GRAY));
+        tooltip.add(Text.of(getPortalCode(stack)));
     }
 }

@@ -2,10 +2,7 @@ package com.infdimmod;
 
 import com.infdimmod.Blocks.ModBlocks;
 import com.infdimmod.items.ModItems;
-import com.infdimmod.items.custom.PortalGunClient;
 import com.infdimmod.items.custom.PortalGunScreen;
-import com.infdimmod.items.custom.PortalGunHudRenderer;
-import com.infdimmod.network.ClientNetworking;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
@@ -25,21 +22,18 @@ public class InfDimModClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
 
-        Identifier stillTextureId = Identifier.of(InfDimMod.MOD_ID, "block/custom_fluid");
-        Identifier flowingTextureId = Identifier.of(InfDimMod.MOD_ID, "block/custom_fluid_flowing");
+        Identifier stillTextureId = Identifier.of(InfDimMod.MOD_ID, "block/portal_fluid");
+        Identifier flowingTextureId = Identifier.of(InfDimMod.MOD_ID, "block/portal_fluid_flowing");
         // Регистрация рендера жидкости
         FluidRenderHandlerRegistry.INSTANCE.register(
-                ModBlocks.STILL_CUSTOM_FLUID,
-                ModBlocks.FLOWING_CUSTOM_FLUID,
+                ModBlocks.STILL_PORTAL_FLUID,
+                ModBlocks.FLOWING_PORTAL_FLUID,
                 new SimpleFluidRenderHandler(
                         stillTextureId,
                         flowingTextureId
                 )
         );
 
-        PortalGunClient.registerModelPredicates();
-        PortalGunHudRenderer.register();
-        ClientNetworking.register();
 
         // Register keybinding (default B)
         openPortalGuiKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(

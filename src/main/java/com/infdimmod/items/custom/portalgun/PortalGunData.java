@@ -1,4 +1,4 @@
-package com.infdimmod.items.custom;
+package com.infdimmod.items.custom.portalgun;
 
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;

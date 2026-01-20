@@ -6,5 +6,8 @@
   "item.infdimmod.portal_gun": "Портальная пушка",
   "item.infdimmod.sausage": "Сосиска",
   "itemGroup.idm": "InfDimMod",
-  "itemTooltip.infdimmod.sausage": "Вкусно!"
+  "itemTooltip.infdimmod.sausage": "Вкусно!",
+  "itemTooltip.infdimmod.portal_gun": "Код измерения: ",
+  "key.infdimmod.open_portal_gui": "Открыть меню портальной пушки",
+  "category.infdimmod.controls": "InfDimMod"
 }

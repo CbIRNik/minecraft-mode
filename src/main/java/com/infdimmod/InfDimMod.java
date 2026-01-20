@@ -2,9 +2,8 @@ package com.infdimmod;
 
 import com.infdimmod.Blocks.ModBlocks;
 import com.infdimmod.items.ModItems;
-import com.infdimmod.items.custom.PortalGunTickHandler;
+import com.infdimmod.items.custom.portalgun.PortalGunTickHandler;
 import com.infdimmod.world.ModDimensions;
-import com.infdimmod.network.Networking;
 import net.fabricmc.api.ModInitializer;
 
 import org.slf4j.Logger;
@@ -19,6 +18,5 @@ public class InfDimMod implements ModInitializer {
         ModBlocks.initialize();
         ModDimensions.initialize();
         PortalGunTickHandler.register();
-        Networking.registerServer();
 	}
 }

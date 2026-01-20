@@ -1,4 +1,4 @@
-package com.infdimmod.items.custom;
+package com.infdimmod.items.custom.portalgun;
 
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 

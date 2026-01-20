@@ -1,6 +1,7 @@
 package com.infdimmod.items.custom;
 
 import com.infdimmod.items.ModItems;
+import com.infdimmod.items.custom.portalgun.PortalGun;
 import net.minecraft.client.item.ModelPredicateProviderRegistry;
 import net.minecraft.util.Identifier;
 

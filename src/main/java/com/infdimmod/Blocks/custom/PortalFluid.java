@@ -25,12 +25,12 @@ public abstract class PortalFluid extends FlowableFluid {
 
     @Override
     public Fluid getFlowing() {
-        return ModBlocks.FLOWING_CUSTOM_FLUID;
+        return ModBlocks.FLOWING_PORTAL_FLUID;
     }
 
     @Override
     public Fluid getStill() {
-        return ModBlocks.STILL_CUSTOM_FLUID;
+        return ModBlocks.STILL_PORTAL_FLUID;
     }
 
     @Override
@@ -93,7 +93,7 @@ public abstract class PortalFluid extends FlowableFluid {
 
     @Override
     protected BlockState toBlockState(FluidState state) {
-        return ModBlocks.CUSTOM_FLUID_BLOCK.getDefaultState().with(FluidBlock.LEVEL, getBlockStateLevel(state));
+        return ModBlocks.PORTAL_FLUID_BLOCK.getDefaultState().with(FluidBlock.LEVEL, getBlockStateLevel(state));
     }
 
     @Override

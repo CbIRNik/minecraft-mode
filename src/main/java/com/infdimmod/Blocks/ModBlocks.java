@@ -17,13 +17,12 @@ import net.minecraft.util.Identifier;
 
 public class ModBlocks {
 
-    public static final FlowableFluid STILL_CUSTOM_FLUID = register("custom_fluid", new PortalFluid.Still());
+    public static final FlowableFluid STILL_PORTAL_FLUID = register("portal_fluid", new PortalFluid.Still());
 
-    public static final FlowableFluid FLOWING_CUSTOM_FLUID = register("custom_fluid_flowing", new PortalFluid.Flowing());
+    public static final FlowableFluid FLOWING_PORTAL_FLUID = register("portal_fluid_flowing", new PortalFluid.Flowing());
 
-    public static final Block CUSTOM_FLUID_BLOCK = register(
-            new PortalFluidBlock(STILL_CUSTOM_FLUID, AbstractBlock.Settings.create()
-                    .mapColor(MapColor.LIME)
+    public static final Block PORTAL_FLUID_BLOCK = register(
+            new PortalFluidBlock(STILL_PORTAL_FLUID, AbstractBlock.Settings.create()
                     .replaceable()
                     .noCollision()
                     .strength(100.0f)
@@ -31,7 +30,7 @@ public class ModBlocks {
                     .nonOpaque()
                     .luminance(state -> 8)
                     .mapColor(MapColor.LIME)),
-            "fluid_block",
+            "portal_fluid_block",
             false
     );
 

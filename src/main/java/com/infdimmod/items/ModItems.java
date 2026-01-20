@@ -3,7 +3,8 @@ package com.infdimmod.items;
 import com.infdimmod.Blocks.ModBlocks;
 import com.infdimmod.InfDimMod;
 import com.infdimmod.items.custom.PortalFluidItem;
-import com.infdimmod.items.custom.PortalGun;
+import com.infdimmod.items.custom.portalgun.PortalGun;
+import com.infdimmod.items.custom.portalgun.PortalGunCodeComponent;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.item.BucketItem;
@@ -28,9 +29,14 @@ public class ModItems {
             .build();
 
     public static final Item Sausage = register(new Item(new Item.Settings().food(Sosiska)), "sausage");
-    public static final Item PortalGun = register(new PortalGun(new Item.Settings().maxCount(1).maxDamage(420).fireproof().rarity(Rarity.EPIC)), "portal_gun");
     public static final Item PortalFluidItem = register(new PortalFluidItem(new Item.Settings().maxCount(1).fireproof().rarity(Rarity.RARE)), "portal_fluid_item");
-    public static final Item PortalFluidBucket = register(new BucketItem(ModBlocks.STILL_CUSTOM_FLUID, new Item.Settings().maxCount(1)), "portal_fluid_bucket");
+    public static final Item PortalFluidBucket = register(new BucketItem(ModBlocks.STILL_PORTAL_FLUID, new Item.Settings().maxCount(1)), "portal_fluid_bucket");
+    public static final Item PortalGun = register(new PortalGun(new Item.Settings()
+            .maxCount(1)
+            .maxDamage(420)
+            .fireproof()
+            .rarity(Rarity.EPIC)
+            .component(PortalGunCodeComponent.PORTALCODETYPE, new PortalGunCodeComponent("¯\\_(ツ)_/¯"))), "portal_gun");
 
     public static Item register(Item item, String id) {
         Identifier itemID = Identifier.of(InfDimMod.MOD_ID, id);

@@ -1,5 +1,6 @@
 package com.infdimmod.items.custom;
 
+import com.infdimmod.items.custom.portalgun.PortalGun;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
