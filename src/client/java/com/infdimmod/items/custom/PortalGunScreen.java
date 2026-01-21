@@ -64,9 +64,10 @@ public class PortalGunScreen extends Screen {
                 setCurrentCode(input);
 
                 // Обновляем локальную копию
-                PortalGun.setPortalCode(currentStack, input);
+                    //PortalGun.setPortalCode(currentStack, input);
 
                 //отправляем на сервер СДЕЛАТЬ СДЕЛАТЬ СДЕЛАТЬ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                    PortalGun.setPortalCode(currentStack, input);
 
                 // Обновляем стек в руке игрока (клиентская сторона)
                 client.player.getInventory().main.set(

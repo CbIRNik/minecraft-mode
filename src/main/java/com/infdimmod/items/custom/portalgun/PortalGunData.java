@@ -18,9 +18,6 @@ public class PortalGunData extends PersistentState {
     // Храним данные по ID мира (например, "minecraft:overworld")
     private final Map<String, Map<BlockPos, Long>> placedBlocksByDimension = new HashMap<>();
 
-    // Код для Portal Gun (только цифры и английские буквы)
-    private String portalGunCode = "";
-
     public PortalGunData() {
         super();
     }
@@ -57,15 +54,6 @@ public class PortalGunData extends PersistentState {
         return placedBlocksByDimension;
     }
 
-    public String getPortalGunCode() {
-        return portalGunCode;
-    }
-
-    public void setPortalGunCode(String code) {
-        this.portalGunCode = code;
-        markDirty();
-    }
-
     @Override
     public NbtCompound writeNbt(NbtCompound nbt, net.minecraft.registry.RegistryWrapper.WrapperLookup registryLookup) {
         NbtList worldsList = new NbtList();
@@ -87,7 +75,6 @@ public class PortalGunData extends PersistentState {
         }
 
         nbt.put("worlds", worldsList);
-        nbt.putString("portalGunCode", portalGunCode);
         return nbt;
     }
 
@@ -114,11 +101,6 @@ public class PortalGunData extends PersistentState {
                 data.placedBlocksByDimension.put(dimensionId, worldBlocks);
             }
         }
-
-        if (nbt.contains("portalGunCode")) {
-            data.portalGunCode = nbt.getString("portalGunCode");
-        }
-
         return data;
     }
 }
