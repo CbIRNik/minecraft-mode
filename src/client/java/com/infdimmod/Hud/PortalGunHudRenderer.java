@@ -1,4 +1,4 @@
-package com.infdimmod.items.custom;
+package com.infdimmod.Hud;
 
 import com.infdimmod.items.custom.portalgun.PortalGun;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;

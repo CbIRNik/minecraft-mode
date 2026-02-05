@@ -1,0 +1,5 @@
+{
+  "variants": {
+    "": { "model": "infdimmod:block/polytech_block" }
+  }
+}

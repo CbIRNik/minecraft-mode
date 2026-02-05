@@ -1,4 +1,4 @@
-package com.infdimmod.items.custom;
+package com.infdimmod.Hud;
 
 import com.infdimmod.items.custom.portalgun.PortalGun;
 import net.minecraft.client.MinecraftClient;
@@ -9,7 +9,7 @@ import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
 
-import static com.infdimmod.items.custom.PortalGunHudRenderer.setCurrentCode;
+import static com.infdimmod.Hud.PortalGunHudRenderer.setCurrentCode;
 
 public class PortalGunScreen extends Screen {
     private TextFieldWidget codeInput;

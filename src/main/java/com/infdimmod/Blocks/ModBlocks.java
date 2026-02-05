@@ -39,6 +39,12 @@ public class ModBlocks {
             "sausage_block",
             true
     );
+    public static final Block PolytechBlock = register(
+            new Block(AbstractBlock.Settings.create().sounds(BlockSoundGroup.NETHERRACK).strength(1.5f)
+                    .mapColor(MapColor.LIME)),
+            "polytech_block",
+            true
+    );
     public static final Block GUNPORTAL_TOP = register(
             new Gunportal(AbstractBlock.Settings.create()
                     .mapColor(MapColor.LIME)),
