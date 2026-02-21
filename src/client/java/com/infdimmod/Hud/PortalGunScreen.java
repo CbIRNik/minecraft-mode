@@ -1,6 +1,8 @@
 package com.infdimmod.Hud;
 
 import com.infdimmod.items.custom.portalgun.PortalGun;
+import com.infdimmod.network.PortalCodePayload;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
@@ -63,11 +65,7 @@ public class PortalGunScreen extends Screen {
                 this.displayedCode = input;
                 setCurrentCode(input);
 
-                // Обновляем локальную копию
-                    //PortalGun.setPortalCode(currentStack, input);
-
-                //отправляем на сервер СДЕЛАТЬ СДЕЛАТЬ СДЕЛАТЬ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                    PortalGun.setPortalCode(currentStack, input);
+                ClientPlayNetworking.send(new PortalCodePayload(input));
 
                 // Обновляем стек в руке игрока (клиентская сторона)
                 client.player.getInventory().main.set(

@@ -2,10 +2,15 @@ package com.infdimmod;
 
 import com.infdimmod.Blocks.ModBlocks;
 import com.infdimmod.items.ModItems;
+import com.infdimmod.items.custom.portalgun.PortalGunCodeComponent;
 import com.infdimmod.items.custom.portalgun.PortalGunTickHandler;
+import com.infdimmod.network.PortalCodePayload;
 import com.infdimmod.world.ModDimensions;
 import net.fabricmc.api.ModInitializer;
 
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.item.ItemStack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,5 +23,20 @@ public class InfDimMod implements ModInitializer {
         ModBlocks.initialize();
         ModDimensions.initialize();
         PortalGunTickHandler.register();
+
+        // Регистрируем пакетик
+        PayloadTypeRegistry.playC2S().register(PortalCodePayload.ID, PortalCodePayload.CODEC);
+
+        ServerPlayNetworking.registerGlobalReceiver(PortalCodePayload.ID, (payload, context) -> {
+            context.server().execute(() -> {
+                ItemStack stack = context.player().getMainHandStack();
+
+
+                stack.set(PortalGunCodeComponent.PORTALCODETYPE, new PortalGunCodeComponent(payload.code()));
+
+            });
+        });
+
+        PortalGunCodeComponent.register();
 	}
 }
