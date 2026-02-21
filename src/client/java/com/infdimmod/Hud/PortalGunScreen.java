@@ -11,8 +11,6 @@ import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
 
-import static com.infdimmod.Hud.PortalGunHudRenderer.setCurrentCode;
-
 public class PortalGunScreen extends Screen {
     private TextFieldWidget codeInput;
     private String displayedCode = "";
@@ -44,13 +42,8 @@ public class PortalGunScreen extends Screen {
         int buttonHeight = 20;
         int x = (this.width - buttonWidth) / 2;
         int y = this.height / 2;
-        this.addDrawableChild(ButtonWidget.builder(Text.literal("Submit Code"), button -> submitCode())
+        this.addDrawableChild(ButtonWidget.builder(Text.translatable("hud.infdimmod.submitcode"), button -> submitCode())
                 .dimensions(x, y, buttonWidth, buttonHeight)
-                .build());
-
-        // Кнопка для закрытия экрана
-        this.addDrawableChild(ButtonWidget.builder(Text.literal("Close"), button -> this.close())
-                .dimensions(x, y + 25, buttonWidth, buttonHeight)
                 .build());
     }
 
@@ -63,7 +56,6 @@ public class PortalGunScreen extends Screen {
                 ItemStack currentStack = client.player.getMainHandStack().copy();
                 if (currentStack.getItem() instanceof PortalGun) {
                 this.displayedCode = input;
-                setCurrentCode(input);
 
                 ClientPlayNetworking.send(new PortalCodePayload(input));
 
@@ -81,10 +73,9 @@ public class PortalGunScreen extends Screen {
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         this.renderBackground(context, mouseX, mouseY, delta);
         super.render(context, mouseX, mouseY, delta);
-
+        Text text = Text.translatable("hud.infdimmod.currentcode");
         // Отображаем текущий код
-        context.drawText(this.textRenderer, "Current Code: " + this.displayedCode, this.width / 2 - 75, this.height / 2 - 60, 0xFFFFFF, false);
-        context.drawText(this.textRenderer, "Enter Code:", this.width / 2 - 75, this.height / 2 - 45, 0xFFFFFF, false);
+        context.drawText(this.textRenderer, text.getString() + this.displayedCode, this.width / 2 - 75, this.height / 2 - 60, 0xFFFFFF, false);
     }
 
     @Override

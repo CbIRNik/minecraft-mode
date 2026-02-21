@@ -10,5 +10,8 @@
   "itemTooltip.infdimmod.sausage": "Вкусно!",
   "itemTooltip.infdimmod.portal_gun": "Код измерения: ",
   "key.infdimmod.open_portal_gui": "Открыть меню портальной пушки",
-  "category.infdimmod.controls": "InfDimMod"
+  "category.infdimmod.controls": "InfDimMod",
+  "item.infdimmod.portal_fluid_bucket": "Ведро портальной жидкости",
+  "hud.infdimmod.currentcode": "Текущий код: ",
+  "hud.infdimmod.submitcode": "Задать код"
 }

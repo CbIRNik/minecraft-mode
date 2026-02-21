@@ -89,16 +89,6 @@ public class Gunportal extends Block implements Waterloggable {
     }
 
     @Override
-    public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
-        PortalDirection direction = state.get(PORTAL_DIRECTION);
-
-        return switch (direction) {
-            case NORTH_SOUTH -> NORTH_SOUTH_SHAPE; // Вертикальная плита север-юг
-            case EAST_WEST -> EAST_WEST_SHAPE;     // Вертикальная плита восток-запад
-        };
-    }
-
-    @Override
     public VoxelShape getCollisionShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
         // Возвращаем пустую форму для отсутствия коллизии
         return VoxelShapes.empty();
@@ -153,6 +143,12 @@ public class Gunportal extends Block implements Waterloggable {
     public BlockState mirror(BlockState state, BlockMirror mirror) {
         // При зеркалировании также меняем направление
         return this.rotate(state, BlockRotation.CLOCKWISE_180);
+    }
+
+    @Override
+    protected VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
+        // Возвращает пустую форму — блок нельзя выделить или ударить
+        return VoxelShapes.empty();
     }
 
 }

@@ -10,5 +10,8 @@
   "item.infdimmod.portal_fluid_item": "Portal fluid",
   "itemTooltip.infdimmod.portal_gun": "Dimension code: ",
   "key.infdimmod.open_portal_gui": "Open portal gun menu",
-  "category.infdimmod.controls": "InfDimMod"
+  "category.infdimmod.controls": "InfDimMod",
+  "item.infdimmod.portal_fluid_bucket": "Portal fluid bucket",
+  "hud.infdimmod.currentcode": "Current code: ",
+  "hud.infdimmod.submitcode": "Submit code"
 }
