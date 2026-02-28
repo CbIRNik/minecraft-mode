@@ -1,6 +1,8 @@
 package com.infdimmod;
 
 import com.infdimmod.Blocks.ModBlocks;
+import com.infdimmod.Entities.GreenPortalRenderer;
+import com.infdimmod.Entities.ModEntities;
 import com.infdimmod.items.ModItems;
 import com.infdimmod.Hud.PortalGunScreen;
 import net.fabricmc.api.ClientModInitializer;
@@ -8,6 +10,7 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandlerRegistry;
 import net.fabricmc.fabric.api.client.render.fluid.v1.SimpleFluidRenderHandler;
+import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
@@ -21,6 +24,7 @@ public class InfDimModClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
+        EntityRendererRegistry.register(ModEntities.GREEN_PORTAL_ENTITY_TYPE, GreenPortalRenderer::new);
 
         Identifier stillTextureId = Identifier.of(InfDimMod.MOD_ID, "block/portal_fluid");
         Identifier flowingTextureId = Identifier.of(InfDimMod.MOD_ID, "block/portal_fluid_flowing");

@@ -2,6 +2,8 @@ package com.infdimmod.items.custom.portalgun;
 
 import com.infdimmod.Blocks.ModBlocks;
 import com.infdimmod.Blocks.custom.Gunportal;
+import com.infdimmod.Entities.GreenPortal;
+import com.infdimmod.Entities.ModEntities;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.player.PlayerEntity;
@@ -15,8 +17,10 @@ import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
+import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 import java.util.Iterator;
@@ -180,5 +184,22 @@ public class PortalGun extends Item {
     public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
         tooltip.add(Text.translatable("itemTooltip.infdimmod.portal_gun").formatted(Formatting.GRAY));
         tooltip.add(Text.of(getPortalCode(stack)));
+    }
+
+
+
+
+    @Override
+    public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
+        if (!world.isClient) {
+            GreenPortal entity = new GreenPortal(ModEntities.GREEN_PORTAL_ENTITY_TYPE, world);
+
+            // Считаем позицию в 2 блоках перед игроком
+            Vec3d pos = user.getEyePos().add(user.getRotationVec(1.0F).multiply(2.0));
+
+            entity.refreshPositionAndAngles(pos.x, pos.y, pos.z, user.getYaw(), 0);
+            world.spawnEntity(entity);
+        }
+        return TypedActionResult.success(user.getStackInHand(hand));
     }
 }

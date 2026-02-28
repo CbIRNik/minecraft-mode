@@ -1,13 +1,13 @@
 package com.infdimmod;
 
 import com.infdimmod.Blocks.ModBlocks;
+import com.infdimmod.Entities.ModEntities;
 import com.infdimmod.items.ModItems;
 import com.infdimmod.items.custom.portalgun.PortalGunCodeComponent;
 import com.infdimmod.items.custom.portalgun.PortalGunTickHandler;
 import com.infdimmod.network.PortalCodePayload;
 import com.infdimmod.world.ModDimensions;
 import net.fabricmc.api.ModInitializer;
-
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.item.ItemStack;
@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 public class InfDimMod implements ModInitializer {
 	public static final String MOD_ID = "infdimmod";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+
 	@Override
 	public void onInitialize() {
         ModItems.initialize();
@@ -38,5 +39,7 @@ public class InfDimMod implements ModInitializer {
         });
 
         PortalGunCodeComponent.register();
+
+        ModEntities.registerModEntities();
 	}
 }
