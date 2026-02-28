@@ -21,15 +21,14 @@ public class GreenPortalRenderer extends EntityRenderer<GreenPortal> {
     public void render(GreenPortal entity, float yaw, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light) {
         matrices.push();
 
-        // Поворот на основе углов, которые мы сохранили при спавне
-        // Используем MathHelper.lerp для плавности, если нужно, но для статичной картинки хватит и так:
-        matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-entity.getYaw() + 180.0F));
-        matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(entity.getPitch()));
+        matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(180.0F - entity.getYaw()));
+        matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-entity.getPitch()));
+        matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(entity.getRoll()));
 
-        // Рисуем плоскость
         VertexConsumer buffer = vertexConsumers.getBuffer(RenderLayer.getEntityCutoutNoCull(TEXTURE));
         MatrixStack.Entry entry = matrices.peek();
 
+        // Рисуем плоскость
         drawVertex(entry, buffer, -0.5f, -0.5f, light, 0, 1);
         drawVertex(entry, buffer, 0.5f, -0.5f, light, 1, 1);
         drawVertex(entry, buffer, 0.5f, 0.5f, light, 1, 0);
@@ -45,7 +44,7 @@ public class GreenPortalRenderer extends EntityRenderer<GreenPortal> {
                 .texture(u, v)
                 .overlay(OverlayTexture.DEFAULT_UV)
                 .light(light)
-                .normal(entry, 0, 1, 0);
+                .normal(0, 1, 0);
     }
 
     @Override

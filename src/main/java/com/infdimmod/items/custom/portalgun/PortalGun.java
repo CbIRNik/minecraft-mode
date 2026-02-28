@@ -194,10 +194,11 @@ public class PortalGun extends Item {
         if (!world.isClient) {
             GreenPortal entity = new GreenPortal(ModEntities.GREEN_PORTAL_ENTITY_TYPE, world);
 
-            // Считаем позицию в 2 блоках перед игроком
-            Vec3d pos = user.getEyePos().add(user.getRotationVec(1.0F).multiply(2.0));
+            Vec3d lookVec = user.getRotationVec(1.0F);
+            Vec3d pos = user.getEyePos().add(lookVec.multiply(2.0));
 
-            entity.refreshPositionAndAngles(pos.x, pos.y, pos.z, user.getYaw(), 0);
+            entity.refreshPositionAndAngles(pos.x, pos.y, pos.z, user.getYaw(), user.getPitch());
+
             world.spawnEntity(entity);
         }
         return TypedActionResult.success(user.getStackInHand(hand));
