@@ -13,5 +13,6 @@
   "category.infdimmod.controls": "InfDimMod",
   "item.infdimmod.portal_fluid_bucket": "Ведро портальной жидкости",
   "hud.infdimmod.currentcode": "Текущий код: ",
-  "hud.infdimmod.submitcode": "Задать код"
+  "hud.infdimmod.submitcode": "Задать код",
+  "key.infdimmod.toggle_mode": "Переключить режим портальной пушки"
 }

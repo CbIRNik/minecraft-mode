@@ -3,15 +3,24 @@ package com.infdimmod;
 import com.infdimmod.Blocks.ModBlocks;
 import com.infdimmod.Entities.ModEntities;
 import com.infdimmod.items.ModItems;
+import com.infdimmod.items.custom.portalgun.PortalGun;
 import com.infdimmod.items.custom.portalgun.PortalGunCodeComponent;
 import com.infdimmod.network.PortalCodePayload;
+import com.infdimmod.network.ToggleGunModePayload;
 import com.infdimmod.world.ModDimensions;
+import com.mojang.serialization.Codec;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.component.ComponentType;
 import net.minecraft.item.ItemStack;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
+import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.infdimmod.items.custom.portalgun.PortalGunCodeComponent.PORTAL_GUN_MODE;
 
 public class InfDimMod implements ModInitializer {
 	public static final String MOD_ID = "infdimmod";
@@ -39,5 +48,18 @@ public class InfDimMod implements ModInitializer {
         PortalGunCodeComponent.register();
 
         ModEntities.registerModEntities();
+
+        // пакеты режимов пушки
+        PayloadTypeRegistry.playC2S().register(ToggleGunModePayload.ID, ToggleGunModePayload.CODEC);
+
+        ServerPlayNetworking.registerGlobalReceiver(ToggleGunModePayload.ID, (payload, context) -> {
+            context.player().getServer().execute(() -> {
+                ItemStack stack = context.player().getMainHandStack();
+                if (stack.getItem() instanceof PortalGun) {
+                    boolean currentMode = stack.getOrDefault(PORTAL_GUN_MODE, false);
+                    stack.set(PORTAL_GUN_MODE, !currentMode);
+                }
+            });
+        });
 	}
 }

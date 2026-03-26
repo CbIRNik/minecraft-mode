@@ -1,9 +1,6 @@
 package com.infdimmod.Entities;
 
-import net.minecraft.client.render.OverlayTexture;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.render.*;
 import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.client.render.entity.EntityRendererFactory;
 import net.minecraft.client.util.math.MatrixStack;
@@ -21,27 +18,31 @@ public class GreenPortalRenderer extends EntityRenderer<GreenPortal> {
     public void render(GreenPortal entity, float yaw, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light) {
         matrices.push();
 
-        // 1. поворот
+        // поворот по горизонтали
         matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(180.0F - entity.getYaw()));
 
-        // 2. масштаб
-        // свет, чтобы портал светился в полете
-        int glowLight = 15728880;
+        // поворот по вертикали
+        matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-entity.getPitch()));
 
-        float visualScale = entity.getVisualScale(tickDelta);
-        matrices.scale(visualScale, visualScale, visualScale);
+        // масштаб
+        float scale = entity.getVisualScale(tickDelta);
+        matrices.scale(scale, scale, scale);
 
-        // центрирование
-        matrices.translate(0, 0, 0);
-
-        VertexConsumer buffer = vertexConsumers.getBuffer(RenderLayer.getEntityCutoutNoCull(TEXTURE));
+        VertexConsumer buffer = vertexConsumers.getBuffer(RenderLayer.getEntityCutout(TEXTURE));
         MatrixStack.Entry entry = matrices.peek();
+        float size = 0.5f;
 
-        // плоскость 1x1 блок
-        drawVertex(entry, buffer, -0.5f, -0.5f, glowLight, 0, 1);
-        drawVertex(entry, buffer, 0.5f, -0.5f, glowLight, 1, 1);
-        drawVertex(entry, buffer, 0.5f, 0.5f, glowLight, 1, 0);
-        drawVertex(entry, buffer, -0.5f, 0.5f, glowLight, 0, 0);
+        // лицевая сторона (нормаль 0, 0, 1)
+        drawVertex(entry, buffer, -size, -size, light, 0, 1);
+        drawVertex(entry, buffer, size, -size, light, 1, 1);
+        drawVertex(entry, buffer, size, size, light, 1, 0);
+        drawVertex(entry, buffer, -size, size, light, 0, 0);
+
+        // задняя сторона
+        drawVertex(entry, buffer, -size, size, light, 0, 0);
+        drawVertex(entry, buffer, size, size, light, 1, 0);
+        drawVertex(entry, buffer, size, -size, light, 1, 1);
+        drawVertex(entry, buffer, -size, -size, light, 0, 1);
 
         matrices.pop();
         super.render(entity, yaw, tickDelta, matrices, vertexConsumers, light);
@@ -53,7 +54,7 @@ public class GreenPortalRenderer extends EntityRenderer<GreenPortal> {
                 .texture(u, v)
                 .overlay(OverlayTexture.DEFAULT_UV)
                 .light(light)
-                .normal(0, 1, 0);
+                .normal(entry, 0, 0, 1);
     }
 
     @Override

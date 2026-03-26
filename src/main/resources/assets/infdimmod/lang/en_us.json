@@ -13,5 +13,6 @@
   "category.infdimmod.controls": "InfDimMod",
   "item.infdimmod.portal_fluid_bucket": "Portal fluid bucket",
   "hud.infdimmod.currentcode": "Current code: ",
-  "hud.infdimmod.submitcode": "Submit code"
+  "hud.infdimmod.submitcode": "Submit code",
+  "key.infdimmod.toggle_mode": "Toggle portal gun mode"
 }

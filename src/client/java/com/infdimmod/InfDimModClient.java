@@ -5,9 +5,12 @@ import com.infdimmod.Entities.GreenPortalRenderer;
 import com.infdimmod.Entities.ModEntities;
 import com.infdimmod.items.ModItems;
 import com.infdimmod.Hud.PortalGunScreen;
+import com.infdimmod.items.custom.portalgun.PortalGun;
+import com.infdimmod.network.ToggleGunModePayload;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandlerRegistry;
 import net.fabricmc.fabric.api.client.render.fluid.v1.SimpleFluidRenderHandler;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
@@ -21,6 +24,7 @@ import org.lwjgl.glfw.GLFW;
 public class InfDimModClient implements ClientModInitializer {
 
     private static KeyBinding openPortalGuiKey;
+    private static KeyBinding toggleModeKey;
 
     @Override
     public void onInitializeClient() {
@@ -28,7 +32,6 @@ public class InfDimModClient implements ClientModInitializer {
 
         Identifier stillTextureId = Identifier.of(InfDimMod.MOD_ID, "block/portal_fluid");
         Identifier flowingTextureId = Identifier.of(InfDimMod.MOD_ID, "block/portal_fluid_flowing");
-        // Регистрация рендера жидкости
         FluidRenderHandlerRegistry.INSTANCE.register(
                 ModBlocks.STILL_PORTAL_FLUID,
                 ModBlocks.FLOWING_PORTAL_FLUID,
@@ -39,7 +42,6 @@ public class InfDimModClient implements ClientModInitializer {
         );
 
 
-        // Register keybinding (default B)
         openPortalGuiKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.infdimmod.open_portal_gui",
                 InputUtil.Type.KEYSYM,
@@ -47,10 +49,27 @@ public class InfDimModClient implements ClientModInitializer {
                 "category.infdimmod.controls"
         ));
 
-        // Listen for client ticks to check key press
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (openPortalGuiKey.wasPressed()) {
                 handleOpenPortalGui(client);
+            }
+        });
+
+
+
+        toggleModeKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "key.infdimmod.toggle_mode",
+                InputUtil.Type.KEYSYM,
+                org.lwjgl.glfw.GLFW.GLFW_KEY_V, // Клавиша по умолчанию
+                "category.infdimmod.controls" // Категория в настройках
+        ));
+
+        ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            while (toggleModeKey.wasPressed()) {
+                // Если в руках пушка - отправляем пакет на сервер
+                if (client.player != null && client.player.getMainHandStack().getItem() instanceof PortalGun) {
+                    ClientPlayNetworking.send(new ToggleGunModePayload());
+                }
             }
         });
     }
@@ -59,7 +78,6 @@ public class InfDimModClient implements ClientModInitializer {
         if (client.player == null) return;
         ItemStack main = client.player.getMainHandStack();
         ItemStack off = client.player.getOffHandStack();
-        // Open only if player holds PortalGun in either hand
         if (main.getItem() == ModItems.PortalGun || off.getItem() == ModItems.PortalGun) {
             client.execute(() -> client.setScreen(new PortalGunScreen()));
         }

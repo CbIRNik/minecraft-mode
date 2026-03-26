@@ -18,8 +18,8 @@ public class GreenPortal extends Entity {
     private static final TrackedData<Vector3f> TARGET_VEC = DataTracker.registerData(GreenPortal.class, TrackedDataHandlerRegistry.VECTOR3F);
 
     private int age = 0;
-    private static final int FLIGHT_DURATION = 3; // вылет
-    private static final int TOTAL_LIFETIME = 80;
+    private static final TrackedData<Integer> MAX_AGE = DataTracker.registerData(GreenPortal.class, TrackedDataHandlerRegistry.INTEGER);
+    private static final int TOTAL_LIFETIME = 160;
 
     public GreenPortal(EntityType<?> type, World world) {
         super(type, world);
@@ -30,6 +30,11 @@ public class GreenPortal extends Entity {
     protected void initDataTracker(DataTracker.Builder builder) {
         builder.add(START_VEC, new Vector3f());
         builder.add(TARGET_VEC, new Vector3f());
+        builder.add(MAX_AGE, 6); // По умолчанию 6
+    }
+
+    public void setFlightDuration(int ticks) {
+        this.getDataTracker().set(MAX_AGE, ticks);
     }
 
     public void setAnimationData(Vector3f start, Vector3f target) {
@@ -42,21 +47,21 @@ public class GreenPortal extends Entity {
         super.tick();
         age++;
 
-        if (age <= FLIGHT_DURATION) {
+        int duration = this.getDataTracker().get(MAX_AGE);
+
+        if (age <= duration) {
             Vector3f start = this.getDataTracker().get(START_VEC);
             Vector3f target = this.getDataTracker().get(TARGET_VEC);
 
-            // анимация
-            float t = (float) age / FLIGHT_DURATION;
-            float interp = 1.0f - (float)Math.pow(1.0f - t, 2);
+            float t = (float) age / duration;
+            float interp = 1.0f - (1.0f - t) * (1.0f - t);
 
             this.setPosition(
-                    MathHelper.lerp(interp, start.x, target.x),
-                    MathHelper.lerp(interp, start.y, target.y),
-                    MathHelper.lerp(interp, start.z, target.z)
+                    MathHelper.lerp(interp, (double)start.x, (double)target.x),
+                    MathHelper.lerp(interp, (double)start.y, (double)target.y),
+                    MathHelper.lerp(interp, (double)start.z, (double)target.z)
             );
         }
-
         if (!this.getWorld().isClient && age >= TOTAL_LIFETIME) {
             this.discard();
         }
@@ -65,7 +70,8 @@ public class GreenPortal extends Entity {
     // изменение масштаба
     public float getVisualScale(float tickDelta) {
         float currentAge = age + tickDelta;
-        return MathHelper.clamp(currentAge / FLIGHT_DURATION, 0.0f, 1.0f);
+        int duration = this.getDataTracker().get(MAX_AGE);
+        return MathHelper.clamp(currentAge / duration, 0.0f, 1.0f);
     }
 
     @Override protected void readCustomDataFromNbt(NbtCompound nbt) { this.age = nbt.getInt("Age"); }

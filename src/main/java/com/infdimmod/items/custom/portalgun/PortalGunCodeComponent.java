@@ -32,15 +32,16 @@ public record PortalGunCodeComponent(String portalcode) {
 
     public void saveCodeToItem(PlayerEntity player, String newCode) {
         ItemStack stack = player.getMainHandStack();
-
-        // Проверяем, тот ли это предмет (например, Portal Gun)
         if (stack.getItem() instanceof PortalGun) {
-
-            // Устанавливаем новый компонент
             stack.set(PortalGunCodeComponent.PORTALCODETYPE, new PortalGunCodeComponent(newCode));
-
-            // Minecraft автоматически синхронизирует компоненты с клиентом
-            // при изменении ItemStack в инвентаре.
         }
     }
+
+
+    //ниже не код портала, режим пушки!
+    public static final ComponentType<Boolean> PORTAL_GUN_MODE = Registry.register(
+            Registries.DATA_COMPONENT_TYPE,
+            Identifier.of("infdimmod", "portal_gun_mode"),
+            ComponentType.<Boolean>builder().codec(Codec.BOOL).build()
+    );
 }
