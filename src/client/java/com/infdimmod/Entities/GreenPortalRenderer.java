@@ -21,18 +21,27 @@ public class GreenPortalRenderer extends EntityRenderer<GreenPortal> {
     public void render(GreenPortal entity, float yaw, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light) {
         matrices.push();
 
+        // 1. поворот
         matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(180.0F - entity.getYaw()));
-        matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-entity.getPitch()));
-        matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(entity.getRoll()));
+
+        // 2. масштаб
+        // свет, чтобы портал светился в полете
+        int glowLight = 15728880;
+
+        float visualScale = entity.getVisualScale(tickDelta);
+        matrices.scale(visualScale, visualScale, visualScale);
+
+        // центрирование
+        matrices.translate(0, 0, 0);
 
         VertexConsumer buffer = vertexConsumers.getBuffer(RenderLayer.getEntityCutoutNoCull(TEXTURE));
         MatrixStack.Entry entry = matrices.peek();
 
-        // Рисуем плоскость
-        drawVertex(entry, buffer, -0.5f, -0.5f, light, 0, 1);
-        drawVertex(entry, buffer, 0.5f, -0.5f, light, 1, 1);
-        drawVertex(entry, buffer, 0.5f, 0.5f, light, 1, 0);
-        drawVertex(entry, buffer, -0.5f, 0.5f, light, 0, 0);
+        // плоскость 1x1 блок
+        drawVertex(entry, buffer, -0.5f, -0.5f, glowLight, 0, 1);
+        drawVertex(entry, buffer, 0.5f, -0.5f, glowLight, 1, 1);
+        drawVertex(entry, buffer, 0.5f, 0.5f, glowLight, 1, 0);
+        drawVertex(entry, buffer, -0.5f, 0.5f, glowLight, 0, 0);
 
         matrices.pop();
         super.render(entity, yaw, tickDelta, matrices, vertexConsumers, light);

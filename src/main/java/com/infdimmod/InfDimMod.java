@@ -4,7 +4,6 @@ import com.infdimmod.Blocks.ModBlocks;
 import com.infdimmod.Entities.ModEntities;
 import com.infdimmod.items.ModItems;
 import com.infdimmod.items.custom.portalgun.PortalGunCodeComponent;
-import com.infdimmod.items.custom.portalgun.PortalGunTickHandler;
 import com.infdimmod.network.PortalCodePayload;
 import com.infdimmod.world.ModDimensions;
 import net.fabricmc.api.ModInitializer;
@@ -23,7 +22,6 @@ public class InfDimMod implements ModInitializer {
         ModItems.initialize();
         ModBlocks.initialize();
         ModDimensions.initialize();
-        PortalGunTickHandler.register();
 
         // Регистрируем пакетик
         PayloadTypeRegistry.playC2S().register(PortalCodePayload.ID, PortalCodePayload.CODEC);

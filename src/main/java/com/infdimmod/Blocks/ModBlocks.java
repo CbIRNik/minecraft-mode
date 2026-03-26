@@ -1,6 +1,5 @@
 package com.infdimmod.Blocks;
 
-import com.infdimmod.Blocks.custom.Gunportal;
 import com.infdimmod.Blocks.custom.PortalFluid;
 import com.infdimmod.Blocks.custom.PortalFluidBlock;
 import com.infdimmod.InfDimMod;
@@ -44,18 +43,6 @@ public class ModBlocks {
                     .mapColor(MapColor.LIME)),
             "polytech_block",
             true
-    );
-    public static final Block GUNPORTAL_TOP = register(
-            new Gunportal(AbstractBlock.Settings.create()
-                    .mapColor(MapColor.LIME)),
-            "gunportal_top",
-            false
-    );
-    public static final Block GUNPORTAL_BOTTOM = register(
-            new Gunportal(AbstractBlock.Settings.create()
-                    .mapColor(MapColor.LIME)),
-            "gunportal_bottom",
-            false
     );
     public static final Block MYSTIC_PORTAL_FRAME = register(
             new MysticPortalFrameBlock(AbstractBlock.Settings.create()

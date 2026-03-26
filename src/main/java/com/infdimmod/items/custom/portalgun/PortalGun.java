@@ -1,150 +1,31 @@
 package com.infdimmod.items.custom.portalgun;
 
-import com.infdimmod.Blocks.ModBlocks;
-import com.infdimmod.Blocks.custom.Gunportal;
 import com.infdimmod.Entities.GreenPortal;
 import com.infdimmod.Entities.ModEntities;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUsageContext;
 import net.minecraft.item.tooltip.TooltipType;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.hit.HitResult;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
 
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 public class PortalGun extends Item {
     public PortalGun(Settings settings) {
         super(settings.maxDamage(420));
     }
-    @Override
-    public ActionResult useOnBlock(ItemUsageContext context) {
-        World world = context.getWorld();
-        BlockPos clickedPos = context.getBlockPos();
-        PlayerEntity player = context.getPlayer();
-        Hand hand = context.getHand();
-        ItemStack stack = player.getStackInHand(hand);
-        BlockState state = world.getBlockState(clickedPos);
-        if (!world.isClient() && player != null) {
-            if (isItemBroken(stack)) {
-                return ActionResult.FAIL;
-            }
-            if (player.getItemCooldownManager().isCoolingDown(this)) {
-                return ActionResult.PASS;
-            }
-            BlockPos posAbove = clickedPos.up();
-            if (state.isReplaceable()) {
-                posAbove = clickedPos;
-            }
 
-            if (canPlaceBlock(world, posAbove) && canPlaceBlock(world, posAbove.up())) {
-                int newDamage = stack.getDamage();
-                if (!player.isCreative()) {
-                    newDamage = stack.getDamage() + 1;
-                }
-
-                if (newDamage >= stack.getMaxDamage()) {
-                    stack.setDamage(stack.getMaxDamage());
-                } else {
-                    stack.setDamage(newDamage);
-                }
-
-                Direction playerFacing = player.getHorizontalFacing();
-                Gunportal.PortalDirection portalDir;
-                if (playerFacing == Direction.NORTH || playerFacing == Direction.SOUTH) {
-                    portalDir = Gunportal.PortalDirection.NORTH_SOUTH;
-                } else {
-                    portalDir = Gunportal.PortalDirection.EAST_WEST;
-                }
-
-                world.setBlockState(posAbove, ModBlocks.GUNPORTAL_BOTTOM.getDefaultState()
-                        .with(Gunportal.PORTAL_DIRECTION, portalDir));
-                world.setBlockState(posAbove.up(), ModBlocks.GUNPORTAL_TOP.getDefaultState()
-                        .with(Gunportal.PORTAL_DIRECTION, portalDir));
-
-                // Сохраняем в PersistentState
-                savePlacedBlocks((ServerWorld) world, posAbove, posAbove.up());
-
-                player.getItemCooldownManager().set(this, 10);
-                return ActionResult.SUCCESS;
-            }
-        }
-        return ActionResult.PASS;
-    }
-
-    private void savePlacedBlocks(ServerWorld world, BlockPos... positions) {
-        PortalGunData data = PortalGunData.get(world.getServer());
-        long removalTime = world.getTime() + 80;
-
-        for (BlockPos pos : positions) {
-            data.addBlock(world, pos.toImmutable(), removalTime);
-        }
-    }
-
-    public static void checkAndRemoveBlocks(MinecraftServer server) {
-        PortalGunData data = PortalGunData.get(server);
-        Map<String, Map<BlockPos, Long>> placedBlocksByDimension = data.getPlacedBlocksByDimension();
-
-        Iterator<Map.Entry<String, Map<BlockPos, Long>>> dimensionIterator = placedBlocksByDimension.entrySet().iterator();
-
-        while (dimensionIterator.hasNext()) {
-            Map.Entry<String, Map<BlockPos, Long>> dimensionEntry = dimensionIterator.next();
-            String dimensionId = dimensionEntry.getKey();
-            Map<BlockPos, Long> blocks = dimensionEntry.getValue();
-
-            // Получаем мир по ID измерения
-            ServerWorld world = null;
-            for (ServerWorld serverWorld : server.getWorlds()) {
-                if (serverWorld.getRegistryKey().getValue().toString().equals(dimensionId)) {
-                    world = serverWorld;
-                    break;
-                }
-            }
-
-            if (world == null) {
-                // Если мир не найден, удаляем все блоки для этого измерения
-                dimensionIterator.remove();
-                data.markDirty();
-                continue;
-            }
-
-            Iterator<Map.Entry<BlockPos, Long>> blockIterator = blocks.entrySet().iterator();
-            boolean dimensionChanged = false;
-
-            while (blockIterator.hasNext()) {
-                Map.Entry<BlockPos, Long> blockEntry = blockIterator.next();
-                BlockPos pos = blockEntry.getKey();
-                Long removalTime = blockEntry.getValue();
-
-                if (world.getTime() >= removalTime) {
-                    world.setBlockState(pos, Blocks.AIR.getDefaultState());
-                    blockIterator.remove();
-                    dimensionChanged = true;
-                }
-            }
-
-            if (dimensionChanged) {
-                if (blocks.isEmpty()) {
-                    dimensionIterator.remove();
-                }
-                data.markDirty();
-            }
-        }
-    }
 
     public boolean isItemBroken(ItemStack stack) {
         return stack.getDamage() >= stack.getMaxDamage();
@@ -160,15 +41,6 @@ public class PortalGun extends Item {
         } else {
             return 0.0f;
         }
-    }
-
-    private boolean canPlaceBlock(World world, BlockPos pos) {
-        BlockState state = world.getBlockState(pos);
-        return (state.isAir() ||
-                state.isReplaceable()) &&
-                state.getBlock()!= ModBlocks.GUNPORTAL_TOP &&
-                state.getBlock()!= ModBlocks.GUNPORTAL_BOTTOM &&
-                !state.isFullCube(world, pos);
     }
 
     public static void setPortalCode(ItemStack stack, String code) {
@@ -187,20 +59,65 @@ public class PortalGun extends Item {
     }
 
 
-
-
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
+        ItemStack stack = user.getStackInHand(hand);
+
         if (!world.isClient) {
+            if (isItemBroken(stack) || user.getItemCooldownManager().isCoolingDown(this)) {
+                return TypedActionResult.pass(stack);
+            }
+
+            // 1. ограничение разлета в +-30 градусов
+            float clampedPitch = MathHelper.clamp(user.getPitch(), -20.0F, 20.0F);
+
+            // 2. вектор направления на основе ограниченного угла
+            Vec3d limitedLookVec = Vec3d.fromPolar(clampedPitch, user.getYaw());
+
+            Vec3d eyePos = user.getEyePos();
+            double maxDist = 2.5;
+
+            // 3. проверяем путь по ограниченному вектору
+            Vec3d traceEnd = eyePos.add(limitedLookVec.multiply(maxDist));
+            BlockHitResult hit = world.raycast(new RaycastContext(
+                    eyePos,
+                    traceEnd,
+                    RaycastContext.ShapeType.COLLIDER,
+                    RaycastContext.FluidHandling.NONE,
+                    user
+            ));
+
+            // 4. финальная точка прилета
+            Vec3d targetPos;
+            if (hit.getType() != HitResult.Type.MISS) {
+                //попадание в блок
+                Vec3d hitPos = hit.getPos();
+                Vec3d directionToPlayer = eyePos.subtract(hitPos).normalize();
+                targetPos = hitPos.add(directionToPlayer.multiply(0.1));
+            } else {
+                targetPos = traceEnd;
+            }
+
+            // 5. точка старта
+            Vec3d sideOffset = user.getRotationVec(1.0F).crossProduct(new Vec3d(0, 1, 0)).multiply(0.3);
+            Vec3d startPos = eyePos.add(sideOffset).add(0, -0.2, 0);
+
+            // 6. сущность
             GreenPortal entity = new GreenPortal(ModEntities.GREEN_PORTAL_ENTITY_TYPE, world);
-
-            Vec3d lookVec = user.getRotationVec(1.0F);
-            Vec3d pos = user.getEyePos().add(lookVec.multiply(2.0));
-
-            entity.refreshPositionAndAngles(pos.x, pos.y, pos.z, user.getYaw(), user.getPitch());
+            entity.setAnimationData(startPos.toVector3f(), targetPos.toVector3f());
+            entity.refreshPositionAndAngles(startPos.x, startPos.y, startPos.z, user.getYaw(), 0);
 
             world.spawnEntity(entity);
+
+            // звук
+            world.playSound(null, user.getX(), user.getY(), user.getZ(),
+                    SoundEvents.ENTITY_SNOWBALL_THROW, SoundCategory.PLAYERS, 1.0F, 0.6F);
+            // поломка и кулдаун
+            if (!user.isCreative()) {
+                stack.setDamage(Math.min(stack.getMaxDamage(), stack.getDamage() + 1));
+            }
+            user.getItemCooldownManager().set(this, 10);
         }
-        return TypedActionResult.success(user.getStackInHand(hand));
+        return TypedActionResult.success(stack);
     }
 }
