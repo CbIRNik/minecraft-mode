@@ -7,16 +7,12 @@ import com.infdimmod.items.custom.portalgun.PortalGun;
 import com.infdimmod.items.custom.portalgun.PortalGunCodeComponent;
 import com.infdimmod.network.PortalCodePayload;
 import com.infdimmod.network.ToggleGunModePayload;
+import com.infdimmod.particle.ModParticles;
 import com.infdimmod.world.ModDimensions;
-import com.mojang.serialization.Codec;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.component.ComponentType;
 import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,5 +57,7 @@ public class InfDimMod implements ModInitializer {
                 }
             });
         });
+
+        ModParticles.register();
 	}
 }

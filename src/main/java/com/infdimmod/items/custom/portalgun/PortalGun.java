@@ -69,14 +69,18 @@ public class PortalGun extends Item {
                 return TypedActionResult.pass(stack);
             }
 
+            // базовые вектора для обоих режимов
             Vec3d eyePos = user.getEyePos();
-            Vec3d targetPos;
+            Vec3d sideOffset = user.getRotationVec(1.0F).crossProduct(new Vec3d(0, 1, 0)).multiply(0.3);
+            Vec3d startPos = eyePos.add(sideOffset).add(0, -0.2, 0);
 
+            Vec3d targetPos;
             float shotYaw = user.getYaw();
             float shotPitch;
+            int flightTicks;
 
             if (isMode2) {
-                // второй (дальний) режим
+                // дальний
                 shotPitch = user.getPitch();
                 double maxDistFar = 64.0;
                 Vec3d lookVec = user.getRotationVec(1.0F);
@@ -89,7 +93,6 @@ public class PortalGun extends Item {
                         user
                 ));
 
-                // не попал - не ПЭПЭ
                 if (hitFar.getType() == HitResult.Type.MISS) {
                     return TypedActionResult.fail(stack);
                 }
@@ -98,11 +101,15 @@ public class PortalGun extends Item {
                 Vec3d directionToPlayer = eyePos.subtract(hitPos).normalize();
                 targetPos = hitPos.add(directionToPlayer.multiply(0.5));
 
+                // расчет времени
+                double distance = startPos.distanceTo(targetPos);
+                double speedFactor = 6.0;
+                flightTicks = (int) Math.max(2, Math.round(distance / speedFactor));
+
             } else {
-                // первый (ближний) режим
+                // ближний
                 shotPitch = 0.0f;
                 float clampedPitch = MathHelper.clamp(user.getPitch(), -20.0F, 20.0F);
-
                 Vec3d limitedLookVec = Vec3d.fromPolar(clampedPitch, user.getYaw());
                 double maxDistShort = 2.5;
 
@@ -117,31 +124,22 @@ public class PortalGun extends Item {
                 if (hitShort.getType() != HitResult.Type.MISS) {
                     Vec3d hitPos = hitShort.getPos();
                     Vec3d directionToPlayer = eyePos.subtract(hitPos).normalize();
-                    targetPos = hitPos.add(directionToPlayer.multiply(0.5));
+                    targetPos = hitPos.add(directionToPlayer.multiply(0.1));
                 } else {
                     targetPos = traceEndShort;
                 }
+
+                // расчет времени
+                double distanceShort = startPos.distanceTo(targetPos);
+                double speedFactorShort = 0.4;
+                flightTicks = (int) Math.max(3, Math.round(distanceShort / speedFactorShort));
             }
-
-
-            Vec3d sideOffset = user.getRotationVec(1.0F).crossProduct(new Vec3d(0, 1, 0)).multiply(0.3);
-            Vec3d startPos = eyePos.add(sideOffset).add(0, -0.2, 0);
 
             GreenPortal entity = new GreenPortal(ModEntities.GREEN_PORTAL_ENTITY_TYPE, world);
             entity.setAnimationData(startPos.toVector3f(), targetPos.toVector3f());
-
+            entity.setFlightDuration(flightTicks); // Теперь flightTicks определен выше
             entity.refreshPositionAndAngles(startPos.x, startPos.y, startPos.z, shotYaw, shotPitch);
 
-            if (isMode2) {
-                double distance = startPos.distanceTo(targetPos);
-                double speedFactor = 6.0;
-
-                int dynamicTicks = (int) Math.max(2, Math.round(distance / speedFactor));
-
-                entity.setFlightDuration(dynamicTicks);
-            } else {
-                entity.setFlightDuration(2);  // 4 тиков для ближнего режима
-            }
             world.spawnEntity(entity);
 
             // звук и кд

@@ -7,6 +7,7 @@ import com.infdimmod.items.ModItems;
 import com.infdimmod.Hud.PortalGunScreen;
 import com.infdimmod.items.custom.portalgun.PortalGun;
 import com.infdimmod.network.ToggleGunModePayload;
+import com.infdimmod.particle.ModParticlesClient;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
@@ -60,8 +61,8 @@ public class InfDimModClient implements ClientModInitializer {
         toggleModeKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.infdimmod.toggle_mode",
                 InputUtil.Type.KEYSYM,
-                org.lwjgl.glfw.GLFW.GLFW_KEY_V, // Клавиша по умолчанию
-                "category.infdimmod.controls" // Категория в настройках
+                org.lwjgl.glfw.GLFW.GLFW_KEY_V,
+                "category.infdimmod.controls"
         ));
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
@@ -72,6 +73,8 @@ public class InfDimModClient implements ClientModInitializer {
                 }
             }
         });
+
+        ModParticlesClient.registerParticleFactories();
     }
 
     private void handleOpenPortalGui(MinecraftClient client) {

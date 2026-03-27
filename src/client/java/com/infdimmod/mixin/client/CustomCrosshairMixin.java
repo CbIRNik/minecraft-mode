@@ -21,30 +21,39 @@ public abstract class CustomCrosshairMixin {
     @Inject(method = "renderCrosshair", at = @At("HEAD"), cancellable = true)
     private void renderCustomCrosshair(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
         MinecraftClient client = MinecraftClient.getInstance();
-        if (client.player != null) {
-            ItemStack stack = client.player.getMainHandStack();
 
-            if (stack.getItem() instanceof PortalGun) {
-                boolean isMode2 = stack.getOrDefault(PortalGunCodeComponent.PORTAL_GUN_MODE, false);
-                Identifier texture = isMode2 ? MODE_2_CROSSHAIR : MODE_1_CROSSHAIR;
+        if (client.player == null) return;
 
-                int width = client.getWindow().getScaledWidth();
-                int height = client.getWindow().getScaledHeight();
+        if (client.options.hudHidden || !client.options.getPerspective().isFirstPerson()) {
+            return;
+        }
 
-                RenderSystem.enableBlend();
+        ItemStack stack = client.player.getMainHandStack();
 
-                RenderSystem.blendFunc(
-                        GlStateManager.SrcFactor.ONE_MINUS_DST_COLOR,
-                        GlStateManager.DstFactor.ONE_MINUS_SRC_COLOR
-                );
+        if (stack.getItem() instanceof PortalGun) {
+            boolean isMode2 = stack.getOrDefault(PortalGunCodeComponent.PORTAL_GUN_MODE, false);
+            Identifier texture = isMode2 ? MODE_2_CROSSHAIR : MODE_1_CROSSHAIR;
 
-                context.drawTexture(texture, (width - 16) / 2, (height - 16) / 2, 0, 0, 16, 16, 16, 16);
+            int width = client.getWindow().getScaledWidth();
+            int height = client.getWindow().getScaledHeight();
 
-                RenderSystem.defaultBlendFunc();
-                RenderSystem.disableBlend();
+            int x = (width - 16) / 2;
+            int y = (height - 16) / 2;
 
-                ci.cancel();
-            }
+            RenderSystem.enableBlend();
+
+
+            RenderSystem.blendFunc(
+                    GlStateManager.SrcFactor.ONE_MINUS_DST_COLOR,
+                    GlStateManager.DstFactor.ONE_MINUS_SRC_COLOR
+            );
+
+            context.drawTexture(texture, x, y, 0, 0, 16, 16, 16, 16);
+
+            RenderSystem.defaultBlendFunc();
+            RenderSystem.disableBlend();
+
+            ci.cancel();
         }
     }
 }

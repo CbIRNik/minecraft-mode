@@ -5,10 +5,24 @@ import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.client.render.entity.EntityRendererFactory;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;
+import net.minecraft.util.math.Vec3d;
+import org.joml.Vector3f;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class GreenPortalRenderer extends EntityRenderer<GreenPortal> {
     private static final Identifier TEXTURE = Identifier.of("infdimmod", "textures/entity/greenportal.png");
+
+    private static final List<Identifier> TRAIL_TEXTURES = new ArrayList<>();
+
+    static {
+        TRAIL_TEXTURES.add(Identifier.of("infdimmod", "textures/entity/greenportal_trail_1.png")); // Ближе к порталу
+        TRAIL_TEXTURES.add(Identifier.of("infdimmod", "textures/entity/greenportal_trail_2.png"));
+        TRAIL_TEXTURES.add(Identifier.of("infdimmod", "textures/entity/greenportal_trail_3.png")); // Ближе к игроку
+    }
 
     public GreenPortalRenderer(EntityRendererFactory.Context context) {
         super(context);
@@ -16,41 +30,112 @@ public class GreenPortalRenderer extends EntityRenderer<GreenPortal> {
 
     @Override
     public void render(GreenPortal entity, float yaw, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light) {
+
         matrices.push();
-
-        // поворот по горизонтали
+        //портал
         matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(180.0F - entity.getYaw()));
-
-        // поворот по вертикали
         matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-entity.getPitch()));
 
-        // масштаб
         float scale = entity.getVisualScale(tickDelta);
         matrices.scale(scale, scale, scale);
 
         VertexConsumer buffer = vertexConsumers.getBuffer(RenderLayer.getEntityCutout(TEXTURE));
-        MatrixStack.Entry entry = matrices.peek();
-        float size = 0.5f;
-
-        // лицевая сторона (нормаль 0, 0, 1)
-        drawVertex(entry, buffer, -size, -size, light, 0, 1);
-        drawVertex(entry, buffer, size, -size, light, 1, 1);
-        drawVertex(entry, buffer, size, size, light, 1, 0);
-        drawVertex(entry, buffer, -size, size, light, 0, 0);
-
-        // задняя сторона
-        drawVertex(entry, buffer, -size, size, light, 0, 0);
-        drawVertex(entry, buffer, size, size, light, 1, 0);
-        drawVertex(entry, buffer, size, -size, light, 1, 1);
-        drawVertex(entry, buffer, -size, -size, light, 0, 1);
+        drawRect(matrices.peek(), buffer, 0.5f, light, 255);
 
         matrices.pop();
+
+        // шлейф
+
+        int maxAge = entity.getMaxAge();
+        int currentAge = entity.getAge();
+
+        if (currentAge < maxAge) {
+            Vector3f startVec = entity.getStartVec();
+            Vec3d currentPos = entity.getLerpedPos(tickDelta);
+            float distToStart = (float) currentPos.distanceTo(new Vec3d(startVec.x, startVec.y, startVec.z));
+
+            float ageWithTick = (float) currentAge + tickDelta;
+            float duration = (float) maxAge;
+
+            // затухание (с 40% пути)
+            float startFade = duration * 0.4f;
+            float alphaFactor = 1.0f;
+
+            if (ageWithTick > startFade) {
+                float t = (ageWithTick - startFade) / (duration - startFade);
+                t = MathHelper.clamp(t, 0.0f, 1.0f);
+                // функция (1-t)^3
+                alphaFactor = (1.0f - t) * (1.0f - t) * (1.0f - t);
+            }
+
+            if (alphaFactor > 0.001f) {
+                int numTrails = TRAIL_TEXTURES.size();
+
+                for (int i = 0; i < numTrails; i++) {
+                    Identifier trailTexture = TRAIL_TEXTURES.get(i);
+                    VertexConsumer trailBuffer = vertexConsumers.getBuffer(RenderLayer.getEntityTranslucent(trailTexture));
+
+                    float offsetDist = distToStart / (numTrails + 1) * (i + 1);
+
+                    matrices.push();
+
+                    // повороты шлейфа
+                    matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(180.0F - entity.getYaw()));
+                    matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-entity.getPitch()));
+
+                    matrices.translate(0.0, 0.0, offsetDist);
+
+                    // чем больше индекс (дальше от портала), тем меньше интенсивность
+                    float trailIntensity = (float)(numTrails - i) / (numTrails + 1);
+
+                    int finalAlpha = (int) (255 * alphaFactor * trailIntensity);
+
+                    if (finalAlpha > 1) {
+                        drawQuad(matrices.peek(), trailBuffer, 0.5f, light, finalAlpha);
+                    }
+
+                    matrices.pop();
+                }
+            }
+        }
+
         super.render(entity, yaw, tickDelta, matrices, vertexConsumers, light);
     }
 
-    private void drawVertex(MatrixStack.Entry entry, VertexConsumer buffer, float x, float y, int light, float u, float v) {
+    private void drawQuad(MatrixStack.Entry entry, VertexConsumer buffer, float size, int light, int alpha) {
+        // Лицевая сторона
+        drawVertex(entry, buffer, -size, -size, light, 0, 1, alpha);
+        drawVertex(entry, buffer, size, -size, light, 1, 1, alpha);
+        drawVertex(entry, buffer, size, size, light, 1, 0, alpha);
+        drawVertex(entry, buffer, -size, size, light, 0, 0, alpha);
+
+        // Задняя сторона
+        drawVertex(entry, buffer, -size, size, light, 0, 0, alpha);
+        drawVertex(entry, buffer, size, size, light, 1, 0, alpha);
+        drawVertex(entry, buffer, size, -size, light, 1, 1, alpha);
+        drawVertex(entry, buffer, -size, -size, light, 0, 1, alpha);
+    }
+
+    private void drawRect(MatrixStack.Entry entry, VertexConsumer buffer, float size, int light, int alpha) {
+        float halfW = size * 1.0f;
+        float halfH = size * 2.0f;
+
+        // Лицевая сторона
+        drawVertex(entry, buffer, -halfW, -halfH, light, 0, 1, alpha);
+        drawVertex(entry, buffer,  halfW, -halfH, light, 1, 1, alpha);
+        drawVertex(entry, buffer,  halfW,  halfH, light, 1, 0, alpha);
+        drawVertex(entry, buffer, -halfW,  halfH, light, 0, 0, alpha);
+
+        // Задняя сторона
+        drawVertex(entry, buffer, -halfW,  halfH, light, 0, 0, alpha);
+        drawVertex(entry, buffer,  halfW,  halfH, light, 1, 0, alpha);
+        drawVertex(entry, buffer,  halfW, -halfH, light, 1, 1, alpha);
+        drawVertex(entry, buffer, -halfW, -halfH, light, 0, 1, alpha);
+    }
+
+    private void drawVertex(MatrixStack.Entry entry, VertexConsumer buffer, float x, float y, int light, float u, float v, int alpha) {
         buffer.vertex(entry.getPositionMatrix(), x, y, 0.0f)
-                .color(255, 255, 255, 255)
+                .color(255, 255, 255, alpha)
                 .texture(u, v)
                 .overlay(OverlayTexture.DEFAULT_UV)
                 .light(light)
