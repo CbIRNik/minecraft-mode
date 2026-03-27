@@ -17,6 +17,7 @@ public class GreenPortal extends Entity {
     private static final TrackedData<Vector3f> START_VEC = DataTracker.registerData(GreenPortal.class, TrackedDataHandlerRegistry.VECTOR3F);
     private static final TrackedData<Vector3f> TARGET_VEC = DataTracker.registerData(GreenPortal.class, TrackedDataHandlerRegistry.VECTOR3F);
     private static final TrackedData<Integer> MAX_AGE = DataTracker.registerData(GreenPortal.class, TrackedDataHandlerRegistry.INTEGER);
+    private static final TrackedData<String> DIMENSION_CODE = DataTracker.registerData(GreenPortal.class, TrackedDataHandlerRegistry.STRING);
 
     private int age = 0;
     private static final int TOTAL_LIFETIME = 160;
@@ -32,6 +33,15 @@ public class GreenPortal extends Entity {
         builder.add(START_VEC, new Vector3f());
         builder.add(TARGET_VEC, new Vector3f());
         builder.add(MAX_AGE, 6);
+        builder.add(DIMENSION_CODE, "¯\\_(ツ)_/¯");
+    }
+
+    public void setDimensionCode(String code) {
+        this.getDataTracker().set(DIMENSION_CODE, code);
+    }
+
+    public String getDimensionCode() {
+        return this.getDataTracker().get(DIMENSION_CODE);
     }
 
     public int getAge() { return this.age; }
@@ -60,13 +70,11 @@ public class GreenPortal extends Entity {
             Vector3f start = this.getDataTracker().get(START_VEC);
             Vector3f target = this.getDataTracker().get(TARGET_VEC);
 
-            // Квадратичная интерполяция (плавный старт, быстрый конец)
             float t = (float) age / duration;
-            float interp = 1.0f - (1.0f - t) * (1.0f - t);
 
-            double posX = MathHelper.lerp(interp, (double)start.x, (double)target.x);
-            double posY = MathHelper.lerp(interp, (double)start.y, (double)target.y);
-            double posZ = MathHelper.lerp(interp, (double)start.z, (double)target.z);
+            double posX = MathHelper.lerp(t, (double)start.x, (double)target.x);
+            double posY = MathHelper.lerp(t, (double)start.y, (double)target.y);
+            double posZ = MathHelper.lerp(t, (double)start.z, (double)target.z);
 
             this.setPosition(posX, posY, posZ);
 
@@ -105,18 +113,26 @@ public class GreenPortal extends Entity {
     }
 
     public float getVisualScale(float tickDelta) {
-        float currentAge = age + tickDelta;
-        int duration = this.getDataTracker().get(MAX_AGE);
-        return MathHelper.clamp(currentAge / duration, 0.0f, 1.0f);
+        float t = ((float)this.age + tickDelta) / ((float)this.getMaxAge()+2);
+
+        // Защита: если время вышло, возвращаем 1.0
+        if (t >= 1.0f) return 1.0f;
+        // Если портал только появился, возвращаем 0.0
+        if (t <= 0.0f) return 0.0f;
+        return (float) Math.pow(2, 2*(t-1))-0.25f;
     }
 
     @Override
     protected void readCustomDataFromNbt(NbtCompound nbt) {
         this.age = nbt.getInt("Age");
+        if (nbt.contains("DimensionCode")) {
+            setDimensionCode(nbt.getString("DimensionCode"));
+        }
     }
 
     @Override
     protected void writeCustomDataToNbt(NbtCompound nbt) {
         nbt.putInt("Age", this.age);
+        nbt.putString("DimensionCode", getDimensionCode());
     }
 }

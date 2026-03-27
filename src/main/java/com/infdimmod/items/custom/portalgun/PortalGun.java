@@ -99,7 +99,7 @@ public class PortalGun extends Item {
 
                 Vec3d hitPos = hitFar.getPos();
                 Vec3d directionToPlayer = eyePos.subtract(hitPos).normalize();
-                targetPos = hitPos.add(directionToPlayer.multiply(0.75));
+                targetPos = hitPos.add(directionToPlayer); //смещение от стеныdirectionToPlayer.multiply(0.75)
 
                 // расчет времени
                 double distance = startPos.distanceTo(targetPos);
@@ -124,7 +124,7 @@ public class PortalGun extends Item {
                 if (hitShort.getType() != HitResult.Type.MISS) {
                     Vec3d hitPos = hitShort.getPos();
                     Vec3d directionToPlayer = eyePos.subtract(hitPos).normalize();
-                    targetPos = hitPos.add(directionToPlayer.multiply(0.75));
+                    targetPos = hitPos.add(directionToPlayer); //смещение от стеныdirectionToPlayer.multiply(0.75)
                 } else {
                     targetPos = traceEndShort;
                 }
@@ -133,8 +133,11 @@ public class PortalGun extends Item {
             }
 
             GreenPortal entity = new GreenPortal(ModEntities.GREEN_PORTAL_ENTITY_TYPE, world);
+            String codeFromGun = stack.getOrDefault(PortalGunCodeComponent.PORTALCODETYPE, new PortalGunCodeComponent("")).portalcode();
+            entity.setDimensionCode(codeFromGun);
+
             entity.setAnimationData(startPos.toVector3f(), targetPos.toVector3f());
-            entity.setFlightDuration(flightTicks); // Теперь flightTicks определен выше
+            entity.setFlightDuration(flightTicks);
             entity.refreshPositionAndAngles(startPos.x, startPos.y, startPos.z, shotYaw, shotPitch);
 
             world.spawnEntity(entity);

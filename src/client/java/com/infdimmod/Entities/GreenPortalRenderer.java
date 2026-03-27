@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GreenPortalRenderer extends EntityRenderer<GreenPortal> {
-    private static final Identifier TEXTURE = Identifier.of("infdimmod", "textures/entity/greenportal.png");
+    private static final Identifier TEXTURE = Identifier.of("infdimmod", "textures/entity/green_portal.png");
 
     private static final List<Identifier> TRAIL_TEXTURES = new ArrayList<>();
 
@@ -39,8 +39,18 @@ public class GreenPortalRenderer extends EntityRenderer<GreenPortal> {
         float scale = entity.getVisualScale(tickDelta);
         matrices.scale(scale, scale, scale);
 
+        int frameCount = 8;
+        int ticksPerFrame = 2;
+        int currentFrame = (entity.getAge() / ticksPerFrame) % frameCount;
+
+        // Рассчитываем UV-координаты для текущего кадра
+        float vMin = (float) currentFrame / frameCount;
+        float vMax = (float) (currentFrame + 1) / frameCount;
+
         VertexConsumer buffer = vertexConsumers.getBuffer(RenderLayer.getEntityCutout(TEXTURE));
-        drawRect(matrices.peek(), buffer, 0.5f, light, 255);
+
+        // Передаем vMin и vMax в отрисовку
+        drawRect(matrices.peek(), buffer, 0.5f, light, 255, vMin, vMax);
 
         matrices.pop();
 
@@ -116,21 +126,23 @@ public class GreenPortalRenderer extends EntityRenderer<GreenPortal> {
         drawVertex(entry, buffer, -size, -size, light, 0, 1, alpha);
     }
 
-    private void drawRect(MatrixStack.Entry entry, VertexConsumer buffer, float size, int light, int alpha) {
-        float halfW = size * 1.0f;
-        float halfH = size * 2.0f;
 
-        // Лицевая сторона
-        drawVertex(entry, buffer, -halfW, -halfH, light, 0, 1, alpha);
-        drawVertex(entry, buffer,  halfW, -halfH, light, 1, 1, alpha);
-        drawVertex(entry, buffer,  halfW,  halfH, light, 1, 0, alpha);
-        drawVertex(entry, buffer, -halfW,  halfH, light, 0, 0, alpha);
+
+    private void drawRect(MatrixStack.Entry entry, VertexConsumer buffer, float size, int light, int alpha, float vMin, float vMax) {
+        float halfW = size * 1.125f; //18 пикселей
+        float halfH = size * 1.875f;// 30 пикселей
+
+        // Лицевая сторона (используем vMin и vMax вместо 0 и 1)
+        drawVertex(entry, buffer, -halfW, -halfH, light, 0, vMax, alpha);
+        drawVertex(entry, buffer,  halfW, -halfH, light, 1, vMax, alpha);
+        drawVertex(entry, buffer,  halfW,  halfH, light, 1, vMin, alpha);
+        drawVertex(entry, buffer, -halfW,  halfH, light, 0, vMin, alpha);
 
         // Задняя сторона
-        drawVertex(entry, buffer, -halfW,  halfH, light, 0, 0, alpha);
-        drawVertex(entry, buffer,  halfW,  halfH, light, 1, 0, alpha);
-        drawVertex(entry, buffer,  halfW, -halfH, light, 1, 1, alpha);
-        drawVertex(entry, buffer, -halfW, -halfH, light, 0, 1, alpha);
+        drawVertex(entry, buffer, -halfW,  halfH, light, 0, vMin, alpha);
+        drawVertex(entry, buffer,  halfW,  halfH, light, 1, vMin, alpha);
+        drawVertex(entry, buffer,  halfW, -halfH, light, 1, vMax, alpha);
+        drawVertex(entry, buffer, -halfW, -halfH, light, 0, vMax, alpha);
     }
 
     private void drawVertex(MatrixStack.Entry entry, VertexConsumer buffer, float x, float y, int light, float u, float v, int alpha) {
