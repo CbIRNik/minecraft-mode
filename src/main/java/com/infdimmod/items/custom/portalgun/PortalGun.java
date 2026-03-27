@@ -99,11 +99,11 @@ public class PortalGun extends Item {
 
                 Vec3d hitPos = hitFar.getPos();
                 Vec3d directionToPlayer = eyePos.subtract(hitPos).normalize();
-                targetPos = hitPos.add(directionToPlayer.multiply(0.5));
+                targetPos = hitPos.add(directionToPlayer.multiply(0.75));
 
                 // расчет времени
                 double distance = startPos.distanceTo(targetPos);
-                double speedFactor = 6.0;
+                double speedFactor = 4.5;
                 flightTicks = (int) Math.max(2, Math.round(distance / speedFactor));
 
             } else {
@@ -124,15 +124,12 @@ public class PortalGun extends Item {
                 if (hitShort.getType() != HitResult.Type.MISS) {
                     Vec3d hitPos = hitShort.getPos();
                     Vec3d directionToPlayer = eyePos.subtract(hitPos).normalize();
-                    targetPos = hitPos.add(directionToPlayer.multiply(0.1));
+                    targetPos = hitPos.add(directionToPlayer.multiply(0.75));
                 } else {
                     targetPos = traceEndShort;
                 }
 
-                // расчет времени
-                double distanceShort = startPos.distanceTo(targetPos);
-                double speedFactorShort = 0.4;
-                flightTicks = (int) Math.max(3, Math.round(distanceShort / speedFactorShort));
+                flightTicks = 4;
             }
 
             GreenPortal entity = new GreenPortal(ModEntities.GREEN_PORTAL_ENTITY_TYPE, world);
