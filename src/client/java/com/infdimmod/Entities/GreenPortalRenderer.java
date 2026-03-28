@@ -5,7 +5,6 @@ import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.client.render.entity.EntityRendererFactory;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Vector3f;
@@ -62,21 +61,12 @@ public class GreenPortalRenderer extends EntityRenderer<GreenPortal> {
         if (currentAge < maxAge) {
             Vector3f startVec = entity.getStartVec();
             Vec3d currentPos = entity.getLerpedPos(tickDelta);
-            float distToStart = (float) currentPos.distanceTo(new Vec3d(startVec.x, startVec.y, startVec.z));
 
-            float ageWithTick = (float) currentAge + tickDelta;
-            float duration = (float) maxAge;
+            double diffX = (double)startVec.x - currentPos.x;
+            double diffY = (double)startVec.y - currentPos.y;
+            double diffZ = (double)startVec.z - currentPos.z;
 
-            // затухание (с 40% пути)
-            float startFade = duration * 0.4f;
-            float alphaFactor = 1.0f;
-
-            if (ageWithTick > startFade) {
-                float t = (ageWithTick - startFade) / (duration - startFade);
-                t = MathHelper.clamp(t, 0.0f, 1.0f);
-                // функция (1-t)^3
-                alphaFactor = (1.0f - t) * (1.0f - t) * (1.0f - t);
-            }
+            float alphaFactor = 1.0f - (1.0f - 2.0f * currentAge / (float)maxAge) * (1.0f - 2.0f * currentAge / (float)maxAge);
 
             if (alphaFactor > 0.001f) {
                 int numTrails = TRAIL_TEXTURES.size();
@@ -85,23 +75,22 @@ public class GreenPortalRenderer extends EntityRenderer<GreenPortal> {
                     Identifier trailTexture = TRAIL_TEXTURES.get(i);
                     VertexConsumer trailBuffer = vertexConsumers.getBuffer(RenderLayer.getEntityTranslucent(trailTexture));
 
-                    float offsetDist = distToStart / (numTrails + 1) * (i + 1);
+                    // Рассчитываем положение конкретного сегмента шлейфа
+                    float segmentT = (float)(i + 1) / (numTrails + 1);
 
                     matrices.push();
 
-                    // повороты шлейфа
+
+                    matrices.translate(diffX * segmentT, diffY * segmentT, diffZ * segmentT);
+
                     matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(180.0F - entity.getYaw()));
                     matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-entity.getPitch()));
 
-                    matrices.translate(0.0, 0.0, offsetDist);
-
-                    // чем больше индекс (дальше от портала), тем меньше интенсивность
                     float trailIntensity = (float)(numTrails - i) / (numTrails + 1);
-
                     int finalAlpha = (int) (255 * alphaFactor * trailIntensity);
 
                     if (finalAlpha > 1) {
-                        drawQuad(matrices.peek(), trailBuffer, 0.5f, light, finalAlpha);
+                        drawQuad(matrices.peek(), trailBuffer, 0.3f, light, finalAlpha);
                     }
 
                     matrices.pop();

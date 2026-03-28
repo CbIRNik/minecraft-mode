@@ -71,8 +71,15 @@ public class PortalGun extends Item {
 
             // базовые вектора для обоих режимов
             Vec3d eyePos = user.getEyePos();
-            Vec3d sideOffset = user.getRotationVec(1.0F).crossProduct(new Vec3d(0, 1, 0)).multiply(0.3);
-            Vec3d startPos = eyePos.add(sideOffset).add(0, -0.2, 0);
+            Vec3d lookVec = user.getRotationVec(1.0F);
+            double sideSign = (user.getMainArm() == net.minecraft.util.Arm.LEFT) ? -1.0 : 1.0;//ЧЕТО КРИВО СО СМЕНОЙ РУКИ, ПОТОМ ПОЧИНИТЬ!!!
+            Vec3d rightVec = lookVec.crossProduct(new Vec3d(0, sideSign, 0)).normalize();
+
+// Итоговая точка вылета: вперед на 0.4, вбок на 0.35 (умножаем на знак руки!)
+            Vec3d startPos = eyePos
+                    .add(lookVec.multiply(0.4))
+                    .add(rightVec.multiply(0.35 * sideSign))
+                    .add(0, -0.25, 0);
 
             Vec3d targetPos;
             float shotYaw = user.getYaw();
@@ -83,7 +90,6 @@ public class PortalGun extends Item {
                 // дальний
                 shotPitch = user.getPitch();
                 double maxDistFar = 64.0;
-                Vec3d lookVec = user.getRotationVec(1.0F);
                 Vec3d traceEndFar = eyePos.add(lookVec.multiply(maxDistFar));
 
                 BlockHitResult hitFar = world.raycast(new RaycastContext(

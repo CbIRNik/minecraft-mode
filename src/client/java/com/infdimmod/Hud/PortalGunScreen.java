@@ -59,11 +59,7 @@ public class PortalGunScreen extends Screen {
 
                 ClientPlayNetworking.send(new PortalCodePayload(input));
 
-                // Обновляем стек в руке игрока (клиентская сторона)
-                client.player.getInventory().main.set(
-                        client.player.getInventory().selectedSlot,
-                        currentStack.copy()
-                );
+                PortalGun.setPortalCode(currentStack, input);
                 }
             }
         }

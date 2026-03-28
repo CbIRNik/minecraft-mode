@@ -6,7 +6,10 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
@@ -114,10 +117,7 @@ public class GreenPortal extends Entity {
 
     public float getVisualScale(float tickDelta) {
         float t = ((float)this.age + tickDelta) / ((float)this.getMaxAge()+2);
-
-        // Защита: если время вышло, возвращаем 1.0
         if (t >= 1.0f) return 1.0f;
-        // Если портал только появился, возвращаем 0.0
         if (t <= 0.0f) return 0.0f;
         return (float) Math.pow(2, 2*(t-1))-0.25f;
     }
@@ -135,4 +135,22 @@ public class GreenPortal extends Entity {
         nbt.putInt("Age", this.age);
         nbt.putString("DimensionCode", getDimensionCode());
     }
+    //ОТЛАДКА-----------------------------
+    @Override
+    public void onPlayerCollision(PlayerEntity player) {
+        if (!this.getWorld().isClient) {
+            int flightDuration = this.getDataTracker().get(MAX_AGE);
+            if (this.age < 5) {
+                return;
+            }//проверка что портал долетел
+
+            String code = this.getDimensionCode();
+            Text message = Text.literal("Код портала: ")
+                    .append(Text.literal(code != null ? code : "NULL").formatted(Formatting.GREEN));
+            player.sendMessage(message, false);
+        }
+    }
+    //------------------------------------
+
+
 }
