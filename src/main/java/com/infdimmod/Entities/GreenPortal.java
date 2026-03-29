@@ -8,12 +8,20 @@ import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
+import net.minecraft.world.dimension.DimensionTypes;
 import org.joml.Vector3f;
+import xyz.nucleoid.fantasy.Fantasy;
+import xyz.nucleoid.fantasy.RuntimeWorldConfig;
 
 public class GreenPortal extends Entity {
 
@@ -42,7 +50,6 @@ public class GreenPortal extends Entity {
     public void setDimensionCode(String code) {
         this.getDataTracker().set(DIMENSION_CODE, code);
     }
-
     public String getDimensionCode() {
         return this.getDataTracker().get(DIMENSION_CODE);
     }
@@ -66,7 +73,6 @@ public class GreenPortal extends Entity {
     public void tick() {
         super.tick();
         age++;
-
         int duration = this.getDataTracker().get(MAX_AGE);
 
         if (age <= duration) {
@@ -125,6 +131,7 @@ public class GreenPortal extends Entity {
     @Override
     protected void readCustomDataFromNbt(NbtCompound nbt) {
         this.age = nbt.getInt("Age");
+        this.lastTeleportTick = nbt.getLong("LastTeleportTick");
         if (nbt.contains("DimensionCode")) {
             setDimensionCode(nbt.getString("DimensionCode"));
         }
@@ -133,24 +140,70 @@ public class GreenPortal extends Entity {
     @Override
     protected void writeCustomDataToNbt(NbtCompound nbt) {
         nbt.putInt("Age", this.age);
+        nbt.putLong("LastTeleportTick", this.lastTeleportTick);
         nbt.putString("DimensionCode", getDimensionCode());
     }
-    //ОТЛАДКА-----------------------------
+
+    private long lastTeleportTick;
     @Override
     public void onPlayerCollision(PlayerEntity player) {
-        if (!this.getWorld().isClient) {
-            int flightDuration = this.getDataTracker().get(MAX_AGE);
-            if (this.age < 5) {
-                return;
-            }//проверка что портал долетел
+        if (this.getWorld().isClient || !(player instanceof ServerPlayerEntity serverPlayer)) return;
 
-            String code = this.getDimensionCode();
-            Text message = Text.literal("Код портала: ")
-                    .append(Text.literal(code != null ? code : "NULL").formatted(Formatting.GREEN));
-            player.sendMessage(message, false);
+        MinecraftServer server = this.getServer();
+        if (server == null) return;
+
+        long globalTime = server.getOverworld().getTime();
+        if (globalTime - lastTeleportTick < 140 || this.age < 5) return;//кулдаун портала в 7секунд
+
+        // код мира направления
+        String targetCode = getDimensionCode();
+
+        long targetSeed = this.getSeedFromCode(targetCode);
+
+        // мир
+        ServerWorld targetWorld = null;
+        Identifier potentialId = Identifier.tryParse(targetCode);
+
+        if (potentialId != null && targetCode.contains(":")) {
+            targetWorld = server.getWorld(RegistryKey.of(RegistryKeys.WORLD, potentialId));
+        }
+
+        if (targetWorld == null) {
+            Identifier targetDimId = Identifier.of("infdimmod", "dim_" + Math.abs(targetSeed));
+            Fantasy fantasy = Fantasy.get(server);
+            RuntimeWorldConfig config = new RuntimeWorldConfig()
+                    .setDimensionType(DimensionTypes.OVERWORLD)
+                    .setSeed(targetSeed)
+                    .setGenerator(server.getOverworld().getChunkManager().getChunkGenerator());
+            targetWorld = fantasy.getOrOpenPersistentWorld(targetDimId, config).asWorld();
+        }
+
+        // телепортация
+        this.lastTeleportTick = globalTime;
+        Vec3d targetPos = serverPlayer.getPos();
+
+        TeleportTarget teleportTarget = new TeleportTarget(
+                targetWorld,
+                targetPos,
+                serverPlayer.getVelocity(),
+                serverPlayer.getYaw(),
+                serverPlayer.getPitch(),
+                TeleportTarget.NO_OP
+        );
+
+        serverPlayer.teleportTo(teleportTarget);
+    }
+
+    public long getSeedFromCode(String code) {
+        if (code == null || code.isEmpty()) return 0L;
+        try {
+            // Long.parseLong с радиалом 36 идеально подходит для 0-9 и a-z
+            // Используем Math.abs, так как сиды в Minecraft обычно положительные
+            // или обрабатываются как unsigned
+            return Math.abs(Long.parseLong(code.toLowerCase(), 36));
+        } catch (NumberFormatException e) {
+            // Если в коде есть спецсимволы, не входящие в 0-9, a-z
+            return (long) Math.abs(code.hashCode());
         }
     }
-    //------------------------------------
-
-
 }
