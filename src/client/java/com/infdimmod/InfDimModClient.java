@@ -52,7 +52,16 @@ public class InfDimModClient implements ClientModInitializer {
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (openPortalGuiKey.wasPressed()) {
-                handleOpenPortalGui(client);
+                if (client.player != null && client.player.getMainHandStack().getItem() instanceof PortalGun) {
+                    handleOpenPortalGui(client);
+                }
+            }
+
+            while (toggleModeKey.wasPressed()) {
+                // Если в руках пушка - отправляем пакет на сервер
+                if (client.player != null && client.player.getMainHandStack().getItem() instanceof PortalGun) {
+                    ClientPlayNetworking.send(new ToggleGunModePayload());
+                }
             }
         });
 
@@ -64,15 +73,6 @@ public class InfDimModClient implements ClientModInitializer {
                 org.lwjgl.glfw.GLFW.GLFW_KEY_V,
                 "category.infdimmod.controls"
         ));
-
-        ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            while (toggleModeKey.wasPressed()) {
-                // Если в руках пушка - отправляем пакет на сервер
-                if (client.player != null && client.player.getMainHandStack().getItem() instanceof PortalGun) {
-                    ClientPlayNetworking.send(new ToggleGunModePayload());
-                }
-            }
-        });
 
         ModParticlesClient.registerParticleFactories();
     }

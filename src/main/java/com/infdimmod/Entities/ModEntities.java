@@ -1,5 +1,6 @@
 package com.infdimmod.Entities;
 
+import com.infdimmod.Entities.custom.GreenPortal;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnGroup;
 import net.minecraft.registry.Registries;

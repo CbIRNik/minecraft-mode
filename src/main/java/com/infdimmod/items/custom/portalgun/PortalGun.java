@@ -1,6 +1,6 @@
 package com.infdimmod.items.custom.portalgun;
 
-import com.infdimmod.Entities.GreenPortal;
+import com.infdimmod.Entities.custom.GreenPortal;
 import com.infdimmod.Entities.ModEntities;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
@@ -44,11 +44,11 @@ public class PortalGun extends Item {
     }
 
     public static void setPortalCode(ItemStack stack, String code) {
-        stack.set(PortalGunCodeComponent.PORTALCODETYPE, new PortalGunCodeComponent(code));
+        stack.set(PortalGunComponents.PORTALCODETYPE, new PortalGunComponents(code));
     }
 
     public static String getPortalCode(ItemStack stack) {
-        PortalGunCodeComponent component = stack.get(PortalGunCodeComponent.PORTALCODETYPE);
+        PortalGunComponents component = stack.get(PortalGunComponents.PORTALCODETYPE);
         return component != null ? component.portalcode() : "";
     }
 
@@ -62,23 +62,20 @@ public class PortalGun extends Item {
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
         ItemStack stack = user.getStackInHand(hand);
-        boolean isMode2 = stack.getOrDefault(PortalGunCodeComponent.PORTAL_GUN_MODE, false);
-
+        boolean isMode2 = stack.getOrDefault(PortalGunComponents.PORTAL_GUN_MODE, false);
         if (!world.isClient) {
-            if (isItemBroken(stack) || user.getItemCooldownManager().isCoolingDown(this)) {
+            if (isItemBroken(stack) || user.getItemCooldownManager().isCoolingDown(this) || hand == Hand.OFF_HAND) {
                 return TypedActionResult.pass(stack);
             }
 
             // базовые вектора для обоих режимов
             Vec3d eyePos = user.getEyePos();
             Vec3d lookVec = user.getRotationVec(1.0F);
-            double sideSign = (user.getMainArm() == net.minecraft.util.Arm.LEFT) ? -1.0 : 1.0;//ЧЕТО КРИВО СО СМЕНОЙ РУКИ, ПОТОМ ПОЧИНИТЬ!!!
-            Vec3d rightVec = lookVec.crossProduct(new Vec3d(0, sideSign, 0)).normalize();
+            Vec3d rightVec = lookVec.crossProduct(new Vec3d(0, 1, 0)).normalize();
 
-// Итоговая точка вылета: вперед на 0.4, вбок на 0.35 (умножаем на знак руки!)
             Vec3d startPos = eyePos
                     .add(lookVec.multiply(0.4))
-                    .add(rightVec.multiply(0.35 * sideSign))
+                    .add(rightVec.multiply(0.35))
                     .add(0, -0.25, 0);
 
             Vec3d targetPos;
@@ -139,7 +136,7 @@ public class PortalGun extends Item {
             }
 
             GreenPortal entity = new GreenPortal(ModEntities.GREEN_PORTAL_ENTITY_TYPE, world);
-            String codeFromGun = stack.getOrDefault(PortalGunCodeComponent.PORTALCODETYPE, new PortalGunCodeComponent("")).portalcode();
+            String codeFromGun = stack.getOrDefault(PortalGunComponents.PORTALCODETYPE, new PortalGunComponents("")).portalcode();
             entity.setDimensionCode(codeFromGun);
 
             entity.setAnimationData(startPos.toVector3f(), targetPos.toVector3f());

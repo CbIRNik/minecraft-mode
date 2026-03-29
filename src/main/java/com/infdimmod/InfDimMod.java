@@ -4,7 +4,7 @@ import com.infdimmod.Blocks.ModBlocks;
 import com.infdimmod.Entities.ModEntities;
 import com.infdimmod.items.ModItems;
 import com.infdimmod.items.custom.portalgun.PortalGun;
-import com.infdimmod.items.custom.portalgun.PortalGunCodeComponent;
+import com.infdimmod.items.custom.portalgun.PortalGunComponents;
 import com.infdimmod.network.PortalCodePayload;
 import com.infdimmod.network.ToggleGunModePayload;
 import com.infdimmod.particle.ModParticles;
@@ -16,7 +16,7 @@ import net.minecraft.item.ItemStack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.infdimmod.items.custom.portalgun.PortalGunCodeComponent.PORTAL_GUN_MODE;
+import static com.infdimmod.items.custom.portalgun.PortalGunComponents.PORTAL_GUN_MODE;
 
 public class InfDimMod implements ModInitializer {
 	public static final String MOD_ID = "infdimmod";
@@ -36,12 +36,12 @@ public class InfDimMod implements ModInitializer {
                 ItemStack stack = context.player().getMainHandStack();
 
 
-                stack.set(PortalGunCodeComponent.PORTALCODETYPE, new PortalGunCodeComponent(payload.code()));
+                stack.set(PortalGunComponents.PORTALCODETYPE, new PortalGunComponents(payload.code()));
 
             });
         });
 
-        PortalGunCodeComponent.register();
+        PortalGunComponents.register();
 
         ModEntities.registerModEntities();
 

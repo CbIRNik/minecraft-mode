@@ -4,7 +4,7 @@ import com.infdimmod.Blocks.ModBlocks;
 import com.infdimmod.InfDimMod;
 import com.infdimmod.items.custom.PortalFluidItem;
 import com.infdimmod.items.custom.portalgun.PortalGun;
-import com.infdimmod.items.custom.portalgun.PortalGunCodeComponent;
+import com.infdimmod.items.custom.portalgun.PortalGunComponents;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.item.BucketItem;
@@ -36,7 +36,7 @@ public class ModItems {
             .maxDamage(420)
             .fireproof()
             .rarity(Rarity.EPIC)
-            .component(PortalGunCodeComponent.PORTALCODETYPE, new PortalGunCodeComponent("¯\\_(ツ)_/¯"))), "portal_gun");
+            .component(PortalGunComponents.PORTALCODETYPE, new PortalGunComponents("¯\\_(ツ)_/¯"))), "portal_gun");
 
     public static Item register(Item item, String id) {
         Identifier itemID = Identifier.of(InfDimMod.MOD_ID, id);

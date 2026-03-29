@@ -1,4 +1,4 @@
-package com.infdimmod.Entities;
+package com.infdimmod.Entities.custom;
 
 import com.infdimmod.particle.ModParticles;
 import net.minecraft.entity.Entity;
@@ -153,7 +153,7 @@ public class GreenPortal extends Entity {
         if (server == null) return;
 
         long globalTime = server.getOverworld().getTime();
-        if (globalTime - lastTeleportTick < 140 || this.age < 5) return;//кулдаун портала в 7секунд
+        if (globalTime - lastTeleportTick < 140 || this.age < 10) return;//кулдаун портала в 7секунд
 
         // код мира направления
         String targetCode = getDimensionCode();

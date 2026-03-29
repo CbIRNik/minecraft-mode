@@ -9,16 +9,16 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
 
-public record PortalGunCodeComponent(String portalcode) {
-
-    public static final Codec<PortalGunCodeComponent> CODEC = RecordCodecBuilder.create(instance ->
+public record PortalGunComponents(String portalcode) {
+    // код измерения
+    public static final Codec<PortalGunComponents> CODEC = RecordCodecBuilder.create(instance ->
             instance.group(
-                    Codec.STRING.optionalFieldOf("pcode", "").forGetter(PortalGunCodeComponent::portalcode)
-            ).apply(instance, PortalGunCodeComponent::new)
+                    Codec.STRING.optionalFieldOf("pcode", "").forGetter(PortalGunComponents::portalcode)
+            ).apply(instance, PortalGunComponents::new)
     );
 
-    public static final ComponentType<PortalGunCodeComponent> PORTALCODETYPE =
-            ComponentType.<PortalGunCodeComponent>builder()
+    public static final ComponentType<PortalGunComponents> PORTALCODETYPE =
+            ComponentType.<PortalGunComponents>builder()
                     .codec(CODEC)
                     .build();
 
@@ -33,12 +33,12 @@ public record PortalGunCodeComponent(String portalcode) {
     public void saveCodeToItem(PlayerEntity player, String newCode) {
         ItemStack stack = player.getMainHandStack();
         if (stack.getItem() instanceof PortalGun) {
-            stack.set(PortalGunCodeComponent.PORTALCODETYPE, new PortalGunCodeComponent(newCode));
+            stack.set(PortalGunComponents.PORTALCODETYPE, new PortalGunComponents(newCode));
         }
     }
 
 
-    //ниже не код портала, режим пушки!
+    //режим пушки
     public static final ComponentType<Boolean> PORTAL_GUN_MODE = Registry.register(
             Registries.DATA_COMPONENT_TYPE,
             Identifier.of("infdimmod", "portal_gun_mode"),

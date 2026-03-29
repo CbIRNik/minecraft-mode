@@ -1,5 +1,6 @@
 package com.infdimmod.Entities;
 
+import com.infdimmod.Entities.custom.GreenPortal;
 import net.minecraft.client.render.*;
 import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.client.render.entity.EntityRendererFactory;

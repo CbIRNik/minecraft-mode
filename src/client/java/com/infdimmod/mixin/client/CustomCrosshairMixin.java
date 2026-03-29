@@ -1,6 +1,6 @@
 package com.infdimmod.mixin.client;
 
-import com.infdimmod.items.custom.portalgun.PortalGun;import com.infdimmod.items.custom.portalgun.PortalGunCodeComponent;import com.mojang.blaze3d.platform.GlStateManager;import com.mojang.blaze3d.systems.RenderSystem;
+import com.infdimmod.items.custom.portalgun.PortalGun;import com.infdimmod.items.custom.portalgun.PortalGunComponents;import com.mojang.blaze3d.platform.GlStateManager;import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
@@ -31,7 +31,7 @@ public abstract class CustomCrosshairMixin {
         ItemStack stack = client.player.getMainHandStack();
 
         if (stack.getItem() instanceof PortalGun) {
-            boolean isMode2 = stack.getOrDefault(PortalGunCodeComponent.PORTAL_GUN_MODE, false);
+            boolean isMode2 = stack.getOrDefault(PortalGunComponents.PORTAL_GUN_MODE, false);
             Identifier texture = isMode2 ? MODE_2_CROSSHAIR : MODE_1_CROSSHAIR;
 
             int width = client.getWindow().getScaledWidth();
