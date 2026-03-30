@@ -1,7 +1,7 @@
 package com.infdimmod.items.custom.portalgun;
 
-import com.infdimmod.Entities.custom.GreenPortal;
 import com.infdimmod.Entities.ModEntities;
+import com.infdimmod.Entities.custom.GreenPortal;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;

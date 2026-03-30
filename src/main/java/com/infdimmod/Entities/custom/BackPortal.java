@@ -1,7 +1,5 @@
 package com.infdimmod.Entities.custom;
 
-import com.infdimmod.Entities.ModEntities;
-import com.infdimmod.items.custom.portalgun.PortalGunComponents;
 import com.infdimmod.particle.ModParticles;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -17,35 +15,26 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionTypes;
-import org.joml.Vector3f;
 import xyz.nucleoid.fantasy.Fantasy;
 import xyz.nucleoid.fantasy.RuntimeWorldConfig;
 
-public class GreenPortal extends Entity {
+public class BackPortal extends Entity {
 
-    private static final TrackedData<Vector3f> START_VEC = DataTracker.registerData(GreenPortal.class, TrackedDataHandlerRegistry.VECTOR3F);
-    private static final TrackedData<Vector3f> TARGET_VEC = DataTracker.registerData(GreenPortal.class, TrackedDataHandlerRegistry.VECTOR3F);
-    private static final TrackedData<Integer> MAX_AGE = DataTracker.registerData(GreenPortal.class, TrackedDataHandlerRegistry.INTEGER);
-    private static final TrackedData<String> DIMENSION_CODE = DataTracker.registerData(GreenPortal.class, TrackedDataHandlerRegistry.STRING);
+    private static final TrackedData<String> DIMENSION_CODE = DataTracker.registerData(BackPortal.class, TrackedDataHandlerRegistry.STRING);
 
     private int age = 0;
     private static final int TOTAL_LIFETIME = 160;
-    private Vec3d startPos;
 
-    public GreenPortal(EntityType<?> type, World world) {
+    public BackPortal(EntityType<?> type, World world) {
         super(type, world);
         this.noClip = true;
     }
 
     @Override
     protected void initDataTracker(DataTracker.Builder builder) {
-        builder.add(START_VEC, new Vector3f());
-        builder.add(TARGET_VEC, new Vector3f());
-        builder.add(MAX_AGE, 6);
         builder.add(DIMENSION_CODE, "¯\\_(ツ)_/¯");
     }
 
@@ -57,68 +46,29 @@ public class GreenPortal extends Entity {
     }
 
     public int getAge() { return this.age; }
-    public int getMaxAge() { return this.getDataTracker().get(MAX_AGE); }
-    public Vector3f getStartVec() { return this.getDataTracker().get(START_VEC); }
-
-
-    public void setFlightDuration(int ticks) {
-        this.getDataTracker().set(MAX_AGE, ticks);
-    }
-
-    public void setAnimationData(Vector3f start, Vector3f target) {
-        this.getDataTracker().set(START_VEC, start);
-        this.getDataTracker().set(TARGET_VEC, target);
-        this.startPos = new Vec3d(start.x, start.y, start.z);
-    }
 
     @Override
     public void tick() {
         super.tick();
         age++;
-        int duration = this.getDataTracker().get(MAX_AGE);
 
         if (!this.getWorld().isClient && this.age == 1) {
             setChunkForceLoaded(true);
         }
 
-        if (age <= duration) {
-            Vector3f start = this.getDataTracker().get(START_VEC);
-            Vector3f target = this.getDataTracker().get(TARGET_VEC);
+        if (age <= 10) {
+            for (int i = 0; i < 5; i++) {
+                double offsetX = (random.nextDouble() - 0.5);
+                double offsetY = (random.nextDouble() - 0.5);
+                double offsetZ = (random.nextDouble() - 0.5);
 
-            float t = (float) age / duration;
-
-            double posX = MathHelper.lerp(t, (double)start.x, (double)target.x);
-            double posY = MathHelper.lerp(t, (double)start.y, (double)target.y);
-            double posZ = MathHelper.lerp(t, (double)start.z, (double)target.z);
-
-            this.setPosition(posX, posY, posZ);
-
-
-            if (this.getWorld().isClient) {
-                if (this.startPos == null) {
-                    this.startPos = new Vec3d(start.x, start.y, start.z);
-                }
-
-                double distance = this.getPos().distanceTo(startPos);
-
-                // количество
-                int particleCount = (int) Math.min(7, 1 + (distance / 3.5));
-                // разброс
-                double spread = Math.min(1.0, 0.2 + (distance / 40.0));
-
-                for (int i = 0; i < particleCount; i++) {
-                    double offsetX = (random.nextDouble() - 0.5) * spread;
-                    double offsetY = (random.nextDouble() - 0.5) * spread;
-                    double offsetZ = (random.nextDouble() - 0.5) * spread;
-
-                    this.getWorld().addParticle(
-                            ModParticles.GREEN_LIGHTNING,
-                            this.getX() + offsetX,
-                            this.getY() + offsetY,
-                            this.getZ() + offsetZ,
-                            0, 0, 0
-                    );
-                }
+                this.getWorld().addParticle(
+                        ModParticles.GREEN_LIGHTNING,
+                        this.getX() + offsetX,
+                        this.getY() + offsetY,
+                        this.getZ() + offsetZ,
+                        0, 0, 0
+                );
             }
         }
 
@@ -129,16 +79,21 @@ public class GreenPortal extends Entity {
     }
 
     public float getVisualScale(float tickDelta) {
-        float t = ((float)this.age + tickDelta) / ((float)this.getMaxAge()+2);
-        if (t >= 1.0f) return 1.0f;
-        if (t <= 0.0f) return 0.0f;
-        return (float) Math.pow(2, 2*(t-1))-0.25f;
+        float exactAge = (float)this.age + tickDelta;
+        int totalLifetime = TOTAL_LIFETIME;
+        if (exactAge < 10f) {
+            return exactAge / 10f;
+        }
+        if (exactAge > (totalLifetime - 10f)) {
+            float timeLeft = totalLifetime - exactAge;
+            return Math.max(0.0f, timeLeft / 10f);
+        }
+        return 1.0f;
     }
 
     @Override
     protected void readCustomDataFromNbt(NbtCompound nbt) {
         this.age = nbt.getInt("Age");
-        this.lastTeleportTick = nbt.getLong("LastTeleportTick");
         if (nbt.contains("DimensionCode")) {
             setDimensionCode(nbt.getString("DimensionCode"));
         }
@@ -147,11 +102,9 @@ public class GreenPortal extends Entity {
     @Override
     protected void writeCustomDataToNbt(NbtCompound nbt) {
         nbt.putInt("Age", this.age);
-        nbt.putLong("LastTeleportTick", this.lastTeleportTick);
         nbt.putString("DimensionCode", getDimensionCode());
     }
 
-    private long lastTeleportTick;
     @Override
     public void onPlayerCollision(PlayerEntity player) {
         if (this.getWorld().isClient || !(player instanceof ServerPlayerEntity serverPlayer)) return;
@@ -159,8 +112,7 @@ public class GreenPortal extends Entity {
         MinecraftServer server = this.getServer();
         if (server == null) return;
 
-        long globalTime = server.getOverworld().getTime();
-        if (globalTime - lastTeleportTick < 60 || this.age < 10) return;//кулдаун портала в 3секунд
+        if (this.age < 60) return;//кулдаун портала в 3секунд
 
         // код мира направления
         String targetCode = getDimensionCode();
@@ -186,25 +138,20 @@ public class GreenPortal extends Entity {
         }
 
         // телепортация
-        this.lastTeleportTick = globalTime;
         Vec3d targetPos = serverPlayer.getPos();
 
         serverPlayer.teleport(targetWorld, targetPos.x, targetPos.y, targetPos.z, serverPlayer.getYaw(), serverPlayer.getPitch());
-
-        //обратный портал
-        BackPortal backentity = new BackPortal(ModEntities.BACK_PORTAL_ENTITY_TYPE, targetWorld);
-        backentity.setDimensionCode(this.getWorld().getRegistryKey().getValue().toString());
-        backentity.refreshPositionAndAngles(targetPos.x, targetPos.y, targetPos.z, this.getYaw(), this.getPitch());
-
-
-        targetWorld.spawnEntity(backentity);
     }
 
     public long getSeedFromCode(String code) {
         if (code == null || code.isEmpty()) return 0L;
         try {
+            // Long.parseLong с радиалом 36 идеально подходит для 0-9 и a-z
+            // Используем Math.abs, так как сиды в Minecraft обычно положительные
+            // или обрабатываются как unsigned
             return Math.abs(Long.parseLong(code.toLowerCase(), 36));
         } catch (NumberFormatException e) {
+            // Если в коде есть спецсимволы, не входящие в 0-9, a-z
             return (long) Math.abs(code.hashCode());
         }
     }

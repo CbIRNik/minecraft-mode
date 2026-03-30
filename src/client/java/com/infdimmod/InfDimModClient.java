@@ -1,6 +1,7 @@
 package com.infdimmod;
 
 import com.infdimmod.Blocks.ModBlocks;
+import com.infdimmod.Entities.BackPortalRenderer;
 import com.infdimmod.Entities.GreenPortalRenderer;
 import com.infdimmod.Entities.ModEntities;
 import com.infdimmod.items.ModItems;
@@ -30,6 +31,7 @@ public class InfDimModClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         EntityRendererRegistry.register(ModEntities.GREEN_PORTAL_ENTITY_TYPE, GreenPortalRenderer::new);
+        EntityRendererRegistry.register(ModEntities.BACK_PORTAL_ENTITY_TYPE, BackPortalRenderer::new);
 
         Identifier stillTextureId = Identifier.of(InfDimMod.MOD_ID, "block/portal_fluid");
         Identifier flowingTextureId = Identifier.of(InfDimMod.MOD_ID, "block/portal_fluid_flowing");
