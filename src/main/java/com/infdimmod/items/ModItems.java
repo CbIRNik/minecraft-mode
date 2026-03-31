@@ -36,7 +36,8 @@ public class ModItems {
             .maxDamage(420)
             .fireproof()
             .rarity(Rarity.EPIC)
-            .component(PortalGunComponents.PORTALCODETYPE, new PortalGunComponents("¯\\_(ツ)_/¯"))), "portal_gun");
+            .component(PortalGunComponents.PORTALCODETYPE, new PortalGunComponents("¯\\_(ツ)_/¯"))
+            .component(PortalGunComponents.PORTAL_COORDS, new PortalGunComponents.PortalCoords(0.0, 0.0, 0.0))), "portal_gun");
 
     public static Item register(Item item, String id) {
         Identifier itemID = Identifier.of(InfDimMod.MOD_ID, id);

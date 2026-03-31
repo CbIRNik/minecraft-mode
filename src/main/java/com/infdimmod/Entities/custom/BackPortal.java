@@ -15,14 +15,16 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionTypes;
+import org.joml.Vector3f;
 import xyz.nucleoid.fantasy.Fantasy;
 import xyz.nucleoid.fantasy.RuntimeWorldConfig;
 
 public class BackPortal extends Entity {
-
+    private static final TrackedData<Vector3f> DESTINATION_VEC = DataTracker.registerData(BackPortal.class, TrackedDataHandlerRegistry.VECTOR3F);
     private static final TrackedData<String> DIMENSION_CODE = DataTracker.registerData(BackPortal.class, TrackedDataHandlerRegistry.STRING);
 
     private int age = 0;
@@ -36,6 +38,7 @@ public class BackPortal extends Entity {
     @Override
     protected void initDataTracker(DataTracker.Builder builder) {
         builder.add(DIMENSION_CODE, "¯\\_(ツ)_/¯");
+        builder.add(DESTINATION_VEC, new Vector3f());
     }
 
     public void setDimensionCode(String code) {
@@ -57,7 +60,7 @@ public class BackPortal extends Entity {
         }
 
         if (age <= 10) {
-            for (int i = 0; i < 5; i++) {
+            for (int i = 0; i < 2; i++) {
                 double offsetX = (random.nextDouble() - 0.5);
                 double offsetY = (random.nextDouble() - 0.5);
                 double offsetZ = (random.nextDouble() - 0.5);
@@ -85,8 +88,7 @@ public class BackPortal extends Entity {
             return exactAge / 10f;
         }
         if (exactAge > (totalLifetime - 10f)) {
-            float timeLeft = totalLifetime - exactAge;
-            return Math.max(0.0f, timeLeft / 10f);
+            return MathHelper.sin((exactAge / 10f) * (float)Math.PI / 2f);
         }
         return 1.0f;
     }
@@ -97,12 +99,28 @@ public class BackPortal extends Entity {
         if (nbt.contains("DimensionCode")) {
             setDimensionCode(nbt.getString("DimensionCode"));
         }
+        if (nbt.contains("destX")) {
+            setDestinationPos(new Vec3d(nbt.getDouble("destX"), nbt.getDouble("destY"), nbt.getDouble("destZ")));
+        }
     }
 
     @Override
     protected void writeCustomDataToNbt(NbtCompound nbt) {
         nbt.putInt("Age", this.age);
         nbt.putString("DimensionCode", getDimensionCode());
+        Vec3d dest = getDestinationPos();
+        nbt.putDouble("destX", dest.x);
+        nbt.putDouble("destY", dest.y);
+        nbt.putDouble("destZ", dest.z);
+    }
+
+    public void setDestinationPos(Vec3d pos) {
+        this.getDataTracker().set(DESTINATION_VEC, new Vector3f((float)pos.x, (float)pos.y, (float)pos.z));
+    }
+
+    public Vec3d getDestinationPos() {
+        Vector3f vec = this.getDataTracker().get(DESTINATION_VEC);
+        return new Vec3d(vec.x, vec.y, vec.z);
     }
 
     @Override
@@ -111,8 +129,6 @@ public class BackPortal extends Entity {
 
         MinecraftServer server = this.getServer();
         if (server == null) return;
-
-        if (this.age < 60) return;//кулдаун портала в 3секунд
 
         // код мира направления
         String targetCode = getDimensionCode();
@@ -138,9 +154,13 @@ public class BackPortal extends Entity {
         }
 
         // телепортация
-        Vec3d targetPos = serverPlayer.getPos();
-
+        Vec3d targetPos = getDestinationPos();
+        if (this.age >= 60) {
         serverPlayer.teleport(targetWorld, targetPos.x, targetPos.y, targetPos.z, serverPlayer.getYaw(), serverPlayer.getPitch());
+
+            //!!!!!!!!!!!!!!ЧЕТ ПОЛОМАНО НЕ ВЛЕЗАЙ УБЬЕТ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            //ТЕПАЕТ НАЗАД ПРИ 2Й ТЕЛЕПОРТАЦИИ НА ТЕ ЖЕ КОРДЫ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        }
     }
 
     public long getSeedFromCode(String code) {

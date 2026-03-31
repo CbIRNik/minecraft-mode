@@ -141,6 +141,10 @@ public class PortalGun extends Item {
 
             entity.setAnimationData(startPos.toVector3f(), targetPos.toVector3f());
             entity.setFlightDuration(flightTicks);
+            PortalGunComponents.PortalCoords coords = getTargetCoords(stack);
+            if (coords != null) {
+                entity.setPortalTargetPos(new Vec3d(coords.x(), coords.y(), coords.z()));
+            }
             entity.refreshPositionAndAngles(startPos.x, startPos.y, startPos.z, shotYaw, shotPitch);
 
             world.spawnEntity(entity);
@@ -156,5 +160,12 @@ public class PortalGun extends Item {
             user.getItemCooldownManager().set(this, 10);
         }
         return TypedActionResult.success(stack);
+    }
+
+    public static PortalGunComponents.PortalCoords getTargetCoords(ItemStack stack) {
+        return stack.get(PortalGunComponents.PORTAL_COORDS);
+    }
+    public static void setTargetCoords(ItemStack stack, double x, double y, double z) {
+        stack.set(PortalGunComponents.PORTAL_COORDS, new PortalGunComponents.PortalCoords(x, y, z));
     }
 }

@@ -6,6 +6,7 @@ import com.infdimmod.items.ModItems;
 import com.infdimmod.items.custom.portalgun.PortalGun;
 import com.infdimmod.items.custom.portalgun.PortalGunComponents;
 import com.infdimmod.network.PortalCodePayload;
+import com.infdimmod.network.PortalCoordsPayload;
 import com.infdimmod.network.ToggleGunModePayload;
 import com.infdimmod.particle.ModParticles;
 import com.infdimmod.world.ModDimensions;
@@ -45,7 +46,7 @@ public class InfDimMod implements ModInitializer {
 
         ModEntities.registerModEntities();
 
-        // пакеты режимов пушки
+        // пакет режимов пушки
         PayloadTypeRegistry.playC2S().register(ToggleGunModePayload.ID, ToggleGunModePayload.CODEC);
 
         ServerPlayNetworking.registerGlobalReceiver(ToggleGunModePayload.ID, (payload, context) -> {
@@ -58,6 +59,20 @@ public class InfDimMod implements ModInitializer {
             });
         });
 
+        //пакет координат
+        // Регистрируем тип пакета (Client to Server)
+        PayloadTypeRegistry.playC2S().register(PortalCoordsPayload.ID, PortalCoordsPayload.CODEC);
+
+        ServerPlayNetworking.registerGlobalReceiver(PortalCoordsPayload.ID, (payload, context) -> {
+            context.server().execute(() -> {
+                var player = context.player();
+                var stack = player.getMainHandStack();
+
+                if (stack.getItem() instanceof PortalGun) {
+                    PortalGun.setTargetCoords(stack, payload.x(), payload.y(), payload.z());
+                }
+            });
+        });
         ModParticles.register();
 	}
 }

@@ -26,7 +26,7 @@ import xyz.nucleoid.fantasy.Fantasy;
 import xyz.nucleoid.fantasy.RuntimeWorldConfig;
 
 public class GreenPortal extends Entity {
-
+    private static final TrackedData<Vector3f> PORTAL_TARGET_VEC = DataTracker.registerData(GreenPortal.class, TrackedDataHandlerRegistry.VECTOR3F);
     private static final TrackedData<Vector3f> START_VEC = DataTracker.registerData(GreenPortal.class, TrackedDataHandlerRegistry.VECTOR3F);
     private static final TrackedData<Vector3f> TARGET_VEC = DataTracker.registerData(GreenPortal.class, TrackedDataHandlerRegistry.VECTOR3F);
     private static final TrackedData<Integer> MAX_AGE = DataTracker.registerData(GreenPortal.class, TrackedDataHandlerRegistry.INTEGER);
@@ -47,6 +47,7 @@ public class GreenPortal extends Entity {
         builder.add(TARGET_VEC, new Vector3f());
         builder.add(MAX_AGE, 6);
         builder.add(DIMENSION_CODE, "¯\\_(ツ)_/¯");
+        builder.add(PORTAL_TARGET_VEC, new Vector3f());
     }
 
     public void setDimensionCode(String code) {
@@ -102,7 +103,7 @@ public class GreenPortal extends Entity {
                 double distance = this.getPos().distanceTo(startPos);
 
                 // количество
-                int particleCount = (int) Math.min(7, 1 + (distance / 3.5));
+                int particleCount = (int) Math.min(3, 1 + (distance / 1.0));
                 // разброс
                 double spread = Math.min(1.0, 0.2 + (distance / 40.0));
 
@@ -142,6 +143,9 @@ public class GreenPortal extends Entity {
         if (nbt.contains("DimensionCode")) {
             setDimensionCode(nbt.getString("DimensionCode"));
         }
+        if (nbt.contains("targetX")) {
+            setPortalTargetPos(new Vec3d(nbt.getDouble("targetX"), nbt.getDouble("targetY"), nbt.getDouble("targetZ")));
+        }
     }
 
     @Override
@@ -149,6 +153,19 @@ public class GreenPortal extends Entity {
         nbt.putInt("Age", this.age);
         nbt.putLong("LastTeleportTick", this.lastTeleportTick);
         nbt.putString("DimensionCode", getDimensionCode());
+        Vec3d target = getPortalTargetPos();
+        nbt.putDouble("targetX", target.x);
+        nbt.putDouble("targetY", target.y);
+        nbt.putDouble("targetZ", target.z);
+    }
+
+    public void setPortalTargetPos(Vec3d pos) {
+        this.getDataTracker().set(PORTAL_TARGET_VEC, new Vector3f((float)pos.x, (float)pos.y, (float)pos.z));
+    }
+
+    public Vec3d getPortalTargetPos() {
+        Vector3f vec = this.getDataTracker().get(PORTAL_TARGET_VEC);
+        return new Vec3d(vec.x, vec.y, vec.z);
     }
 
     private long lastTeleportTick;
@@ -187,13 +204,12 @@ public class GreenPortal extends Entity {
 
         // телепортация
         this.lastTeleportTick = globalTime;
-        Vec3d targetPos = serverPlayer.getPos();
-
+        Vec3d targetPos = getPortalTargetPos();
         serverPlayer.teleport(targetWorld, targetPos.x, targetPos.y, targetPos.z, serverPlayer.getYaw(), serverPlayer.getPitch());
-
         //обратный портал
         BackPortal backentity = new BackPortal(ModEntities.BACK_PORTAL_ENTITY_TYPE, targetWorld);
         backentity.setDimensionCode(this.getWorld().getRegistryKey().getValue().toString());
+        backentity.setDestinationPos(this.getPos());
         backentity.refreshPositionAndAngles(targetPos.x, targetPos.y, targetPos.z, this.getYaw(), this.getPitch());
 
 
