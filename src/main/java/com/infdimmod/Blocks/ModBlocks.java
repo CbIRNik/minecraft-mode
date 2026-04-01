@@ -44,25 +44,6 @@ public class ModBlocks {
             "polytech_block",
             true
     );
-    public static final Block MYSTIC_PORTAL_FRAME = register(
-            new MysticPortalFrameBlock(AbstractBlock.Settings.create()
-                    .mapColor(MapColor.PURPLE)
-                    .strength(50.0f, 1200.0f)
-                    .sounds(BlockSoundGroup.STONE)
-                    .luminance(state -> 3)),
-            "mystic_portal_frame",
-            true
-    );
-    public static final Block MYSTIC_PORTAL = register(
-            new MysticPortalBlock(AbstractBlock.Settings.create()
-                    .mapColor(MapColor.PURPLE)
-                    .noCollision()
-                    .strength(-1.0f)
-                    .sounds(BlockSoundGroup.GLASS)
-                    .luminance(state -> 11)),
-            "mystic_portal",
-            false
-    );
 
     public static Block register(Block block, String name, boolean shouldRegisterItem) {
         Identifier id = Identifier.of(InfDimMod.MOD_ID, name);
@@ -80,10 +61,6 @@ public class ModBlocks {
     public static void initialize() {
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.FOOD_AND_DRINK).register((itemGroup) -> {
             itemGroup.add(ModBlocks.SausageBlock.asItem());
-        });
-        
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.BUILDING_BLOCKS).register((itemGroup) -> {
-            itemGroup.add(ModBlocks.MYSTIC_PORTAL_FRAME.asItem());
         });
     }
 }
