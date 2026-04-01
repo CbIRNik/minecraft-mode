@@ -9,6 +9,7 @@ import com.infdimmod.network.PortalCodePayload;
 import com.infdimmod.network.PortalCoordsPayload;
 import com.infdimmod.network.ToggleGunModePayload;
 import com.infdimmod.particle.ModParticles;
+import com.infdimmod.world.ModWorldManager;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -72,5 +73,7 @@ public class InfDimMod implements ModInitializer {
             });
         });
         ModParticles.register();
+
+        ModWorldManager.registerLifecycleEvents();
 	}
 }

@@ -16,6 +16,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.GameRules;
 import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionTypes;
@@ -71,7 +72,7 @@ public class BackPortal extends Entity {
             }
         }
 
-        if (currentAge <= 10 && this.getWorld().isClient) {
+        if (age <= 10 && this.getWorld().isClient) {
             spawnIdleParticles();
         }
     }
@@ -82,6 +83,8 @@ public class BackPortal extends Entity {
         MinecraftServer server = this.getServer();
         if (server == null) return;
         if (entity instanceof GreenPortal || entity instanceof BackPortal) {return;}
+
+        if (getPortalAge() < 30) return;
 
         long currentTime = server.getOverworld().getTime();
 
@@ -103,10 +106,31 @@ public class BackPortal extends Entity {
         if (targetWorld == null) {
             Identifier targetDimId = Identifier.of("infdimmod", "dim_" + targetSeed);
             Fantasy fantasy = Fantasy.get(server);
+
+            ServerWorld overworld = server.getOverworld();
+            GameRules overworldRules = overworld.getGameRules();
+
             RuntimeWorldConfig config = new RuntimeWorldConfig()
                     .setDimensionType(DimensionTypes.OVERWORLD)
                     .setSeed(targetSeed)
-                    .setGenerator(server.getOverworld().getChunkManager().getChunkGenerator());
+                    .setGenerator(overworld.getChunkManager().getChunkGenerator());
+
+            overworldRules.accept(new GameRules.Visitor() {
+                @Override
+                public <T extends GameRules.Rule<T>> void visit(GameRules.Key<T> key, GameRules.Type<T> type) {
+                    if (key == GameRules.SPAWN_CHUNK_RADIUS) {
+                        config.setGameRule(GameRules.SPAWN_CHUNK_RADIUS, 0);
+                        return;
+                    }
+
+                    T rule = overworldRules.get(key);
+                    if (rule instanceof GameRules.BooleanRule boolRule) {
+                        config.setGameRule((GameRules.Key<GameRules.BooleanRule>) key, boolRule.get());
+                    } else if (rule instanceof GameRules.IntRule intRule) {
+                        config.setGameRule((GameRules.Key<GameRules.IntRule>) key, intRule.get());
+                    }
+                }
+            });
             targetWorld = fantasy.getOrOpenPersistentWorld(targetDimId, config).asWorld();
         }
 
@@ -147,7 +171,7 @@ public class BackPortal extends Entity {
         if (exactAge > (TOTAL_LIFETIME - 10f)) {
             return MathHelper.sin(((TOTAL_LIFETIME - exactAge) / 10f) * (float)Math.PI / 2f);
         }
-        if (exactAge < 10f) return exactAge / 10f;
+        if (age + tickDelta < 10f) return age / 10f;
         return 1.0f;
     }
 

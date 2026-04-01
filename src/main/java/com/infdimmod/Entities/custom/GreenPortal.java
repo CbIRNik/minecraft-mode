@@ -20,6 +20,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionTypes;
 import org.joml.Vector3f;
@@ -189,9 +190,8 @@ public class GreenPortal extends Entity {
         if (entity instanceof GreenPortal || entity instanceof BackPortal) {return;}
 
         long currentTime = server.getOverworld().getTime();
-        long currentAge = getPortalAge();
 
-        if (currentAge < 10) return;
+        if (getPortalAge() < 10) return;
 
         if (entity instanceof IEntityTeleportTracker tracker) {
             long lastEntityTP = tracker.infdimmod$getLastTeleportTick();
@@ -201,8 +201,20 @@ public class GreenPortal extends Entity {
         }
 
         String targetCode = getDimensionCode();
-        long targetSeed = this.getSeedFromCode(targetCode);
+        if (targetCode == "¯\\_(ツ)_/¯"){return;}
         ServerWorld targetWorld = null;
+        RegistryKey<World> vanillaKey = switch (targetCode) {
+            case "overworld" -> World.OVERWORLD;
+            case "nether", "the_nether" -> World.NETHER;
+            case "end", "the_end" -> World.END;
+            default -> null;
+        };
+
+        if (vanillaKey != null) {
+            targetWorld = server.getWorld(vanillaKey);
+        }
+
+        long targetSeed = this.getSeedFromCode(targetCode);
         Identifier potentialId = Identifier.tryParse(targetCode);
 
         if (potentialId != null && targetCode.contains(":")) {
@@ -212,10 +224,31 @@ public class GreenPortal extends Entity {
         if (targetWorld == null) {
             Identifier targetDimId = Identifier.of("infdimmod", "dim_" + targetSeed);
             Fantasy fantasy = Fantasy.get(server);
+
+            ServerWorld overworld = server.getOverworld();
+            GameRules overworldRules = overworld.getGameRules();
+
             RuntimeWorldConfig config = new RuntimeWorldConfig()
                     .setDimensionType(DimensionTypes.OVERWORLD)
                     .setSeed(targetSeed)
-                    .setGenerator(server.getOverworld().getChunkManager().getChunkGenerator());
+                    .setGenerator(overworld.getChunkManager().getChunkGenerator());
+
+            overworldRules.accept(new GameRules.Visitor() {
+                @Override
+                public <T extends GameRules.Rule<T>> void visit(GameRules.Key<T> key, GameRules.Type<T> type) {
+                    if (key == GameRules.SPAWN_CHUNK_RADIUS) {
+                        config.setGameRule(GameRules.SPAWN_CHUNK_RADIUS, 0);
+                        return;
+                    }
+
+                    T rule = overworldRules.get(key);
+                    if (rule instanceof GameRules.BooleanRule boolRule) {
+                        config.setGameRule((GameRules.Key<GameRules.BooleanRule>) key, boolRule.get());
+                    } else if (rule instanceof GameRules.IntRule intRule) {
+                        config.setGameRule((GameRules.Key<GameRules.IntRule>) key, intRule.get());
+                    }
+                }
+            });
             targetWorld = fantasy.getOrOpenPersistentWorld(targetDimId, config).asWorld();
         }
 

@@ -41,7 +41,7 @@ public class PortalGunScreen extends Screen {
 
         // Поле для КОДА (смещаем чуть выше)
         this.codeInput = new TextFieldWidget(this.textRenderer, centerX - 75, centerY - 60, 150, 20, Text.literal("Code"));
-        this.codeInput.setMaxLength(8);
+        this.codeInput.setMaxLength(12);
         this.codeInput.setText(this.displayedCode);
         this.addDrawableChild(this.codeInput);
 
