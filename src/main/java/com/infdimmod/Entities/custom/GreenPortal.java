@@ -4,6 +4,7 @@ import com.infdimmod.Entities.ModEntities;
 import com.infdimmod.items.custom.portalgun.PortalGunComponents;
 import com.infdimmod.particle.ModParticles;
 import com.infdimmod.util.IEntityTeleportTracker;
+import com.infdimmod.world.generator.DeterministicChaosGenerator;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.data.DataTracker;
@@ -269,23 +270,40 @@ public class GreenPortal extends Entity {
         Fantasy fantasy = Fantasy.get(server);
 
         ServerWorld overworld = server.getOverworld();
+        GameRules overworldRules = overworld.getGameRules();
+        var biomeSource = overworld.getChunkManager().getChunkGenerator().getBiomeSource();
         RuntimeWorldConfig config = new RuntimeWorldConfig()
                 .setDimensionType(DimensionTypes.OVERWORLD)
                 .setSeed(targetSeed)
-                .setGenerator(overworld.getChunkManager().getChunkGenerator());
+                .setGenerator(new DeterministicChaosGenerator(biomeSource, targetSeed));
 
-        config.setGameRule(GameRules.SPAWN_CHUNK_RADIUS, 0);
+        overworldRules.accept(new GameRules.Visitor() {
+            @Override
+            public <T extends GameRules.Rule<T>> void visit(GameRules.Key<T> key, GameRules.Type<T> type) {
+                if (key == GameRules.SPAWN_CHUNK_RADIUS) {
+                    config.setGameRule(GameRules.SPAWN_CHUNK_RADIUS, 0);
+                    return;
+                }
+
+                T rule = overworldRules.get(key);
+                if (rule instanceof GameRules.BooleanRule boolRule) {
+                    config.setGameRule((GameRules.Key<GameRules.BooleanRule>) key, boolRule.get());
+                } else if (rule instanceof GameRules.IntRule intRule) {
+                    config.setGameRule((GameRules.Key<GameRules.IntRule>) key, intRule.get());
+                }
+            }
+        });
 
         return fantasy.getOrOpenPersistentWorld(targetDimId, config).asWorld();
     }
 
     public long getSeedFromCode(String code) {
-        if (code == null || code.isEmpty()) return 0L;
-        try {
-            return Math.abs(Long.parseLong(code.toLowerCase(), 36));
-        } catch (NumberFormatException e) {
-            return (long) Math.abs(code.hashCode());
+        if (code == null) return 0L;
+        long hash = 7;
+        for (int i = 0; i < code.length(); i++) {
+            hash = 31 * hash + code.charAt(i);
         }
+        return hash;
     }
 
     private void setChunkForceLoaded(boolean forced) {
