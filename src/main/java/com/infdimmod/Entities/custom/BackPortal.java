@@ -2,6 +2,7 @@ package com.infdimmod.Entities.custom;
 
 import com.infdimmod.particle.ModParticles;
 import com.infdimmod.util.IEntityTeleportTracker;
+import com.infdimmod.world.generator.DeterministicChaosGenerator;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.data.DataTracker;
@@ -109,11 +110,11 @@ public class BackPortal extends Entity {
 
             ServerWorld overworld = server.getOverworld();
             GameRules overworldRules = overworld.getGameRules();
-
+            var biomeSource = overworld.getChunkManager().getChunkGenerator().getBiomeSource();
             RuntimeWorldConfig config = new RuntimeWorldConfig()
                     .setDimensionType(DimensionTypes.OVERWORLD)
                     .setSeed(targetSeed)
-                    .setGenerator(overworld.getChunkManager().getChunkGenerator());
+                    .setGenerator(new DeterministicChaosGenerator(biomeSource, targetSeed));
 
             overworldRules.accept(new GameRules.Visitor() {
                 @Override
@@ -204,12 +205,12 @@ public class BackPortal extends Entity {
     }
 
     public long getSeedFromCode(String code) {
-        if (code == null || code.isEmpty()) return 0L;
-        try {
-            return Math.abs(Long.parseLong(code.toLowerCase(), 36));
-        } catch (NumberFormatException e) {
-            return (long) Math.abs(code.hashCode());
+        if (code == null) return 0L;
+        long hash = 7;
+        for (int i = 0; i < code.length(); i++) {
+            hash = 31 * hash + code.charAt(i);
         }
+        return hash;
     }
 
     private void setChunkForceLoaded(boolean forced) {

@@ -10,10 +10,14 @@ import com.infdimmod.network.PortalCoordsPayload;
 import com.infdimmod.network.ToggleGunModePayload;
 import com.infdimmod.particle.ModParticles;
 import com.infdimmod.world.ModWorldManager;
+import com.infdimmod.world.generator.DeterministicChaosGenerator;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.item.ItemStack;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
+import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +31,10 @@ public class InfDimMod implements ModInitializer {
 	public void onInitialize() {
         ModItems.initialize();
         ModBlocks.initialize();
+
+        Registry.register(Registries.CHUNK_GENERATOR,
+                Identifier.of("infdimmod", "deterministic_chaos"),
+                DeterministicChaosGenerator.CODEC);
 
         // Регистрируем пакетик
         PayloadTypeRegistry.playC2S().register(PortalCodePayload.ID, PortalCodePayload.CODEC);
