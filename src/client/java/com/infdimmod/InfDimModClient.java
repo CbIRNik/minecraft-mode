@@ -17,11 +17,14 @@ import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandlerRegistry
 import net.fabricmc.fabric.api.client.render.fluid.v1.SimpleFluidRenderHandler;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.item.ModelPredicateProviderRegistry;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
+
+import static com.infdimmod.items.custom.portalgun.PortalGun.getBrokenState;
 
 public class InfDimModClient implements ClientModInitializer {
 
@@ -33,6 +36,14 @@ public class InfDimModClient implements ClientModInitializer {
         EntityRendererRegistry.register(ModEntities.GREEN_PORTAL_ENTITY_TYPE, GreenPortalRenderer::new);
         EntityRendererRegistry.register(ModEntities.BACK_PORTAL_ENTITY_TYPE, BackPortalRenderer::new);
 
+        ModelPredicateProviderRegistry.register(
+                ModItems.PortalGun,
+                Identifier.of("infdimmod", "broken_state"),
+                (stack, world, entity, seed) -> {
+                    return getBrokenState(stack);
+                }
+        );
+
         Identifier stillTextureId = Identifier.of(InfDimMod.MOD_ID, "block/portal_fluid");
         Identifier flowingTextureId = Identifier.of(InfDimMod.MOD_ID, "block/portal_fluid_flowing");
         FluidRenderHandlerRegistry.INSTANCE.register(
@@ -43,7 +54,6 @@ public class InfDimModClient implements ClientModInitializer {
                         flowingTextureId
                 )
         );
-
 
         openPortalGuiKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.infdimmod.open_portal_gui",
@@ -66,8 +76,6 @@ public class InfDimModClient implements ClientModInitializer {
                 }
             }
         });
-
-
 
         toggleModeKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.infdimmod.toggle_mode",

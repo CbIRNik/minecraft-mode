@@ -40,6 +40,7 @@ public class GreenPortal extends Entity {
 
     private static final int TOTAL_LIFETIME = 160;
     private Vec3d startPos;
+    private boolean backPortalCreated = false;
 
     public GreenPortal(EntityType<?> type, World world) {
         super(type, world);
@@ -95,9 +96,13 @@ public class GreenPortal extends Entity {
         int duration = this.getDataTracker().get(MAX_AGE);
 
         if (!this.getWorld().isClient) {
+            if (!backPortalCreated && currentAge >= 20) {
+                prepareTargetLocation();
+                backPortalCreated = true;
+            }
+
             if (currentAge == 1) setChunkForceLoaded(true);
             if (currentAge >= TOTAL_LIFETIME) {
-                setChunkForceLoaded(false);
                 this.discard();
                 return;
             }
@@ -123,6 +128,32 @@ public class GreenPortal extends Entity {
 
             for (Entity entity : entities) {
                 tryTeleportEntity(entity);
+            }
+        }
+    }
+
+    private void prepareTargetLocation() {
+        MinecraftServer server = this.getServer();
+        if (server == null) return;
+
+        ServerWorld targetWorld = resolveTargetWorld(server, getDimensionCode());
+        if (targetWorld != null) {
+            Vec3d targetPos = getPortalTargetPos();
+
+            setTargetChunkForceLoaded(targetWorld, targetPos, true);
+
+            net.minecraft.util.math.Box searchBox = new net.minecraft.util.math.Box(
+                    targetPos.x - 2, targetPos.y - 2, targetPos.z - 2,
+                    targetPos.x + 2, targetPos.y + 2, targetPos.z + 2
+            );
+
+            if (targetWorld.getEntitiesByClass(BackPortal.class, searchBox, e -> true).isEmpty()) {
+                BackPortal backentity = new BackPortal(ModEntities.BACK_PORTAL_ENTITY_TYPE, targetWorld);
+                backentity.setSpawnTick(this.getSpawnTick());
+                backentity.setDimensionCode(this.getWorld().getRegistryKey().getValue().toString());
+                backentity.setDestinationPos(this.getPos());
+                backentity.refreshPositionAndAngles(targetPos.x, targetPos.y, targetPos.z, this.getYaw(), this.getPitch());
+                targetWorld.spawnEntity(backentity);
             }
         }
     }
@@ -184,24 +215,40 @@ public class GreenPortal extends Entity {
 
     private void tryTeleportEntity(Entity entity) {
         if (this.getWorld().isClient || entity == null || !entity.isAlive()) return;
+        if (entity instanceof GreenPortal || entity instanceof BackPortal) return;
+        if (getPortalAge() < 10) return;
 
         MinecraftServer server = this.getServer();
         if (server == null) return;
-        if (entity instanceof GreenPortal || entity instanceof BackPortal) {return;}
 
-        long currentTime = server.getOverworld().getTime();
+        if (!(entity instanceof IEntityTeleportTracker tracker)) return;
+        if (server.getOverworld().getTime() - tracker.infdimmod$getLastTeleportTick() < 30) return;
 
-        if (getPortalAge() < 10) return;
+        ServerWorld targetWorld = resolveTargetWorld(server, getDimensionCode());
+        if (targetWorld != null) {
+            Vec3d targetPos = getPortalTargetPos();
 
-        if (entity instanceof IEntityTeleportTracker tracker) {
-            long lastEntityTP = tracker.infdimmod$getLastTeleportTick();
-            if (currentTime - lastEntityTP < 30) return;
-        } else {
-            return;
+            List<BackPortal> nearby = targetWorld.getEntitiesByClass(BackPortal.class,
+                    new net.minecraft.util.math.Box(targetPos.add(-2,-2,-2), targetPos.add(2,2,2)), e -> true);
+
+            if (!nearby.isEmpty()) targetPos = nearby.get(0).getPos();
+
+            long currentTime = server.getOverworld().getTime();
+            tracker.infdimmod$setLastTeleportTick(currentTime);
+
+            net.minecraft.world.TeleportTarget teleportTarget = new net.minecraft.world.TeleportTarget(
+                    targetWorld, targetPos, entity.getVelocity(), entity.getYaw(), entity.getPitch(),
+                    net.minecraft.world.TeleportTarget.NO_OP
+            );
+
+            Entity result = entity.teleportTo(teleportTarget);
+            if (result != null) {
+                ((IEntityTeleportTracker) result).infdimmod$setLastTeleportTick(currentTime);
+            }
         }
+    }
 
-        String targetCode = getDimensionCode();
-        ServerWorld targetWorld = null;
+    private ServerWorld resolveTargetWorld(MinecraftServer server, String targetCode) {
         RegistryKey<World> vanillaKey = switch (targetCode) {
             case "overworld" -> World.OVERWORLD;
             case "nether", "the_nether" -> World.NETHER;
@@ -209,96 +256,27 @@ public class GreenPortal extends Entity {
             default -> null;
         };
 
-        if (vanillaKey != null) {
-            targetWorld = server.getWorld(vanillaKey);
+        if (vanillaKey != null) return server.getWorld(vanillaKey);
+
+        Identifier potentialId = Identifier.tryParse(targetCode);
+        if (potentialId != null && targetCode.contains(":")) {
+            ServerWorld world = server.getWorld(RegistryKey.of(RegistryKeys.WORLD, potentialId));
+            if (world != null) return world;
         }
 
         long targetSeed = this.getSeedFromCode(targetCode);
-        Identifier potentialId = Identifier.tryParse(targetCode);
+        Identifier targetDimId = Identifier.of("infdimmod", "dim_" + targetSeed);
+        Fantasy fantasy = Fantasy.get(server);
 
-        if (potentialId != null && targetCode.contains(":")) {
-            targetWorld = server.getWorld(RegistryKey.of(RegistryKeys.WORLD, potentialId));
-        }
+        ServerWorld overworld = server.getOverworld();
+        RuntimeWorldConfig config = new RuntimeWorldConfig()
+                .setDimensionType(DimensionTypes.OVERWORLD)
+                .setSeed(targetSeed)
+                .setGenerator(overworld.getChunkManager().getChunkGenerator());
 
-        if (targetWorld == null) {
-            Identifier targetDimId = Identifier.of("infdimmod", "dim_" + targetSeed);
-            Fantasy fantasy = Fantasy.get(server);
+        config.setGameRule(GameRules.SPAWN_CHUNK_RADIUS, 0);
 
-            ServerWorld overworld = server.getOverworld();
-            GameRules overworldRules = overworld.getGameRules();
-
-            RuntimeWorldConfig config = new RuntimeWorldConfig()
-                    .setDimensionType(DimensionTypes.OVERWORLD)
-                    .setSeed(targetSeed)
-                    .setGenerator(overworld.getChunkManager().getChunkGenerator());
-
-            overworldRules.accept(new GameRules.Visitor() {
-                @Override
-                public <T extends GameRules.Rule<T>> void visit(GameRules.Key<T> key, GameRules.Type<T> type) {
-                    if (key == GameRules.SPAWN_CHUNK_RADIUS) {
-                        config.setGameRule(GameRules.SPAWN_CHUNK_RADIUS, 0);
-                        return;
-                    }
-
-                    T rule = overworldRules.get(key);
-                    if (rule instanceof GameRules.BooleanRule boolRule) {
-                        config.setGameRule((GameRules.Key<GameRules.BooleanRule>) key, boolRule.get());
-                    } else if (rule instanceof GameRules.IntRule intRule) {
-                        config.setGameRule((GameRules.Key<GameRules.IntRule>) key, intRule.get());
-                    }
-                }
-            });
-            targetWorld = fantasy.getOrOpenPersistentWorld(targetDimId, config).asWorld();
-        }
-
-        if (targetWorld != null) {
-            Vec3d targetPos = getPortalTargetPos();
-
-            net.minecraft.util.math.Box searchBox = new net.minecraft.util.math.Box(
-                    targetPos.x - 4, targetPos.y - 4, targetPos.z - 4,
-                    targetPos.x + 4, targetPos.y + 4, targetPos.z + 4
-            );
-
-            List<BackPortal> nearbyPortals = targetWorld.getEntitiesByClass(
-                    BackPortal.class,
-                    searchBox,
-                    e -> true
-            );
-
-            BackPortal existingPortal = nearbyPortals.isEmpty() ? null : nearbyPortals.get(0);
-            boolean shouldSpawnNew = (existingPortal == null);
-
-            if (!shouldSpawnNew) {
-                targetPos = existingPortal.getPos();
-            }
-
-            ((IEntityTeleportTracker) entity).infdimmod$setLastTeleportTick(currentTime);
-
-            net.minecraft.world.TeleportTarget teleportTarget = new net.minecraft.world.TeleportTarget(
-                    targetWorld,
-                    targetPos,
-                    entity.getVelocity(),
-                    entity.getYaw(),
-                    entity.getPitch(),
-                    net.minecraft.world.TeleportTarget.NO_OP
-            );
-
-            Entity teleportedEntity = entity.teleportTo(teleportTarget);
-
-            if (teleportedEntity != null && teleportedEntity != entity) {
-                ((IEntityTeleportTracker) teleportedEntity).infdimmod$setLastTeleportTick(currentTime);
-            }
-
-            if (shouldSpawnNew) {
-                BackPortal backentity = new BackPortal(ModEntities.BACK_PORTAL_ENTITY_TYPE, targetWorld);
-                backentity.setSpawnTick(this.getSpawnTick());
-                backentity.setDimensionCode(this.getWorld().getRegistryKey().getValue().toString());
-                backentity.setDestinationPos(this.getPos());
-                backentity.refreshPositionAndAngles(targetPos.x, targetPos.y, targetPos.z, this.getYaw(), this.getPitch());
-
-                targetWorld.spawnEntity(backentity);
-            }
-        }
+        return fantasy.getOrOpenPersistentWorld(targetDimId, config).asWorld();
     }
 
     public long getSeedFromCode(String code) {
@@ -320,19 +298,32 @@ public class GreenPortal extends Entity {
         }
     }
 
+    private void setTargetChunkForceLoaded(ServerWorld targetWorld, Vec3d pos, boolean forced) {
+        int chunkX = (int)pos.x >> 4;
+        int chunkZ = (int)pos.z >> 4;
+        targetWorld.setChunkForced(chunkX, chunkZ, forced);
+    }
+
     @Override
     public void onRemoved() {
         if (!this.getWorld().isClient) {
             setChunkForceLoaded(false);
+            MinecraftServer server = this.getServer();
+            if (server != null) {
+                ServerWorld targetWorld = resolveTargetWorld(server, getDimensionCode());
+                if (targetWorld != null) {
+                    setTargetChunkForceLoaded(targetWorld, getPortalTargetPos(), false);
+                }
+            }
         }
         super.onRemoved();
     }
 
     @Override
     protected net.minecraft.util.math.Box calculateBoundingBox() {
-        double halfW = (18.0 / 16.0) / 2.0; // Половина ширины (0.5625)
-        double halfH = (30.0 / 16.0) / 2.0; // Половина высоты (0.9375)
-        double halfT = 0.05;                // Половина толщины (5 см)
+        double halfW = (18.0 / 16.0) / 2.0;
+        double halfH = (30.0 / 16.0) / 2.0;
+        double halfT = 0.05;
 
         float yawRad = -this.getYaw() * ((float)Math.PI / 180F);
         float pitchRad = -this.getPitch() * ((float)Math.PI / 180F);
@@ -359,5 +350,10 @@ public class GreenPortal extends Entity {
                 centerX - maxDeltaX, centerY - maxDeltaY, centerZ - maxDeltaZ,
                 centerX + maxDeltaX, centerY + maxDeltaY, centerZ + maxDeltaZ
         );
+    }
+
+    @Override
+    public boolean isFireImmune() {
+        return true;
     }
 }

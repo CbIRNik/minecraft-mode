@@ -227,9 +227,9 @@ public class BackPortal extends Entity {
 
     @Override
     protected net.minecraft.util.math.Box calculateBoundingBox() {
-        double halfW = (18.0 / 16.0) / 2.0; // Половина ширины (0.5625)
-        double halfH = (30.0 / 16.0) / 2.0; // Половина высоты (0.9375)
-        double halfT = 0.05;                // Половина толщины (5 см)
+        double halfW = (18.0 / 16.0) / 2.0;
+        double halfH = (30.0 / 16.0) / 2.0;
+        double halfT = 0.05;
 
         float yawRad = -this.getYaw() * ((float)Math.PI / 180F);
         float pitchRad = -this.getPitch() * ((float)Math.PI / 180F);
@@ -256,5 +256,10 @@ public class BackPortal extends Entity {
                 centerX - maxDeltaX, centerY - maxDeltaY, centerZ - maxDeltaZ,
                 centerX + maxDeltaX, centerY + maxDeltaY, centerZ + maxDeltaZ
         );
+    }
+
+    @Override
+    public boolean isFireImmune() {
+        return true;
     }
 }
