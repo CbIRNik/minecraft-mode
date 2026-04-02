@@ -34,8 +34,11 @@ public record PortalGunComponents(String portalcode) {
                     .codec(PortalCoords.CODEC)
                     .build();
 
+    // Режим пушки
+    public static final ComponentType<Boolean> PORTAL_GUN_MODE =
+            ComponentType.<Boolean>builder().codec(Codec.BOOL).build();
 
-
+    // Регистрация всех компонентов
     public static void register() {
         Registry.register(
                 Registries.DATA_COMPONENT_TYPE,
@@ -47,12 +50,10 @@ public record PortalGunComponents(String portalcode) {
                 Identifier.of("infdimmod", "portal_gun_coords"),
                 PORTAL_COORDS
         );
+        Registry.register(
+                Registries.DATA_COMPONENT_TYPE,
+                Identifier.of("infdimmod", "portal_gun_mode"),
+                PORTAL_GUN_MODE
+        );
     }
-
-    //режим пушки
-    public static final ComponentType<Boolean> PORTAL_GUN_MODE = Registry.register(
-            Registries.DATA_COMPONENT_TYPE,
-            Identifier.of("infdimmod", "portal_gun_mode"),
-            ComponentType.<Boolean>builder().codec(Codec.BOOL).build()
-    );
 }
