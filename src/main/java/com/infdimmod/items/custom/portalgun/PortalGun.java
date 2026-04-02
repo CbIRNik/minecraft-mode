@@ -23,7 +23,7 @@ import java.util.List;
 
 public class PortalGun extends Item {
     public PortalGun(Settings settings) {
-        super(settings.maxDamage(420));
+        super(settings.maxDamage(42));
     }
 
 
@@ -32,11 +32,11 @@ public class PortalGun extends Item {
     }
 
     public static float getBrokenState(ItemStack stack) {
-        if (stack.getDamage() >= 420) {
+        if (stack.getDamage() >= 42) {
             return 1.0f;
-        } else if (stack.getDamage() >= 280) {
+        } else if (stack.getDamage() >= 28) {
             return 0.7f;
-        } else if (stack.getDamage() >= 140) {
+        } else if (stack.getDamage() >= 14) {
             return 0.8f;
         } else {
             return 0.0f;
@@ -67,7 +67,7 @@ public class PortalGun extends Item {
             if (isItemBroken(stack) || user.getItemCooldownManager().isCoolingDown(this) || hand == Hand.OFF_HAND) {
                 return TypedActionResult.pass(stack);
             }
-
+            if (getPortalCode(stack) == "¯\\_(ツ)_/¯"){return TypedActionResult.pass(stack);}
             // базовые вектора для обоих режимов
             Vec3d eyePos = user.getEyePos();
             Vec3d lookVec = user.getRotationVec(1.0F);

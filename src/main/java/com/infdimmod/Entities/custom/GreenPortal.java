@@ -201,7 +201,6 @@ public class GreenPortal extends Entity {
         }
 
         String targetCode = getDimensionCode();
-        if (targetCode == "¯\\_(ツ)_/¯"){return;}
         ServerWorld targetWorld = null;
         RegistryKey<World> vanillaKey = switch (targetCode) {
             case "overworld" -> World.OVERWORLD;

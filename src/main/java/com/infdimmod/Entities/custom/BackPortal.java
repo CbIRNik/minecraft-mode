@@ -84,7 +84,7 @@ public class BackPortal extends Entity {
         if (server == null) return;
         if (entity instanceof GreenPortal || entity instanceof BackPortal) {return;}
 
-        if (getPortalAge() < 30) return;
+        if (age < 30) return;
 
         long currentTime = server.getOverworld().getTime();
 

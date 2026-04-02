@@ -33,7 +33,7 @@ public class ModItems {
     public static final Item PortalFluidBucket = register(new BucketItem(ModBlocks.STILL_PORTAL_FLUID, new Item.Settings().maxCount(1)), "portal_fluid_bucket");
     public static final Item PortalGun = register(new PortalGun(new Item.Settings()
             .maxCount(1)
-            .maxDamage(420)
+            .maxDamage(42)
             .fireproof()
             .rarity(Rarity.EPIC)
             .component(PortalGunComponents.PORTALCODETYPE, new PortalGunComponents("¯\\_(ツ)_/¯"))
