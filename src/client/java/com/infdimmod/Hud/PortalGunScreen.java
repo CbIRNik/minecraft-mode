@@ -146,3 +146,5 @@ public class PortalGunScreen extends Screen {
         return 30000000.0; // Фолбэк, если мир еще не прогружен
     }
 }
+
+//проверочка намбер ту
