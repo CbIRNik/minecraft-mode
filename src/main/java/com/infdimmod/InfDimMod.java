@@ -8,6 +8,8 @@ import com.infdimmod.items.custom.portalgun.PortalGunComponents;
 import com.infdimmod.network.PortalCodePayload;
 import com.infdimmod.network.PortalCoordsPayload;
 import com.infdimmod.network.ToggleGunModePayload;
+import com.infdimmod.network.UpdatePortalHistoryPayload;
+import com.infdimmod.network.UpdatePortalFavoritesPayload;
 import com.infdimmod.particle.ModParticles;
 import com.infdimmod.world.ModWorldManager;
 import com.infdimmod.world.generator.DeterministicChaosGenerator;
@@ -83,5 +85,28 @@ public class InfDimMod implements ModInitializer {
         ModParticles.register();
 
         ModWorldManager.registerLifecycleEvents();
+
+
+
+        PayloadTypeRegistry.playC2S().register(UpdatePortalHistoryPayload.ID, UpdatePortalHistoryPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(UpdatePortalFavoritesPayload.ID, UpdatePortalFavoritesPayload.CODEC);
+
+        ServerPlayNetworking.registerGlobalReceiver(UpdatePortalHistoryPayload.ID, (payload, context) -> {
+            context.server().execute(() -> {
+                ItemStack stack = context.player().getMainHandStack();
+                if (stack.getItem() instanceof PortalGun) {
+                    stack.set(PortalGunComponents.PORTAL_HISTORY, payload.history());
+                }
+            });
+        });
+
+        ServerPlayNetworking.registerGlobalReceiver(UpdatePortalFavoritesPayload.ID, (payload, context) -> {
+            context.server().execute(() -> {
+                ItemStack stack = context.player().getMainHandStack();
+                if (stack.getItem() instanceof PortalGun) {
+                    stack.set(PortalGunComponents.PORTAL_FAVORITES, payload.favorites());
+                }
+            });
+        });
 	}
 }
