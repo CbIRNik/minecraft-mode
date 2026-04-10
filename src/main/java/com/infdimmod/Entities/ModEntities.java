@@ -14,7 +14,7 @@ public class ModEntities {
             Registries.ENTITY_TYPE,
             Identifier.of("infdimmod", "green_portal"),
             EntityType.Builder.create(GreenPortal::new, SpawnGroup.MISC)
-                    .dimensions(0.8f, 1.6f) // хитбокс
+                    .dimensions(0.8f, 1.6f)
                     .build()
     );
 

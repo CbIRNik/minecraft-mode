@@ -6,6 +6,7 @@ import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.client.render.entity.EntityRendererFactory;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Vector3f;
@@ -40,7 +41,7 @@ public class GreenPortalRenderer extends EntityRenderer<GreenPortal> {
         matrices.scale(scale, scale, scale);
 
         int frameCount = 8;
-        int ticksPerFrame = 2;
+        int ticksPerFrame = 6;
         int currentFrame = (entity.getAge() / ticksPerFrame) % frameCount;
 
         // Рассчитываем UV-координаты для текущего кадра
@@ -147,5 +148,15 @@ public class GreenPortalRenderer extends EntityRenderer<GreenPortal> {
     @Override
     public Identifier getTexture(GreenPortal entity) {
         return TEXTURE;
+    }
+
+    @Override
+    public int getBlockLight(GreenPortal entity, BlockPos pos) {
+        return 15;
+    }
+
+    @Override
+    public int getSkyLight(GreenPortal entity, BlockPos pos) {
+        return 15;
     }
 }
