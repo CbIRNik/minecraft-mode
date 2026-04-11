@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/cube_all",
   "textures": {
-    "all": "infdimmod:block/sausage_block"
+    "all": "infdimmod:block/portal_gun_crafter"
   }
 }

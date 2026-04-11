@@ -2,13 +2,14 @@ package com.infdimmod.Blocks;
 
 import com.infdimmod.Blocks.custom.PortalFluid;
 import com.infdimmod.Blocks.custom.PortalFluidBlock;
+import com.infdimmod.Blocks.custom.PortalGunCrafter;
+import com.infdimmod.Blocks.custom.PortalGunCrafterEntity;
 import com.infdimmod.InfDimMod;
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.block.*;
+import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.fluid.FlowableFluid;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroups;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.sound.BlockSoundGroup;
@@ -33,11 +34,15 @@ public class ModBlocks {
             false
     );
 
-    public static final Block SausageBlock = register(
-            new Block(AbstractBlock.Settings.create().sounds(BlockSoundGroup.NETHERRACK).strength(1.5f)),
-            "sausage_block",
+    public static final Block PortalGunCrafter = register(
+            new PortalGunCrafter(AbstractBlock.Settings.create().sounds(BlockSoundGroup.STONE).strength(1.5f)),
+            "portal_gun_crafter",
             true
     );
+    public static final BlockEntityType<PortalGunCrafterEntity> PORTAL_GUN_CRAFTER_BE =
+            Registry.register(Registries.BLOCK_ENTITY_TYPE,
+                    Identifier.of("modid", "portal_gun_crafter_be"),
+                    BlockEntityType.Builder.create(PortalGunCrafterEntity::new, ModBlocks.PortalGunCrafter).build());
     public static final Block PolytechBlock = register(
             new Block(AbstractBlock.Settings.create().sounds(BlockSoundGroup.NETHERRACK).strength(1.5f)
                     .mapColor(MapColor.LIME)),
@@ -59,8 +64,5 @@ public class ModBlocks {
     }
 
     public static void initialize() {
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.FOOD_AND_DRINK).register((itemGroup) -> {
-            itemGroup.add(ModBlocks.SausageBlock.asItem());
-        });
     }
 }

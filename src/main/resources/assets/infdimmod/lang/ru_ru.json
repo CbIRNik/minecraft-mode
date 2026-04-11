@@ -1,7 +1,7 @@
 {
   "block.infdimmod.mystic_portal": "Мистический портал",
   "block.infdimmod.mystic_portal_frame": "Рамка мистического портала",
-  "block.infdimmod.sausage_block": "Блок сосисок",
+  "block.infdimmod.portal_gun_crafter": "Создатель портальной пушки",
   "block.infdimmod.polytech_block": "Блок Политеха",
   "item.infdimmod.portal_fluid_item": "Портальная жидкость",
   "item.infdimmod.portal_gun": "Портальная пушка",
@@ -12,7 +12,6 @@
   "key.infdimmod.open_portal_gui": "Открыть меню портальной пушки",
   "category.infdimmod.controls": "InfDimMod",
   "item.infdimmod.portal_fluid_bucket": "Ведро портальной жидкости",
-  "hud.infdimmod.currentcode": "Текущий код: ",
-  "hud.infdimmod.submitcode": "Задать код",
-  "key.infdimmod.toggle_mode": "Переключить режим портальной пушки"
+  "key.infdimmod.toggle_mode": "Переключить режим портальной пушки",
+  "container.portal_gun_crafter": "Создать портальную пушку"
 }

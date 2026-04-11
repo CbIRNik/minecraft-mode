@@ -11,14 +11,20 @@ import com.infdimmod.network.ToggleGunModePayload;
 import com.infdimmod.network.UpdatePortalHistoryPayload;
 import com.infdimmod.network.UpdatePortalFavoritesPayload;
 import com.infdimmod.particle.ModParticles;
+import com.infdimmod.recipe.PortalGunRecipe;
+import com.infdimmod.util.PortalGunCrafterScreenHandler;
 import com.infdimmod.world.ModWorldManager;
 import com.infdimmod.world.generator.DeterministicChaosGenerator;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.item.ItemStack;
+import net.minecraft.recipe.RecipeSerializer;
+import net.minecraft.recipe.RecipeType;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
+import net.minecraft.resource.featuretoggle.FeatureSet;
+import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +34,17 @@ import static com.infdimmod.items.custom.portalgun.PortalGunComponents.PORTAL_GU
 public class InfDimMod implements ModInitializer {
 	public static final String MOD_ID = "infdimmod";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+
+    public static final ScreenHandlerType<PortalGunCrafterScreenHandler> PORTAL_GUN_CRAFTER_SH = Registry.register(
+            Registries.SCREEN_HANDLER,
+            Identifier.of(MOD_ID, "portal_gun_crafter"),
+            new ScreenHandlerType<>(PortalGunCrafterScreenHandler::new, FeatureSet.empty())
+    );
+
+    public static final RecipeType<PortalGunRecipe> PORTAL_RECIPE_TYPE =
+            Registry.register(Registries.RECIPE_TYPE, Identifier.of(MOD_ID, "portal_gun_crafting"), PortalGunRecipe.Type.INSTANCE);
+    public static final RecipeSerializer<PortalGunRecipe> PORTAL_RECIPE_SERIALIZER =
+            Registry.register(Registries.RECIPE_SERIALIZER, Identifier.of(MOD_ID, "portal_gun_crafting"), PortalGunRecipe.Serializer.INSTANCE);
 
 	@Override
 	public void onInitialize() {
@@ -85,8 +102,6 @@ public class InfDimMod implements ModInitializer {
         ModParticles.register();
 
         ModWorldManager.registerLifecycleEvents();
-
-
 
         PayloadTypeRegistry.playC2S().register(UpdatePortalHistoryPayload.ID, UpdatePortalHistoryPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(UpdatePortalFavoritesPayload.ID, UpdatePortalFavoritesPayload.CODEC);

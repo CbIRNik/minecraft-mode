@@ -1,0 +1,13 @@
+{
+  "type": "infdimmod:portal_gun_crafting",
+  "ingredients": [
+    { "item": "minecraft:diamond" },
+    { "item": "minecraft:netherite_ingot" },
+    { "item": "minecraft:ender_eye" },
+    { "item": "minecraft:obsidian" }
+  ],
+  "result": {
+    "id": "infdimmod:portal_gun",
+    "count": 1
+  }
+}

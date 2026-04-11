@@ -4,11 +4,13 @@ import com.infdimmod.Blocks.ModBlocks;
 import com.infdimmod.Entities.BackPortalRenderer;
 import com.infdimmod.Entities.GreenPortalRenderer;
 import com.infdimmod.Entities.ModEntities;
+import com.infdimmod.Hud.PortalGunCrafterScreen;
 import com.infdimmod.items.ModItems;
 import com.infdimmod.Hud.PortalGunScreen;
 import com.infdimmod.items.custom.portalgun.PortalGun;
 import com.infdimmod.network.ToggleGunModePayload;
 import com.infdimmod.particle.ModParticlesClient;
+import com.infdimmod.util.PortalGunCrafterScreenHandler;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
@@ -17,6 +19,7 @@ import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandlerRegistry
 import net.fabricmc.fabric.api.client.render.fluid.v1.SimpleFluidRenderHandler;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.ingame.HandledScreens;
 import net.minecraft.client.item.ModelPredicateProviderRegistry;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
@@ -70,7 +73,6 @@ public class InfDimModClient implements ClientModInitializer {
             }
 
             while (toggleModeKey.wasPressed()) {
-                // Если в руках пушка - отправляем пакет на сервер
                 if (client.player != null && client.player.getMainHandStack().getItem() instanceof PortalGun) {
                     ClientPlayNetworking.send(new ToggleGunModePayload());
                 }
@@ -85,6 +87,8 @@ public class InfDimModClient implements ClientModInitializer {
         ));
 
         ModParticlesClient.registerParticleFactories();
+
+        HandledScreens.register(InfDimMod.PORTAL_GUN_CRAFTER_SH, PortalGunCrafterScreen::new);
     }
 
     private void handleOpenPortalGui(MinecraftClient client) {

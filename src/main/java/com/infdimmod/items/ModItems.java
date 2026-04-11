@@ -50,7 +50,7 @@ public class ModItems {
         ItemGroupEvents.modifyEntriesEvent(MODGROUPKEY).register(itemGroup ->
         {
             itemGroup.add(ModItems.Sausage);
-            itemGroup.add(ModBlocks.SausageBlock);
+            itemGroup.add(ModBlocks.PortalGunCrafter);
             itemGroup.add(ModItems.PortalGun);
             itemGroup.add(ModItems.PortalFluidItem);
             itemGroup.add(ModItems.PortalFluidBucket);

@@ -1,7 +1,7 @@
 {
   "item.infdimmod.sausage": "Sausage",
   "itemTooltip.infdimmod.sausage": "Tasty!",
-  "block.infdimmod.sausage_block": "Sausage block",
+  "block.infdimmod.portal_gun_crafter": "Portal gun crafter",
   "block.infdimmod.polytech_block": "Polytech block",
   "block.infdimmod.mystic_portal_frame": "Mystic Portal Frame",
   "block.infdimmod.mystic_portal": "Mystic Portal",
@@ -12,7 +12,6 @@
   "key.infdimmod.open_portal_gui": "Open portal gun menu",
   "category.infdimmod.controls": "InfDimMod",
   "item.infdimmod.portal_fluid_bucket": "Portal fluid bucket",
-  "hud.infdimmod.currentcode": "Current code: ",
-  "hud.infdimmod.submitcode": "Submit code",
-  "key.infdimmod.toggle_mode": "Toggle portal gun mode"
+  "key.infdimmod.toggle_mode": "Toggle portal gun mode",
+  "container.portal_gun_crafter": "Create portal gun"
 }

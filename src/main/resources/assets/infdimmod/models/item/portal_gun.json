@@ -176,6 +176,11 @@
 			}
 		}
 	],
+	"overrides": [
+		{"predicate": {"infdimmod:broken_state": 0.7}, "model": "infdimmod:item/portal_gun_33"},
+		{"predicate": {"infdimmod:broken_state": 0.8}, "model": "infdimmod:item/portal_gun_66"},
+		{"predicate": {"infdimmod:broken_state": 1}, "model": "infdimmod:item/unloaded_portal_gun"}
+	],
 	"display": {
 		"thirdperson_righthand": {
 			"translation": [0, -0.25, -3.25],
@@ -209,25 +214,5 @@
 			"translation": [-3, -0.5, -2.75],
 			"scale": [0.8, 0.8, 0.8]
 		}
-	},
-  "overrides": [
-    {
-      "predicate": {
-        "infdimmod:broken_state": 0.7
-      },
-      "model": "infdimmod:item/portal_gun_33"
-    },
-    {
-      "predicate": {
-        "infdimmod:broken_state": 0.8
-      },
-      "model": "infdimmod:item/portal_gun_66"
-    },
-    {
-      "predicate": {
-        "infdimmod:broken_state": 1.0
-      },
-      "model": "infdimmod:item/unloaded_portal_gun"
-    }
-  ]
+	}
 }

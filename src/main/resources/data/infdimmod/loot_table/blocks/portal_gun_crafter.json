@@ -6,7 +6,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "infdimmod:mystic_portal_frame"
+          "name": "infdimmod:portal_gun_crafter"
         }
       ],
       "conditions": [
