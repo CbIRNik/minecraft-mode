@@ -24,11 +24,11 @@ public class PortalGunCrafterScreenHandler extends ScreenHandler {
 
         for (int row = 0; row < 2; row++) {
             for (int col = 0; col < 3; col++) {
-                this.addSlot(new Slot(inventory, col + row * 3, 30 + col * 18, 35 + row * 18));
+                this.addSlot(new Slot(inventory, col + row * 3, 30 + col * 18, 26 + row * 18));
             }
         }
 
-        this.addSlot(new Slot(inventory, 6, 124, 44) {
+        this.addSlot(new Slot(inventory, 6, 124, 35) {
             @Override
             public boolean canInsert(ItemStack stack) {
                 return false;
