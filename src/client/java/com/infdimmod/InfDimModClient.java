@@ -138,12 +138,14 @@ public class InfDimModClient implements ClientModInitializer {
         }
 
         client.world.playSound(
-                client.player,
-                client.player.getBlockPos(),
+                client.player.getX(),
+                client.player.getY(),
+                client.player.getZ(),
                 ModSounds.BURMALDENIYA_AMBIENT_MUSIC,
                 net.minecraft.sound.SoundCategory.MUSIC,
                 0.5F,
-                1.0F
+                1.0F,
+                false
         );
         burmaldeniyaMusicCooldownTicks = BurmaldeniyaConstants.TICKS_PER_SECOND * 90;
     }

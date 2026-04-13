@@ -195,7 +195,16 @@ public final class DrunnyColliderSystemManager {
         CataclysmManager.startCataclysm(world, corePos);
         
         // Play critical feedback explosion sound and generic huge boom
-        world.playSound(null, corePos, net.minecraft.sound.SoundEvents.ENTITY_GENERIC_EXPLODE, net.minecraft.sound.SoundCategory.BLOCKS, 10.0F, 0.5F);
+        world.playSound(
+                null,
+                corePos.getX() + 0.5,
+                corePos.getY() + 0.5,
+                corePos.getZ() + 0.5,
+                net.minecraft.sound.SoundEvents.ENTITY_GENERIC_EXPLODE.value(),
+                net.minecraft.sound.SoundCategory.BLOCKS,
+                10.0F,
+                0.5F
+        );
     }
 
     private static ColliderCoreState getState(ServerWorld world) {

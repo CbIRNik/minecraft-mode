@@ -190,6 +190,19 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
         return Math.max(getMinimumY() + 18, this.lowerLayerCeiling - 2);
     }
 
+    public boolean isInsideDormitory(BlockPos pos) {
+        ChunkPos centerChunk = new ChunkPos(pos);
+        for (int chunkX = centerChunk.x - 2; chunkX <= centerChunk.x + 2; chunkX++) {
+            for (int chunkZ = centerChunk.z - 2; chunkZ <= centerChunk.z + 2; chunkZ++) {
+                DormitoryPlan plan = getDormitoryPlanForAnchor(new ChunkPos(chunkX, chunkZ));
+                if (plan != null && plan.contains(pos)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     private void placeColliderComplex(Chunk chunk, ChunkPos chunkPos) {
         List<ChunkPos> nearbyCores = DrunnyColliderLayout.findNearbyCoreChunks(chunkPos, worldSeed, COLLIDER_RADIUS_CHUNKS + 2);
         int coreY = getColliderCoreY();
@@ -879,6 +892,14 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
 
         private int zHalf() {
             return widthZ / 2;
+        }
+
+        private boolean contains(BlockPos pos) {
+            if (pos.getY() < baseY || pos.getY() > baseY + floors * DORM_FLOOR_HEIGHT + 1) {
+                return false;
+            }
+
+            return Math.abs(pos.getX() - centerX) <= xHalf() && Math.abs(pos.getZ() - centerZ) <= zHalf();
         }
     }
 }
