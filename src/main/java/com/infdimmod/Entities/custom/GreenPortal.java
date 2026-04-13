@@ -1,10 +1,12 @@
 package com.infdimmod.Entities.custom;
 
 import com.infdimmod.Entities.ModEntities;
+import com.infdimmod.burmaldeniya.BurmaldeniyaConstants;
 import com.infdimmod.items.custom.portalgun.PortalGunComponents;
 import com.infdimmod.particle.ModParticles;
 import com.infdimmod.util.IEntityTeleportTracker;
 import com.infdimmod.world.BurmaldeniyaWorldFactory;
+import com.infdimmod.world.PortalTeleportSafety;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.data.DataTracker;
@@ -135,7 +137,8 @@ public class GreenPortal extends Entity {
 
         ServerWorld targetWorld = resolveTargetWorld(server, getDimensionCode());
         if (targetWorld != null) {
-            Vec3d targetPos = getPortalTargetPos();
+            Vec3d targetPos = PortalTeleportSafety.resolveSafeTarget(targetWorld, getPortalTargetPos());
+            setPortalTargetPos(targetPos);
 
             setTargetChunkForceLoaded(targetWorld, targetPos, true);
 
@@ -229,6 +232,7 @@ public class GreenPortal extends Entity {
                     new net.minecraft.util.math.Box(targetPos.add(-2,-2,-2), targetPos.add(2,2,2)), e -> true);
 
             if (!nearby.isEmpty()) targetPos = nearby.get(0).getPos();
+            targetPos = PortalTeleportSafety.resolveSafeTarget(targetWorld, targetPos);
 
             long currentTime = server.getOverworld().getTime();
             tracker.infdimmod$setLastTeleportTick(currentTime);
@@ -246,6 +250,12 @@ public class GreenPortal extends Entity {
     }
 
     private ServerWorld resolveTargetWorld(MinecraftServer server, String targetCode) {
+        Identifier burmaldeniyaId = BurmaldeniyaWorldFactory.burmaldeniyaDimensionId();
+        if (BurmaldeniyaConstants.BURMALDENIYA_ROUTE_CODE.equals(targetCode)
+                || burmaldeniyaId.toString().equals(targetCode)) {
+            return BurmaldeniyaWorldFactory.getOrCreateBurmaldeniyaWorld(server);
+        }
+
         RegistryKey<World> vanillaKey = switch (targetCode) {
             case "overworld" -> World.OVERWORLD;
             case "nether", "the_nether" -> World.NETHER;
@@ -257,6 +267,9 @@ public class GreenPortal extends Entity {
 
         Identifier potentialId = Identifier.tryParse(targetCode);
         if (potentialId != null && targetCode.contains(":")) {
+            if (potentialId.equals(burmaldeniyaId)) {
+                return BurmaldeniyaWorldFactory.getOrCreateBurmaldeniyaWorld(server);
+            }
             ServerWorld world = server.getWorld(RegistryKey.of(RegistryKeys.WORLD, potentialId));
             if (world != null) return world;
         }

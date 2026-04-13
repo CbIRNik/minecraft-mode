@@ -1,8 +1,10 @@
 package com.infdimmod.Entities.custom;
 
+import com.infdimmod.burmaldeniya.BurmaldeniyaConstants;
 import com.infdimmod.particle.ModParticles;
 import com.infdimmod.util.IEntityTeleportTracker;
 import com.infdimmod.world.BurmaldeniyaWorldFactory;
+import com.infdimmod.world.PortalTeleportSafety;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.data.DataTracker;
@@ -92,20 +94,10 @@ public class BackPortal extends Entity {
         }
 
         String targetCode = getDimensionCode();
-        long targetSeed = this.getSeedFromCode(targetCode);
-        ServerWorld targetWorld = null;
-        Identifier potentialId = Identifier.tryParse(targetCode);
-
-        if (potentialId != null && targetCode.contains(":")) {
-            targetWorld = server.getWorld(RegistryKey.of(RegistryKeys.WORLD, potentialId));
-        }
-
-        if (targetWorld == null) {
-            targetWorld = BurmaldeniyaWorldFactory.getOrCreateWorld(server, targetSeed);
-        }
+        ServerWorld targetWorld = resolveTargetWorld(server, targetCode);
 
         if (targetWorld != null) {
-            Vec3d targetPos = getDestinationPos();
+            Vec3d targetPos = PortalTeleportSafety.resolveSafeTarget(targetWorld, getDestinationPos());
 
             ((IEntityTeleportTracker) entity).infdimmod$setLastTeleportTick(currentTime);
 
@@ -124,6 +116,38 @@ public class BackPortal extends Entity {
                 ((IEntityTeleportTracker) teleportedEntity).infdimmod$setLastTeleportTick(currentTime);
             }
         }
+    }
+
+    private ServerWorld resolveTargetWorld(MinecraftServer server, String targetCode) {
+        Identifier burmaldeniyaId = BurmaldeniyaWorldFactory.burmaldeniyaDimensionId();
+        if (BurmaldeniyaConstants.BURMALDENIYA_ROUTE_CODE.equals(targetCode)
+                || burmaldeniyaId.toString().equals(targetCode)) {
+            return BurmaldeniyaWorldFactory.getOrCreateBurmaldeniyaWorld(server);
+        }
+
+        RegistryKey<World> vanillaKey = switch (targetCode) {
+            case "overworld" -> World.OVERWORLD;
+            case "nether", "the_nether" -> World.NETHER;
+            case "end", "the_end" -> World.END;
+            default -> null;
+        };
+        if (vanillaKey != null) {
+            return server.getWorld(vanillaKey);
+        }
+
+        Identifier potentialId = Identifier.tryParse(targetCode);
+        if (potentialId != null && targetCode.contains(":")) {
+            if (potentialId.equals(burmaldeniyaId)) {
+                return BurmaldeniyaWorldFactory.getOrCreateBurmaldeniyaWorld(server);
+            }
+            ServerWorld existing = server.getWorld(RegistryKey.of(RegistryKeys.WORLD, potentialId));
+            if (existing != null) {
+                return existing;
+            }
+        }
+
+        long targetSeed = this.getSeedFromCode(targetCode);
+        return BurmaldeniyaWorldFactory.getOrCreateWorld(server, targetSeed);
     }
 
     private void spawnIdleParticles() {

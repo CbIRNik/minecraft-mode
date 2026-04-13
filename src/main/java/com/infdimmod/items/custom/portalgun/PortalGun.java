@@ -55,6 +55,7 @@ public class PortalGun extends Item {
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
         tooltip.add(Text.translatable("itemTooltip.infdimmod.portal_gun").formatted(Formatting.GRAY));
+        tooltip.add(Text.translatable("itemTooltip.infdimmod.portal_gun_route_mode").formatted(Formatting.DARK_GRAY));
         tooltip.add(Text.of(getPortalCode(stack)));
     }
 

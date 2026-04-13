@@ -12,6 +12,8 @@
   "itemGroup.idm": "InfDimMod",
   "itemTooltip.infdimmod.sausage": "Вкусно!",
   "itemTooltip.infdimmod.portal_gun": "Код измерения: ",
+  "itemTooltip.infdimmod.portal_gun_route_mode": "Маршрут пушки: настраиваемый",
+  "itemTooltip.infdimmod.burmaldushka_route": "Маршрут бурмалдушки: фиксированный",
   "key.infdimmod.open_portal_gui": "Открыть меню портальной пушки",
   "category.infdimmod.controls": "InfDimMod",
   "item.infdimmod.portal_fluid_bucket": "Ведро портальной жидкости",

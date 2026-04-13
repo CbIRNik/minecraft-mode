@@ -7,10 +7,13 @@ import com.infdimmod.Entities.ModEntities;
 import com.infdimmod.Hud.PortalGunCrafterScreen;
 import com.infdimmod.items.ModItems;
 import com.infdimmod.Hud.PortalGunScreen;
+import com.infdimmod.burmaldeniya.BurmaldeniyaConstants;
 import com.infdimmod.items.custom.portalgun.PortalGun;
 import com.infdimmod.network.ToggleGunModePayload;
 import com.infdimmod.particle.ModParticlesClient;
+import com.infdimmod.sound.ModSounds;
 import com.infdimmod.util.PortalGunCrafterScreenHandler;
+import com.infdimmod.world.BurmaldeniyaWorldFactory;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
@@ -33,6 +36,7 @@ public class InfDimModClient implements ClientModInitializer {
 
     private static KeyBinding openPortalGuiKey;
     private static KeyBinding toggleModeKey;
+    private static int burmaldeniyaMusicCooldownTicks = 0;
 
     @Override
     public void onInitializeClient() {
@@ -77,6 +81,8 @@ public class InfDimModClient implements ClientModInitializer {
                     ClientPlayNetworking.send(new ToggleGunModePayload());
                 }
             }
+
+            tickBurmaldeniyaMusic(client);
         });
 
         toggleModeKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
@@ -98,5 +104,33 @@ public class InfDimModClient implements ClientModInitializer {
         if (main.getItem() == ModItems.PortalGun || off.getItem() == ModItems.PortalGun) {
             client.execute(() -> client.setScreen(new PortalGunScreen()));
         }
+    }
+
+    private static void tickBurmaldeniyaMusic(MinecraftClient client) {
+        if (client.player == null || client.world == null) {
+            burmaldeniyaMusicCooldownTicks = 0;
+            return;
+        }
+
+        Identifier burmaldeniyaId = BurmaldeniyaWorldFactory.burmaldeniyaDimensionId();
+        if (!client.world.getRegistryKey().getValue().equals(burmaldeniyaId)) {
+            burmaldeniyaMusicCooldownTicks = 0;
+            return;
+        }
+
+        if (burmaldeniyaMusicCooldownTicks > 0) {
+            burmaldeniyaMusicCooldownTicks--;
+            return;
+        }
+
+        client.world.playSound(
+                client.player,
+                client.player.getBlockPos(),
+                ModSounds.BURMALDENIYA_AMBIENT_MUSIC,
+                net.minecraft.sound.SoundCategory.MUSIC,
+                0.5F,
+                1.0F
+        );
+        burmaldeniyaMusicCooldownTicks = BurmaldeniyaConstants.TICKS_PER_SECOND * 90;
     }
 }

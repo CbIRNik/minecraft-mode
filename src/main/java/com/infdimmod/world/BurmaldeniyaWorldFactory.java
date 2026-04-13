@@ -1,5 +1,6 @@
 package com.infdimmod.world;
 
+import com.infdimmod.burmaldeniya.BurmaldeniyaConstants;
 import com.infdimmod.burmaldeniya.MurinoWorldgenHooks;
 import com.infdimmod.world.generator.DeterministicChaosGenerator;
 import net.minecraft.server.MinecraftServer;
@@ -11,6 +12,11 @@ import xyz.nucleoid.fantasy.Fantasy;
 import xyz.nucleoid.fantasy.RuntimeWorldConfig;
 
 public final class BurmaldeniyaWorldFactory {
+    private static final Identifier BURMALDENIYA_DIMENSION_IDENTIFIER = Identifier.of(
+            BurmaldeniyaConstants.BURMALDENIYA_NAMESPACE,
+            BurmaldeniyaConstants.BURMALDENIYA_DIMENSION_ID
+    );
+
     private BurmaldeniyaWorldFactory() {
     }
 
@@ -20,6 +26,17 @@ public final class BurmaldeniyaWorldFactory {
 
     public static ServerWorld getOrCreateWorld(MinecraftServer server, long seed) {
         return Fantasy.get(server).getOrOpenPersistentWorld(createDimensionId(seed), createConfig(server, seed)).asWorld();
+    }
+
+    public static Identifier burmaldeniyaDimensionId() {
+        return BURMALDENIYA_DIMENSION_IDENTIFIER;
+    }
+
+    public static ServerWorld getOrCreateBurmaldeniyaWorld(MinecraftServer server) {
+        long seed = seedFromRouteCode(BurmaldeniyaConstants.BURMALDENIYA_ROUTE_CODE);
+        return Fantasy.get(server)
+                .getOrOpenPersistentWorld(BURMALDENIYA_DIMENSION_IDENTIFIER, createConfig(server, seed))
+                .asWorld();
     }
 
     public static RuntimeWorldConfig createConfig(MinecraftServer server, long seed) {
@@ -49,5 +66,13 @@ public final class BurmaldeniyaWorldFactory {
                 }
             }
         });
+    }
+
+    private static long seedFromRouteCode(String code) {
+        long hash = 7;
+        for (int i = 0; i < code.length(); i++) {
+            hash = 31 * hash + code.charAt(i);
+        }
+        return hash;
     }
 }
