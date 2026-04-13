@@ -3,12 +3,12 @@
 	"id": "infdimmod",
 	"version": "${version}",
 	"name": "Infinite dimensions",
-	"description": "modsahur",
+	"description": "Adds portal tools and dynamically managed custom dimensions.",
 	"authors": [
 		"AlexG & KS"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
+		"homepage": "https://github.com/CbIRNik/minecraft-mode",
 		"sources": "https://github.com/CbIRNik/minecraft-mode"
 	},
 	"license": "CC0-1.0",

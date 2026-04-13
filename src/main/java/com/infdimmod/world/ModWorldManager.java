@@ -1,5 +1,6 @@
 package com.infdimmod.world;
 
+import com.infdimmod.InfDimMod;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
@@ -60,7 +61,7 @@ public class ModWorldManager {
                     }
                 });
             } catch (Exception e) {
-                e.printStackTrace();
+                InfDimMod.LOGGER.error("Failed to restore saved dimensions from {}", dimensionsDir, e);
             }
         });
     }
