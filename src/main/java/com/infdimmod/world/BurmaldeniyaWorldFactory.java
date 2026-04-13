@@ -44,7 +44,7 @@ public final class BurmaldeniyaWorldFactory {
         RuntimeWorldConfig config = new RuntimeWorldConfig()
                 .setDimensionType(DimensionTypes.OVERWORLD)
                 .setSeed(seed)
-                .setGenerator(new DeterministicChaosGenerator(MurinoWorldgenHooks.createBiomeSource(overworld), seed));
+                .setGenerator(new DeterministicChaosGenerator(MurinoWorldgenHooks.createBiomeSource(overworld, seed), seed));
         copyGameRules(overworld.getGameRules(), config);
         return config;
     }
@@ -55,6 +55,14 @@ public final class BurmaldeniyaWorldFactory {
             public <T extends GameRules.Rule<T>> void visit(GameRules.Key<T> key, GameRules.Type<T> type) {
                 if (key == GameRules.SPAWN_CHUNK_RADIUS) {
                     config.setGameRule(GameRules.SPAWN_CHUNK_RADIUS, 0);
+                    return;
+                }
+                if (key == GameRules.DO_DAYLIGHT_CYCLE) {
+                    config.setGameRule(GameRules.DO_DAYLIGHT_CYCLE, false);
+                    return;
+                }
+                if (key == GameRules.DO_WEATHER_CYCLE) {
+                    config.setGameRule(GameRules.DO_WEATHER_CYCLE, false);
                     return;
                 }
 

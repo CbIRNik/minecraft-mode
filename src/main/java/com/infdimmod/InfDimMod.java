@@ -3,6 +3,7 @@ package com.infdimmod;
 import com.infdimmod.Blocks.ModBlocks;
 import com.infdimmod.Entities.ModEntities;
 import com.infdimmod.burmaldeniya.BurmaldushkaRotationManager;
+import com.infdimmod.burmaldeniya.MurinoAtmosphereManager;
 import com.infdimmod.burmaldeniya.MurinoWorldgenHooks;
 import com.infdimmod.items.custom.burmaldushka.BurmaldushkaComponents;
 import com.infdimmod.items.ModItems;
@@ -18,7 +19,9 @@ import com.infdimmod.recipe.PortalGunRecipe;
 import com.infdimmod.sound.ModSounds;
 import com.infdimmod.util.PortalGunCrafterScreenHandler;
 import com.infdimmod.world.ModWorldManager;
+import com.infdimmod.world.collider.DrunnyColliderSystemManager;
 import com.infdimmod.world.generator.DeterministicChaosGenerator;
+import com.infdimmod.world.generator.MurinoBlendBiomeSource;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
@@ -59,6 +62,9 @@ public class InfDimMod implements ModInitializer {
         Registry.register(Registries.CHUNK_GENERATOR,
                 Identifier.of("infdimmod", "deterministic_chaos"),
                 DeterministicChaosGenerator.CODEC);
+        Registry.register(Registries.BIOME_SOURCE,
+                Identifier.of("infdimmod", "murino_blend"),
+                MurinoBlendBiomeSource.CODEC);
         MurinoWorldgenHooks.register();
 
         // Регистрируем пакетик
@@ -113,6 +119,8 @@ public class InfDimMod implements ModInitializer {
 
         ModWorldManager.registerLifecycleEvents();
         ServerTickEvents.END_SERVER_TICK.register(BurmaldushkaRotationManager::tick);
+        ServerTickEvents.END_SERVER_TICK.register(DrunnyColliderSystemManager::tick);
+        ServerTickEvents.END_SERVER_TICK.register(MurinoAtmosphereManager::tick);
 
         PayloadTypeRegistry.playC2S().register(UpdatePortalHistoryPayload.ID, UpdatePortalHistoryPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(UpdatePortalFavoritesPayload.ID, UpdatePortalFavoritesPayload.CODEC);

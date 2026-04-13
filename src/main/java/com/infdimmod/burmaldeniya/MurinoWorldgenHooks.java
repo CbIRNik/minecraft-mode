@@ -2,6 +2,7 @@ package com.infdimmod.burmaldeniya;
 
 import com.infdimmod.Entities.ModEntities;
 import com.infdimmod.InfDimMod;
+import com.infdimmod.world.generator.MurinoBlendBiomeSource;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
 import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
 import net.minecraft.entity.SpawnGroup;
@@ -13,7 +14,6 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.source.BiomeSource;
-import net.minecraft.world.biome.source.FixedBiomeSource;
 
 public final class MurinoWorldgenHooks {
     public static final Identifier MURINO_BIOME_ID = Identifier.of(InfDimMod.MOD_ID, "murino");
@@ -46,16 +46,17 @@ public final class MurinoWorldgenHooks {
         );
     }
 
-    public static BiomeSource createBiomeSource(ServerWorld overworld) {
+    public static BiomeSource createBiomeSource(ServerWorld overworld, long seed) {
+        BiomeSource fallbackSource = overworld.getChunkManager().getChunkGenerator().getBiomeSource();
         RegistryEntry<Biome> murinoBiome = overworld.getRegistryManager()
                 .get(RegistryKeys.BIOME)
                 .getEntry(MURINO_BIOME_KEY)
                 .orElse(null);
 
-        if (murinoBiome != null) {
-            return new FixedBiomeSource(murinoBiome);
+        if (murinoBiome == null) {
+            return fallbackSource;
         }
 
-        return overworld.getChunkManager().getChunkGenerator().getBiomeSource();
+        return new MurinoBlendBiomeSource(fallbackSource, murinoBiome, seed);
     }
 }

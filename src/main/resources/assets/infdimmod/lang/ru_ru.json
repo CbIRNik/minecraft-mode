@@ -25,5 +25,6 @@
   "gui.infdimmod.crafter.next_rotation_seconds": "Следующая ротация через %sс",
   "entity.infdimmod.resident": "Житель Бурмальдении",
   "entity.infdimmod.fogi": "Фоги",
-  "structure.infdimmod.dormitory": "Общежитие Бурмальдении"
+  "structure.infdimmod.dormitory": "Общежитие Бурмальдении",
+  "biome.infdimmod.murino": "Мурино"
 }
