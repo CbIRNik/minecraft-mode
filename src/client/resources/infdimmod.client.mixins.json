@@ -3,7 +3,8 @@
 	"package": "com.infdimmod.mixin.client",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
-		"CustomCrosshairMixin"
+		"CustomCrosshairMixin",
+		"MurinoFogMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

@@ -59,7 +59,7 @@ public class ModBlocks {
     );
 
     public static final Block DRUNNY_ATOM = register(
-            new Block(AbstractBlock.Settings.create()
+            new com.infdimmod.Blocks.custom.DrunnyAtomBlock(AbstractBlock.Settings.create()
                     .sounds(BlockSoundGroup.AMETHYST_CLUSTER)
                     .strength(4.0f, 12.0f)
                     .requiresTool()

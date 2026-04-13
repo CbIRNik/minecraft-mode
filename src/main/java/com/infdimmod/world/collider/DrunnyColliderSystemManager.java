@@ -170,24 +170,32 @@ public final class DrunnyColliderSystemManager {
     }
 
     private static boolean isCoreControlPowered(ServerWorld world, BlockPos corePos) {
-        return world.isReceivingRedstonePower(corePos.add(9, 1, 0))
-                || world.isReceivingRedstonePower(corePos.add(-9, 1, 0))
-                || world.isReceivingRedstonePower(corePos.add(0, 1, 9))
-                || world.isReceivingRedstonePower(corePos.add(0, 1, -9));
+        // Now checks immediate neighbors for redstone to be more accurate to generic redstone activation
+        for (net.minecraft.util.math.Direction dir : net.minecraft.util.math.Direction.values()) {
+            if (world.isReceivingRedstonePower(corePos.offset(dir))) return true;
+        }
+        return false;
+    }
+
+    public static void forceMeltdown(ServerWorld world, BlockPos corePos) {
+        triggerMeltdown(world, corePos, getState(world));
+    }
+    
+    public static void absorbStudent(ServerWorld world, BlockPos corePos) {
+        ColliderCoreState state = getState(world);
+        state.setOverheat(corePos, Math.max(0, state.getOverheat(corePos) - 400));
     }
 
     private static void triggerMeltdown(ServerWorld world, BlockPos corePos, ColliderCoreState state) {
         state.markExploded(corePos);
         state.setOverheat(corePos, 0);
-        world.createExplosion(
-                null,
-                corePos.getX() + 0.5,
-                corePos.getY() + 0.5,
-                corePos.getZ() + 0.5,
-                MELTDOWN_EXPLOSION_POWER,
-                World.ExplosionSourceType.BLOCK
-        );
-        world.removeBlock(corePos, false);
+        
+        // Use the asynchronous and lag-friendly Cataclysm Manager
+        // which deletes everything in a 100 block radius including bedrock
+        CataclysmManager.startCataclysm(world, corePos);
+        
+        // Play critical feedback explosion sound and generic huge boom
+        world.playSound(null, corePos, net.minecraft.sound.SoundEvents.ENTITY_GENERIC_EXPLODE, net.minecraft.sound.SoundCategory.BLOCKS, 10.0F, 0.5F);
     }
 
     private static ColliderCoreState getState(ServerWorld world) {

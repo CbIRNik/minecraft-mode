@@ -46,10 +46,12 @@ public class StudentEntity extends VillagerEntity {
     @Override
     protected void mobTick() {
         super.mobTick();
-        if (this.getWorld().isClient || this.age % 40 != 0) {
-            return;
-        }
+        StudentStateMachine.tick(this);
+    }
 
+    public void performPulses() {
+        if (this.getWorld().isClient) return;
+        
         VillagerProfession profession = this.getVillagerData().getProfession();
         if (profession == VillagerProfession.LIBRARIAN) {
             librarianSupport();

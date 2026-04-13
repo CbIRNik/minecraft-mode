@@ -120,6 +120,7 @@ public class InfDimMod implements ModInitializer {
         ModWorldManager.registerLifecycleEvents();
         ServerTickEvents.END_SERVER_TICK.register(BurmaldushkaRotationManager::tick);
         ServerTickEvents.END_SERVER_TICK.register(DrunnyColliderSystemManager::tick);
+        com.infdimmod.world.collider.CataclysmManager.register();
         ServerTickEvents.END_SERVER_TICK.register(MurinoAtmosphereManager::tick);
 
         PayloadTypeRegistry.playC2S().register(UpdatePortalHistoryPayload.ID, UpdatePortalHistoryPayload.CODEC);

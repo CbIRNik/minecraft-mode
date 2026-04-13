@@ -26,6 +26,8 @@ public class DrunGuardEntity extends ZombieEntity {
     @Override
     protected void initGoals() {
         super.initGoals();
+        this.goalSelector.add(2, new DeliverStudentGoal(this));
+        this.goalSelector.add(3, new KidnapStudentGoal(this));
         this.goalSelector.add(7, new LookAtEntityGoal(this, PlayerEntity.class, 12.0f));
         this.goalSelector.add(8, new LookAroundGoal(this));
     }
