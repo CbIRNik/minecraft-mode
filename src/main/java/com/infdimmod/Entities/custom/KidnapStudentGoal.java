@@ -21,11 +21,23 @@ public class KidnapStudentGoal extends Goal {
     public boolean canStart() {
         if (mob.getFirstPassenger() instanceof StudentEntity) return false;
         
-        targetStudent = mob.getWorld().getClosestEntity(
-                StudentEntity.class, mob.getWorld().getNonSpectatingEntities(StudentEntity.class, mob.getBoundingBox().expand(16.0)),
-                mob, mob.getX(), mob.getY(), mob.getZ(), mob.getBoundingBox().expand(16.0)
+        java.util.List<StudentEntity> list = mob.getWorld().getEntitiesByClass(
+                StudentEntity.class, 
+                mob.getBoundingBox().expand(16.0), 
+                student -> student.isAlive() && !isSafeZone(student.getBlockPos())
         );
-        return targetStudent != null && !isSafeZone(targetStudent.getBlockPos());
+        
+        targetStudent = null;
+        double closestDist = Double.MAX_VALUE;
+        for (StudentEntity student : list) {
+            double dist = student.squaredDistanceTo(mob);
+            if (dist < closestDist) {
+                closestDist = dist;
+                targetStudent = student;
+            }
+        }
+        
+        return targetStudent != null;
     }
 
     @Override
