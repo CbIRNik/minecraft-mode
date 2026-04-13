@@ -46,6 +46,8 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
     private final int surfaceBase;
     private final int lowerLayerCeiling;
     private final int lavaLevel;
+    private final int separatorThickness;
+    private final int upperCavernDepth;
     private final double terrainFrequencyA;
     private final double terrainFrequencyB;
     private final double caveFrequency;
@@ -54,9 +56,11 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
         super(biomeSource);
         this.worldSeed = seed;
         Random random = new Random(seed ^ 0xC00F_FEEEL);
-        this.surfaceBase = 68 + random.nextInt(6);
+        this.surfaceBase = 58 + random.nextInt(8);
         this.lowerLayerCeiling = 18 + random.nextInt(10);
-        this.lavaLevel = this.lowerLayerCeiling - 8;
+        this.lavaLevel = this.lowerLayerCeiling - 10;
+        this.separatorThickness = 9 + random.nextInt(4);
+        this.upperCavernDepth = 20 + random.nextInt(7);
         this.terrainFrequencyA = 0.012 + random.nextDouble() * 0.006;
         this.terrainFrequencyB = 0.02 + random.nextDouble() * 0.01;
         this.caveFrequency = 0.05 + random.nextDouble() * 0.02;
@@ -144,7 +148,7 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
 
     @Override
     public void getDebugHudText(java.util.List<String> text, NoiseConfig noiseConfig, BlockPos pos) {
-        text.add("Burmaldeniya two-layer generator");
+        text.add("Burmaldeniya layered cavern generator");
         text.add("Dorm chunk: " + (isDormChunk(new ChunkPos(pos)) ? "yes" : "no"));
         text.add("Collider chunk: " + (isColliderCoreChunk(new ChunkPos(pos)) ? "yes" : "no"));
     }
@@ -234,7 +238,7 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
         }
 
         if (shellNorm >= 0.88) {
-            return Blocks.REINFORCED_DEEPSLATE.getDefaultState();
+            return Blocks.DEEPSLATE_TILES.getDefaultState();
         }
 
         if (dy <= -15 && radial < 46) {
@@ -345,14 +349,10 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
             return Blocks.BEDROCK.getDefaultState();
         }
 
-        int surfaceHeight = sampleSurfaceHeight(x, z);
-        if (y > surfaceHeight) {
-            return Blocks.AIR.getDefaultState();
-        }
-
-        if (y > lowerLayerCeiling && isUpperCave(x, y, z)) {
-            return Blocks.AIR.getDefaultState();
-        }
+        int upperFloor = sampleSurfaceHeight(x, z);
+        int upperCeiling = sampleUpperCeilingHeight(x, z, upperFloor);
+        int separatorBottom = lowerLayerCeiling + 1;
+        int separatorTop = upperFloor - 1;
 
         if (y <= lowerLayerCeiling) {
             if (isLowerCave(x, y, z)) {
@@ -361,19 +361,34 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
             return sampleLowerLayerMaterial(x, y, z);
         }
 
-        if (y == surfaceHeight) {
-            return Blocks.GRASS_BLOCK.getDefaultState();
+        if (y <= separatorTop) {
+            if (isLayerConnector(x, y, z, separatorBottom, separatorTop)) {
+                return Blocks.AIR.getDefaultState();
+            }
+            return sampleSeparatorMaterial(x, y, z);
         }
 
-        if (y >= surfaceHeight - 3) {
-            return Blocks.DIRT.getDefaultState();
+        if (y > upperCeiling) {
+            return Blocks.STONE.getDefaultState();
         }
 
-        if (y < 16) {
-            return Blocks.DEEPSLATE.getDefaultState();
+        if (y == upperFloor) {
+            return Blocks.BASALT.getDefaultState();
         }
 
-        return Blocks.STONE.getDefaultState();
+        if (y >= upperCeiling - 2) {
+            return Blocks.STONE.getDefaultState();
+        }
+
+        if (y <= upperFloor + 2) {
+            return sampleUpperLayerMaterial(x, y, z);
+        }
+
+        if (isUpperPillar(x, y, z, upperFloor, upperCeiling)) {
+            return sampleUpperLayerMaterial(x, y, z);
+        }
+
+        return Blocks.AIR.getDefaultState();
     }
 
     private BlockState sampleLowerLayerMaterial(int x, int y, int z) {
@@ -393,6 +408,28 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
         return Blocks.NETHERRACK.getDefaultState();
     }
 
+    private BlockState sampleUpperLayerMaterial(int x, int y, int z) {
+        double crust = hash3d(x, y, z, 0xF00D_2401L);
+        if (crust > 0.62) {
+            return Blocks.BLACKSTONE.getDefaultState();
+        }
+        if (crust < -0.55) {
+            return Blocks.BASALT.getDefaultState();
+        }
+        return Blocks.STONE.getDefaultState();
+    }
+
+    private BlockState sampleSeparatorMaterial(int x, int y, int z) {
+        double blend = hash3d(x >> 1, y, z >> 1, 0xD1F1_5EEPL);
+        if (blend > 0.3) {
+            return Blocks.DEEPSLATE.getDefaultState();
+        }
+        if (blend < -0.45) {
+            return Blocks.BLACKSTONE.getDefaultState();
+        }
+        return Blocks.STONE.getDefaultState();
+    }
+
     private int sampleSurfaceHeight(int x, int z) {
         double rolling = Math.sin((x + worldSeed * 0.03125) * terrainFrequencyA) * 10.0
                 + Math.cos((z - worldSeed * 0.015625) * terrainFrequencyA) * 9.0;
@@ -400,19 +437,57 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
                 + Math.cos((x - z) * terrainFrequencyB * 0.8) * 3.0;
         double seeded = hash2d(x >> 2, z >> 2, 0xB529_7A4DL) * 6.0;
         int surface = surfaceBase + (int) Math.round(rolling + ridges + seeded);
-        return Math.max(lowerLayerCeiling + 8, surface);
+        return Math.max(lowerLayerCeiling + separatorThickness + 8, surface);
     }
 
-    private boolean isUpperCave(int x, int y, int z) {
-        if (y >= 56) {
+    private int sampleUpperCeilingHeight(int x, int z, int upperFloor) {
+        double rolling = Math.cos((x + worldSeed * 0.0078125) * terrainFrequencyA * 0.75) * 3.5
+                + Math.sin((z - worldSeed * 0.00390625) * terrainFrequencyA * 0.75) * 3.0;
+        int ceiling = upperFloor + upperCavernDepth + (int) Math.round(rolling);
+        return Math.max(upperFloor + 12, ceiling);
+    }
+
+    private boolean isUpperPillar(int x, int y, int z, int upperFloor, int upperCeiling) {
+        int centerY = (upperFloor + upperCeiling) / 2;
+        double verticalBias = 1.0 - (Math.abs(y - centerY) / (double) Math.max(2, (upperCeiling - upperFloor) / 2));
+        double mass = hash3d(
+                (int) Math.floor(x * caveFrequency * 1.4),
+                (int) Math.floor(y * caveFrequency * 1.1),
+                (int) Math.floor(z * caveFrequency * 1.4),
+                0x41C6_CE57L
+        );
+        return mass > (0.6 + (1.0 - verticalBias) * 0.25);
+    }
+
+    private boolean isLayerConnector(int x, int y, int z, int separatorBottom, int separatorTop) {
+        int regionX = Math.floorDiv(x, 24);
+        int regionZ = Math.floorDiv(z, 24);
+        if (hash2d(regionX, regionZ, 0xAA77_30F1L) < 0.08) {
             return false;
         }
-        double cave = Math.abs(hash3d(x, y, z, 0x9E37_79B9L))
-                + Math.abs(hash3d(x * 2, y, z * 2, 0x7F4A_7C15L)) * 0.5;
-        return cave < 0.23 && y < sampleSurfaceHeight(x, z) - 2;
+
+        int localX = Math.floorMod(x, 24) - 12;
+        int localZ = Math.floorMod(z, 24) - 12;
+        if (localX * localX + localZ * localZ <= 4) {
+            return true;
+        }
+
+        int midY = (separatorBottom + separatorTop) / 2;
+        if (Math.abs(y - midY) <= 1 && (Math.floorMod(x, 12) == 0 || Math.floorMod(z, 12) == 0)) {
+            return hash3d(x >> 1, y, z >> 1, 0x8BAD_F00DL) > -0.15;
+        }
+        return false;
     }
 
     private boolean isLowerCave(int x, int y, int z) {
+        if (y <= lavaLevel - 2) {
+            return false;
+        }
+        if (y >= lowerLayerCeiling - 1) {
+            return true;
+        }
+
+        double band = 1.0 - (Math.abs(y - (lavaLevel + lowerLayerCeiling) * 0.5) / Math.max(1.0, (lowerLayerCeiling - lavaLevel) * 0.5));
         double base = Math.abs(hash3d(
                 (int) Math.floor(x * caveFrequency),
                 (int) Math.floor(y * caveFrequency * 0.9),
@@ -425,7 +500,7 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
                 (int) Math.floor(z * caveFrequency * 1.8),
                 0x1656_67B1L
         ));
-        return base + detail * 0.55 < 0.62;
+        return base + detail * 0.55 < 0.66 + band * 0.12;
     }
 
     private double hash2d(int x, int z, long salt) {
