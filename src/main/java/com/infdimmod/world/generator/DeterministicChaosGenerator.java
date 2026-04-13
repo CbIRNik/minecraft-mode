@@ -19,6 +19,7 @@ import net.minecraft.block.Blocks;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.ChunkRegion;
 import net.minecraft.world.HeightLimitView;
 import net.minecraft.world.Heightmap;
@@ -82,17 +83,25 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
     public CompletableFuture<Chunk> populateNoise(Blender blender, NoiseConfig noiseConfig, StructureAccessor structureAccessor, Chunk chunk) {
         ChunkPos chunkPos = chunk.getPos();
         BlockPos.Mutable mutable = new BlockPos.Mutable();
+        int bottomY = chunk.getBottomY();
+        int topY = chunk.getTopY();
 
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
                 int worldX = chunkPos.getStartX() + x;
                 int worldZ = chunkPos.getStartZ() + z;
+                boolean hasSolid = false;
 
-                for (int y = chunk.getBottomY(); y < chunk.getTopY(); y++) {
+                for (int y = bottomY; y < topY; y++) {
                     BlockState blockState = sampleBlockState(worldX, y, worldZ);
                     if (!blockState.isAir()) {
                         chunk.setBlockState(mutable.set(x, y, z), blockState, false);
+                        hasSolid = true;
                     }
+                }
+
+                if (!hasSolid) {
+                    placeFallbackTerrainColumn(chunk, x, worldX, worldZ, bottomY, topY);
                 }
             }
         }
@@ -113,8 +122,10 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
     public int getHeight(int x, int z, Heightmap.Type heightmap, HeightLimitView world, NoiseConfig noiseConfig) {
         int bottomY = world.getBottomY();
         int topY = world.getTopY();
+        boolean fallbackTerrain = isAllAirColumn(x, z, bottomY, topY);
+        int fallbackY = fallbackFloorY(x, z, bottomY, topY);
         for (int y = topY - 1; y >= bottomY; y--) {
-            BlockState state = sampleBlockState(x, y, z);
+            BlockState state = sampleBlockStateWithFallback(x, y, z, fallbackTerrain, fallbackY);
             if (state != null && heightmap.getBlockPredicate().test(state)) {
                 return y + 1;
             }
@@ -155,9 +166,11 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
     public VerticalBlockSample getColumnSample(int x, int z, HeightLimitView world, NoiseConfig noiseConfig) {
         int bottomY = world.getBottomY();
         int topY = world.getTopY();
+        boolean fallbackTerrain = isAllAirColumn(x, z, bottomY, topY);
+        int fallbackY = fallbackFloorY(x, z, bottomY, topY);
         BlockState[] states = new BlockState[topY - bottomY];
         for (int y = bottomY; y < topY; y++) {
-            states[y - bottomY] = sampleBlockState(x, y, z);
+            states[y - bottomY] = sampleBlockStateWithFallback(x, y, z, fallbackTerrain, fallbackY);
         }
         return new VerticalBlockSample(bottomY, states);
     }
@@ -654,6 +667,42 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
         return Blocks.AIR.getDefaultState();
     }
 
+    private BlockState sampleBlockStateWithFallback(int x, int y, int z, boolean fallbackTerrain, int fallbackY) {
+        BlockState sampled = sampleBlockState(x, y, z);
+        if (!sampled.isAir() || !fallbackTerrain) {
+            return sampled;
+        }
+        if (y == fallbackY) {
+            return Blocks.STONE.getDefaultState();
+        }
+        if (y == fallbackY - 1) {
+            return Blocks.DEEPSLATE.getDefaultState();
+        }
+        return sampled;
+    }
+
+    private boolean isAllAirColumn(int x, int z, int bottomY, int topY) {
+        for (int y = bottomY; y < topY; y++) {
+            if (!sampleBlockState(x, y, z).isAir()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private int fallbackFloorY(int x, int z, int bottomY, int topY) {
+        int sampledSurface = sampleSurfaceHeight(x, z);
+        int targetFloor = Math.max(bottomY + 6, sampledSurface);
+        return MathHelper.clamp(targetFloor, bottomY + 1, topY - 2);
+    }
+
+    private void placeFallbackTerrainColumn(Chunk chunk, int localX, int worldX, int worldZ, int bottomY, int topY) {
+        int floorY = fallbackFloorY(worldX, worldZ, bottomY, topY);
+        BlockPos.Mutable mutable = new BlockPos.Mutable();
+        chunk.setBlockState(mutable.set(localX, floorY - 1, worldZ - chunk.getPos().getStartZ()), Blocks.DEEPSLATE.getDefaultState(), false);
+        chunk.setBlockState(mutable.set(localX, floorY, worldZ - chunk.getPos().getStartZ()), Blocks.STONE.getDefaultState(), false);
+    }
+
     private BlockState sampleLowerLayerMaterial(int x, int y, int z) {
         double heat = hash3d(x, y, z, 0x5F37_59DFL);
         if (y <= lavaLevel - 2 && heat > 0.45) {
@@ -699,6 +748,9 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
         double ridges = Math.sin((x + z) * terrainFrequencyB) * 4.0
                 + Math.cos((x - z) * terrainFrequencyB * 0.8) * 3.0;
         double seeded = hash2d(x >> 2, z >> 2, 0xB529_7A4DL) * 6.0;
+        if (!Double.isFinite(rolling) || !Double.isFinite(ridges) || !Double.isFinite(seeded)) {
+            return lowerLayerCeiling + separatorThickness + 12;
+        }
         int surface = surfaceBase + (int) Math.round(rolling + ridges + seeded);
         return Math.max(lowerLayerCeiling + separatorThickness + 8, surface);
     }
@@ -706,6 +758,9 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
     private int sampleUpperCeilingHeight(int x, int z, int upperFloor) {
         double rolling = Math.cos((x + worldSeed * 0.0078125) * terrainFrequencyA * 0.75) * 3.5
                 + Math.sin((z - worldSeed * 0.00390625) * terrainFrequencyA * 0.75) * 3.0;
+        if (!Double.isFinite(rolling)) {
+            return upperFloor + 14;
+        }
         int ceiling = upperFloor + upperCavernDepth + (int) Math.round(rolling);
         return Math.max(upperFloor + 12, ceiling);
     }
