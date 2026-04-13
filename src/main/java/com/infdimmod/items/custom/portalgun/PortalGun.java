@@ -67,7 +67,10 @@ public class PortalGun extends Item {
             if (isItemBroken(stack) || user.getItemCooldownManager().isCoolingDown(this) || hand == Hand.OFF_HAND) {
                 return TypedActionResult.pass(stack);
             }
-            if (getPortalCode(stack) == "¯\\_(ツ)_/¯"){return TypedActionResult.pass(stack);}
+            String code = getPortalCode(stack);
+            if (code == null || code.isEmpty()) {
+                return TypedActionResult.pass(stack);
+            }
             // базовые вектора для обоих режимов
             Vec3d eyePos = user.getEyePos();
             Vec3d lookVec = user.getRotationVec(1.0F);

@@ -41,7 +41,7 @@ public class ModBlocks {
     );
     public static final BlockEntityType<PortalGunCrafterEntity> PORTAL_GUN_CRAFTER_BE =
             Registry.register(Registries.BLOCK_ENTITY_TYPE,
-                    Identifier.of("modid", "portal_gun_crafter_be"),
+                    Identifier.of(InfDimMod.MOD_ID, "portal_gun_crafter_be"),
                     BlockEntityType.Builder.create(PortalGunCrafterEntity::new, ModBlocks.PortalGunCrafter).build());
     public static final Block PolytechBlock = register(
             new Block(AbstractBlock.Settings.create().sounds(BlockSoundGroup.NETHERRACK).strength(1.5f)

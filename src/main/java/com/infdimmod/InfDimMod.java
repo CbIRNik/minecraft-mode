@@ -61,10 +61,12 @@ public class InfDimMod implements ModInitializer {
         ServerPlayNetworking.registerGlobalReceiver(PortalCodePayload.ID, (payload, context) -> {
             context.server().execute(() -> {
                 ItemStack stack = context.player().getMainHandStack();
-
-
-                stack.set(PortalGunComponents.PORTALCODETYPE, new PortalGunComponents(payload.code()));
-
+                if (stack.getItem() instanceof PortalGun) {
+                    String code = payload.code();
+                    if (code != null && !code.isEmpty() && code.length() <= 12) {
+                        stack.set(PortalGunComponents.PORTALCODETYPE, new PortalGunComponents(code));
+                    }
+                }
             });
         });
 
@@ -76,7 +78,7 @@ public class InfDimMod implements ModInitializer {
         PayloadTypeRegistry.playC2S().register(ToggleGunModePayload.ID, ToggleGunModePayload.CODEC);
 
         ServerPlayNetworking.registerGlobalReceiver(ToggleGunModePayload.ID, (payload, context) -> {
-            context.player().getServer().execute(() -> {
+            context.server().execute(() -> {
                 ItemStack stack = context.player().getMainHandStack();
                 if (stack.getItem() instanceof PortalGun) {
                     boolean currentMode = stack.getOrDefault(PORTAL_GUN_MODE, false);
