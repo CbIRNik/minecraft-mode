@@ -7,7 +7,6 @@ import net.minecraft.block.Blocks;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
 
 import java.util.ArrayDeque;
 import java.util.HashMap;
@@ -114,7 +113,7 @@ public class CataclysmManager {
         }
 
         private boolean isChunkLoaded(BlockPos pos) {
-            return world.isChunkLoaded(new ChunkPos(pos));
+            return world.isChunkLoaded(pos);
         }
 
         private CataclysmKey key() {
