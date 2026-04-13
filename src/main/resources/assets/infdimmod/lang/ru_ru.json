@@ -26,5 +26,9 @@
   "entity.infdimmod.resident": "Житель Бурмальдении",
   "entity.infdimmod.fogi": "Фоги",
   "structure.infdimmod.dormitory": "Общежитие Бурмальдении",
-  "biome.infdimmod.murino": "Мурино"
+  "biome.infdimmod.murino": "Мурино",
+  "block.infdimmod.drunny_atom": "Дранни атом",
+  "entity.infdimmod.drun_guard": "Охранник Дранни",
+  "entity.infdimmod.drunny_particle_orbit": "Орбитальная частица Дранни",
+  "structure.infdimmod.drunny_collider_complex": "Комплекс дранни-коллайдера"
 }

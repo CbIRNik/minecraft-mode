@@ -2,6 +2,7 @@ package com.infdimmod;
 
 import com.infdimmod.Blocks.ModBlocks;
 import com.infdimmod.Entities.BackPortalRenderer;
+import com.infdimmod.Entities.DrunnyParticleOrbitRenderer;
 import com.infdimmod.Entities.GreenPortalRenderer;
 import com.infdimmod.Entities.ModEntities;
 import com.infdimmod.Hud.PortalGunCrafterScreen;
@@ -46,6 +47,8 @@ public class InfDimModClient implements ClientModInitializer {
         EntityRendererRegistry.register(ModEntities.BACK_PORTAL_ENTITY_TYPE, BackPortalRenderer::new);
         EntityRendererRegistry.register(ModEntities.RESIDENT_ENTITY_TYPE, VillagerEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.FOGI_ENTITY_TYPE, ZombieEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.DRUN_GUARD_ENTITY_TYPE, ZombieEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.DRUNNY_PARTICLE_ORBIT_ENTITY_TYPE, DrunnyParticleOrbitRenderer::new);
 
         ModelPredicateProviderRegistry.register(
                 ModItems.PortalGun,

@@ -58,6 +58,17 @@ public class ModBlocks {
             true
     );
 
+    public static final Block DRUNNY_ATOM = register(
+            new Block(AbstractBlock.Settings.create()
+                    .sounds(BlockSoundGroup.AMETHYST_CLUSTER)
+                    .strength(4.0f, 12.0f)
+                    .requiresTool()
+                    .luminance(state -> 13)
+                    .mapColor(MapColor.CYAN)),
+            BurmaldeniyaConstants.DRUNNY_ATOM_BLOCK_ID,
+            true
+    );
+
     public static Block register(Block block, String name, boolean shouldRegisterItem) {
         Identifier id = Identifier.of(InfDimMod.MOD_ID, name);
         if (shouldRegisterItem) {

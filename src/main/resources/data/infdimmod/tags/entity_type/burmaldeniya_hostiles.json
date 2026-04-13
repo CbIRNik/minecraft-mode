@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
-    "infdimmod:fogi"
+    "infdimmod:fogi",
+    "infdimmod:drun_guard"
   ]
 }

@@ -26,5 +26,9 @@
   "entity.infdimmod.resident": "Burmaldeniya Resident",
   "entity.infdimmod.fogi": "Fogi",
   "structure.infdimmod.dormitory": "Burmaldeniya Dormitory",
-  "biome.infdimmod.murino": "Murino"
+  "biome.infdimmod.murino": "Murino",
+  "block.infdimmod.drunny_atom": "Drunny Atom",
+  "entity.infdimmod.drun_guard": "Drun Guard",
+  "entity.infdimmod.drunny_particle_orbit": "Drunny Particle Orbit",
+  "structure.infdimmod.drunny_collider_complex": "Drunny Collider Complex"
 }

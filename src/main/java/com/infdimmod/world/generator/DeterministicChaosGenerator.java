@@ -1,8 +1,11 @@
 package com.infdimmod.world.generator;
 
+import com.infdimmod.Blocks.ModBlocks;
 import com.infdimmod.Entities.ModEntities;
+import com.infdimmod.Entities.custom.DrunGuardEntity;
 import com.infdimmod.Entities.custom.FogiEntity;
 import com.infdimmod.Entities.custom.ResidentEntity;
+import com.infdimmod.world.collider.DrunnyColliderLayout;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -24,6 +27,7 @@ import net.minecraft.world.gen.chunk.ChunkGenerator;
 import net.minecraft.world.gen.chunk.VerticalBlockSample;
 import net.minecraft.world.gen.noise.NoiseConfig;
 
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 
@@ -34,6 +38,9 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
                     Codec.LONG.fieldOf("seed").forGetter(generator -> generator.worldSeed)
             ).apply(instance, instance.stable(DeterministicChaosGenerator::new))
     );
+
+    private static final int COLLIDER_RADIUS_CHUNKS = 5;
+    private static final int COLLIDER_HALF_HEIGHT = 22;
 
     private final long worldSeed;
     private final int surfaceBase;
@@ -74,6 +81,7 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
             }
         }
 
+        placeColliderComplex(chunk, chunkPos);
         placeDormitoryScaffolding(chunk, chunkPos);
         return CompletableFuture.completedFuture(chunk);
     }
@@ -110,6 +118,13 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
             return;
         }
 
+        if (isColliderCoreChunk(chunkPos)) {
+            spawnDrunGuard(world, chunkPos, 8, 8, 0.0f);
+            spawnDrunGuard(world, chunkPos, 4, 11, 90.0f);
+            spawnDrunGuard(world, chunkPos, 11, 4, 180.0f);
+            return;
+        }
+
         double patrolChance = hash2d(chunkPos.x, chunkPos.z, 0xD0A4_5001L);
         if (patrolChance > 0.86) {
             spawnFogi(world, chunkPos, 8, 8, 0.0f);
@@ -131,6 +146,102 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
     public void getDebugHudText(java.util.List<String> text, NoiseConfig noiseConfig, BlockPos pos) {
         text.add("Burmaldeniya two-layer generator");
         text.add("Dorm chunk: " + (isDormChunk(new ChunkPos(pos)) ? "yes" : "no"));
+        text.add("Collider chunk: " + (isColliderCoreChunk(new ChunkPos(pos)) ? "yes" : "no"));
+    }
+
+    public long getWorldSeed() {
+        return worldSeed;
+    }
+
+    public int getColliderCoreY() {
+        return Math.max(getMinimumY() + 18, this.lowerLayerCeiling - 2);
+    }
+
+    private void placeColliderComplex(Chunk chunk, ChunkPos chunkPos) {
+        List<ChunkPos> nearbyCores = DrunnyColliderLayout.findNearbyCoreChunks(chunkPos, worldSeed, COLLIDER_RADIUS_CHUNKS + 2);
+        int coreY = getColliderCoreY();
+
+        for (ChunkPos coreChunk : nearbyCores) {
+            if (Math.abs(coreChunk.x - chunkPos.x) > COLLIDER_RADIUS_CHUNKS || Math.abs(coreChunk.z - chunkPos.z) > COLLIDER_RADIUS_CHUNKS) {
+                continue;
+            }
+
+            int coreX = coreChunk.getStartX() + 8;
+            int coreZ = coreChunk.getStartZ() + 8;
+            int minY = Math.max(chunk.getBottomY(), coreY - COLLIDER_HALF_HEIGHT);
+            int maxY = Math.min(chunk.getTopY() - 1, coreY + COLLIDER_HALF_HEIGHT);
+
+            for (int worldX = chunkPos.getStartX(); worldX <= chunkPos.getStartX() + 15; worldX++) {
+                int dx = worldX - coreX;
+                for (int worldZ = chunkPos.getStartZ(); worldZ <= chunkPos.getStartZ() + 15; worldZ++) {
+                    int dz = worldZ - coreZ;
+                    double horizontalSq = dx * dx + dz * dz;
+                    if (horizontalSq > DrunnyColliderLayout.COMPLEX_RADIUS_BLOCKS * DrunnyColliderLayout.COMPLEX_RADIUS_BLOCKS) {
+                        continue;
+                    }
+
+                    for (int y = minY; y <= maxY; y++) {
+                        int dy = y - coreY;
+                        BlockState state = colliderStateAt(dx, dy, dz, horizontalSq);
+                        if (state != null) {
+                            setBlockInChunk(chunk, worldX, y, worldZ, state);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private BlockState colliderStateAt(int dx, int dy, int dz, double horizontalSq) {
+        double shellNorm = horizontalSq / (double) (DrunnyColliderLayout.COMPLEX_RADIUS_BLOCKS * DrunnyColliderLayout.COMPLEX_RADIUS_BLOCKS)
+                + (dy * dy) / (double) (COLLIDER_HALF_HEIGHT * COLLIDER_HALF_HEIGHT);
+        if (shellNorm > 1.0) {
+            return null;
+        }
+
+        int radial = (int) Math.round(Math.sqrt(horizontalSq));
+        if (radial <= 3 && Math.abs(dy) <= 3) {
+            return ModBlocks.DRUNNY_ATOM.getDefaultState();
+        }
+
+        if (radial <= 5 && Math.abs(dy) <= 4) {
+            return Blocks.CRYING_OBSIDIAN.getDefaultState();
+        }
+
+        if (radial <= 11 && Math.abs(dy) <= 7) {
+            if (dy <= -3) {
+                return Blocks.POLISHED_BLACKSTONE_BRICKS.getDefaultState();
+            }
+            return Blocks.AIR.getDefaultState();
+        }
+
+        if ((Math.abs(dx) <= 2 || Math.abs(dz) <= 2) && Math.abs(dy) <= 3) {
+            if (dy <= -2) {
+                return Blocks.POLISHED_DEEPSLATE.getDefaultState();
+            }
+            return Blocks.AIR.getDefaultState();
+        }
+
+        if (Math.abs(dx) == 9 && dz == 0 && dy == 1) {
+            return ModBlocks.DrunnyCollider.getDefaultState();
+        }
+        if (Math.abs(dz) == 9 && dx == 0 && dy == 1) {
+            return ModBlocks.DrunnyCollider.getDefaultState();
+        }
+
+        if (Math.floorMod(Math.abs(dx), 12) == 0 && Math.floorMod(Math.abs(dz), 12) == 0 && dy >= -14 && dy <= 9) {
+            return Blocks.DEEPSLATE_BRICKS.getDefaultState();
+        }
+
+        if (shellNorm >= 0.88) {
+            return Blocks.REINFORCED_DEEPSLATE.getDefaultState();
+        }
+
+        if (dy <= -15 && radial < 46) {
+            return Blocks.MAGMA_BLOCK.getDefaultState();
+        }
+
+        return Blocks.AIR.getDefaultState();
     }
 
     private void placeDormitoryScaffolding(Chunk chunk, ChunkPos chunkPos) {
@@ -202,11 +313,31 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
         world.spawnEntity(fogi);
     }
 
+    private void spawnDrunGuard(ServerWorld world, ChunkPos chunkPos, int offsetX, int offsetZ, float yaw) {
+        int worldX = chunkPos.getStartX() + offsetX;
+        int worldZ = chunkPos.getStartZ() + offsetZ;
+        int worldY = getColliderCoreY();
+
+        DrunGuardEntity guard = new DrunGuardEntity(ModEntities.DRUN_GUARD_ENTITY_TYPE, world);
+        guard.refreshPositionAndAngles(worldX + 0.5, worldY, worldZ + 0.5, yaw, 0.0f);
+        guard.setPersistent();
+        world.spawnEntity(guard);
+    }
+
     private boolean isDormChunk(ChunkPos chunkPos) {
         if (Math.floorMod(chunkPos.x, 12) != 0 || Math.floorMod(chunkPos.z, 12) != 0) {
             return false;
         }
         return hash2d(chunkPos.x, chunkPos.z, 0x0D05_4510L) > -0.25;
+    }
+
+    private boolean isColliderCoreChunk(ChunkPos chunkPos) {
+        ChunkPos core = DrunnyColliderLayout.coreChunkForGrid(
+                Math.floorDiv(chunkPos.x, DrunnyColliderLayout.GRID_SPACING_CHUNKS),
+                Math.floorDiv(chunkPos.z, DrunnyColliderLayout.GRID_SPACING_CHUNKS),
+                worldSeed
+        );
+        return core.x == chunkPos.x && core.z == chunkPos.z;
     }
 
     private BlockState sampleBlockState(int x, int y, int z) {
