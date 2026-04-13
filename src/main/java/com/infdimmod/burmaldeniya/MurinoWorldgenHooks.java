@@ -48,7 +48,7 @@ public final class MurinoWorldgenHooks {
 
     public static BiomeSource createBiomeSource(ServerWorld overworld) {
         RegistryEntry<Biome> murinoBiome = overworld.getRegistryManager()
-                .getOrThrow(RegistryKeys.BIOME)
+                .get(RegistryKeys.BIOME)
                 .getEntry(MURINO_BIOME_KEY)
                 .orElse(null);
 

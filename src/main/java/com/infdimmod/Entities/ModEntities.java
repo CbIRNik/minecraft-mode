@@ -1,7 +1,9 @@
 package com.infdimmod.Entities;
 
 import com.infdimmod.Entities.custom.BackPortal;
+import com.infdimmod.Entities.custom.FogiEntity;
 import com.infdimmod.Entities.custom.GreenPortal;
+import com.infdimmod.Entities.custom.ResidentEntity;
 import com.infdimmod.InfDimMod;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.minecraft.entity.EntityType;
@@ -35,18 +37,18 @@ public class ModEntities {
                     .build()
     );
 
-    public static final EntityType<VillagerEntity> RESIDENT_ENTITY_TYPE = Registry.register(
+    public static final EntityType<ResidentEntity> RESIDENT_ENTITY_TYPE = Registry.register(
             Registries.ENTITY_TYPE,
             Identifier.of(InfDimMod.MOD_ID, "resident"),
-            EntityType.Builder.create(VillagerEntity::new, SpawnGroup.CREATURE)
+            EntityType.Builder.create(ResidentEntity::new, SpawnGroup.CREATURE)
                     .dimensions(0.6f, 1.95f)
                     .build()
     );
 
-    public static final EntityType<ZombieEntity> FOGI_ENTITY_TYPE = Registry.register(
+    public static final EntityType<FogiEntity> FOGI_ENTITY_TYPE = Registry.register(
             Registries.ENTITY_TYPE,
             Identifier.of(InfDimMod.MOD_ID, "fogi"),
-            EntityType.Builder.create(ZombieEntity::new, SpawnGroup.MONSTER)
+            EntityType.Builder.create(FogiEntity::new, SpawnGroup.MONSTER)
                     .dimensions(0.6f, 1.95f)
                     .build()
     );

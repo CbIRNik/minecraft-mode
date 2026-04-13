@@ -4,6 +4,7 @@ public final class BurmaldeniyaConstants {
     public static final String BURMALDOT_NAMESPACE = "burmaldot";
     public static final String BURMALDENIYA_NAMESPACE = "burmaldeniya";
     public static final String BURMALDENIYA_DIMENSION_ID = "burmaldeniya";
+    public static final String BURMALDENIYA_ROUTE_CODE = BURMALDENIYA_NAMESPACE + ":" + BURMALDENIYA_DIMENSION_ID;
 
     public static final String BURMALDUSHKA_ITEM_ID = "burmaldushka";
     public static final String DRUNNY_COLLIDER_BLOCK_ID = "drunny_collider";

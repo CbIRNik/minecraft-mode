@@ -1,13 +1,13 @@
 package com.infdimmod.world.generator;
 
 import com.infdimmod.Entities.ModEntities;
+import com.infdimmod.Entities.custom.FogiEntity;
+import com.infdimmod.Entities.custom.ResidentEntity;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.entity.mob.ZombieEntity;
-import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
@@ -185,7 +185,7 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
         int worldZ = chunkPos.getStartZ() + offsetZ;
         int worldY = sampleSurfaceHeight(worldX, worldZ) + 1;
 
-        VillagerEntity resident = new VillagerEntity(ModEntities.RESIDENT_ENTITY_TYPE, world);
+        ResidentEntity resident = new ResidentEntity(ModEntities.RESIDENT_ENTITY_TYPE, world);
         resident.refreshPositionAndAngles(worldX + 0.5, worldY, worldZ + 0.5, yaw, 0.0f);
         resident.setPersistent();
         world.spawnEntity(resident);
@@ -196,7 +196,7 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
         int worldZ = chunkPos.getStartZ() + offsetZ;
         int worldY = sampleSurfaceHeight(worldX, worldZ) + 1;
 
-        ZombieEntity fogi = new ZombieEntity(ModEntities.FOGI_ENTITY_TYPE, world);
+        FogiEntity fogi = new FogiEntity(ModEntities.FOGI_ENTITY_TYPE, world);
         fogi.refreshPositionAndAngles(worldX + 0.5, worldY, worldZ + 0.5, yaw, 0.0f);
         fogi.setPersistent();
         world.spawnEntity(fogi);

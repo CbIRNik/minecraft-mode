@@ -202,7 +202,7 @@ public class PortalGunCrafterEntity extends BlockEntity implements NamedScreenHa
                 BurmaldushkaComponents.BURMALDUSHKA_STATE,
                 new BurmaldushkaComponents.BurmaldushkaState(-1, -1)
         );
-        return state.rotationVersion() == snapshot.rotationVersion() && state.rotation() == snapshot.rotationIndex();
+        return state.version() == snapshot.rotationVersion() && state.rotation() == snapshot.rotationIndex();
     }
 
     private boolean checkCraftRateLimit(PlayerEntity player, boolean consume) {

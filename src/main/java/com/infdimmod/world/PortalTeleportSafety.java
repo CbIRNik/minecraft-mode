@@ -61,7 +61,7 @@ public final class PortalTeleportSafety {
 
     private static boolean isSafeStandPosition(ServerWorld world, BlockPos feetPos) {
         int bottom = world.getBottomY() + 1;
-        int ceiling = world.getTopYInclusive() - 2;
+        int ceiling = world.getTopY() - 2;
         if (feetPos.getY() < bottom || feetPos.getY() > ceiling) {
             return false;
         }
