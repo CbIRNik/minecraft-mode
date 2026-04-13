@@ -138,8 +138,8 @@ public final class DrunnyColliderSystemManager {
             guard.setPersistent();
 
             if (world.isSpaceEmpty(guard)) {
-                guard.getAttributeInstance(EntityAttributes.FOLLOW_RANGE).setBaseValue(48.0);
-                guard.getAttributeInstance(EntityAttributes.MAX_HEALTH).setBaseValue(30.0);
+                guard.getAttributeInstance(EntityAttributes.GENERIC_FOLLOW_RANGE).setBaseValue(48.0);
+                guard.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH).setBaseValue(30.0);
                 guard.setHealth(30.0F);
                 world.spawnEntity(guard);
             }

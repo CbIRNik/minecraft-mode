@@ -144,47 +144,47 @@ public class ModEntities {
 
     private static DefaultAttributeContainer.Builder createFogiAttributes() {
         return ZombieEntity.createZombieAttributes()
-                .add(EntityAttributes.MAX_HEALTH, 30.0)
-                .add(EntityAttributes.MOVEMENT_SPEED, 0.27)
-                .add(EntityAttributes.ATTACK_DAMAGE, 6.0)
-                .add(EntityAttributes.FOLLOW_RANGE, 40.0)
-                .add(EntityAttributes.ARMOR, 4.0);
+                .add(EntityAttributes.GENERIC_MAX_HEALTH, 30.0)
+                .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.27)
+                .add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 6.0)
+                .add(EntityAttributes.GENERIC_FOLLOW_RANGE, 40.0)
+                .add(EntityAttributes.GENERIC_ARMOR, 4.0);
     }
 
     private static DefaultAttributeContainer.Builder createFogiApexAttributes() {
         return ZombieEntity.createZombieAttributes()
-                .add(EntityAttributes.MAX_HEALTH, 90.0)
-                .add(EntityAttributes.MOVEMENT_SPEED, 0.32)
-                .add(EntityAttributes.ATTACK_DAMAGE, 12.0)
-                .add(EntityAttributes.FOLLOW_RANGE, 56.0)
-                .add(EntityAttributes.KNOCKBACK_RESISTANCE, 0.45)
-                .add(EntityAttributes.ARMOR, 8.0);
+                .add(EntityAttributes.GENERIC_MAX_HEALTH, 90.0)
+                .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.32)
+                .add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 12.0)
+                .add(EntityAttributes.GENERIC_FOLLOW_RANGE, 56.0)
+                .add(EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE, 0.45)
+                .add(EntityAttributes.GENERIC_ARMOR, 8.0);
     }
 
     private static DefaultAttributeContainer.Builder createDrunGuardAttributes() {
         return ZombieEntity.createZombieAttributes()
-                .add(EntityAttributes.MAX_HEALTH, 42.0)
-                .add(EntityAttributes.MOVEMENT_SPEED, 0.25)
-                .add(EntityAttributes.ATTACK_DAMAGE, 8.0)
-                .add(EntityAttributes.FOLLOW_RANGE, 48.0)
-                .add(EntityAttributes.ARMOR, 10.0)
-                .add(EntityAttributes.KNOCKBACK_RESISTANCE, 0.2);
+                .add(EntityAttributes.GENERIC_MAX_HEALTH, 42.0)
+                .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.25)
+                .add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 8.0)
+                .add(EntityAttributes.GENERIC_FOLLOW_RANGE, 48.0)
+                .add(EntityAttributes.GENERIC_ARMOR, 10.0)
+                .add(EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE, 0.2);
     }
 
     private static DefaultAttributeContainer.Builder createFatOmayAttributes() {
         return IronGolemEntity.createIronGolemAttributes()
-                .add(EntityAttributes.MAX_HEALTH, 220.0)
-                .add(EntityAttributes.MOVEMENT_SPEED, 0.2)
-                .add(EntityAttributes.ATTACK_DAMAGE, 20.0)
-                .add(EntityAttributes.FOLLOW_RANGE, 28.0)
-                .add(EntityAttributes.ARMOR, 12.0)
-                .add(EntityAttributes.KNOCKBACK_RESISTANCE, 0.8);
+                .add(EntityAttributes.GENERIC_MAX_HEALTH, 220.0)
+                .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.2)
+                .add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 20.0)
+                .add(EntityAttributes.GENERIC_FOLLOW_RANGE, 28.0)
+                .add(EntityAttributes.GENERIC_ARMOR, 12.0)
+                .add(EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE, 0.8);
     }
 
     private static DefaultAttributeContainer.Builder createLittleTastyBabyAttributes() {
         return ChickenEntity.createChickenAttributes()
-                .add(EntityAttributes.MAX_HEALTH, 12.0)
-                .add(EntityAttributes.MOVEMENT_SPEED, 0.3);
+                .add(EntityAttributes.GENERIC_MAX_HEALTH, 12.0)
+                .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.3);
     }
 
     private static <T extends MobEntity> void registerGroundSpawn(EntityType<T> entityType, SpawnRestriction.SpawnPredicate<T> predicate) {
