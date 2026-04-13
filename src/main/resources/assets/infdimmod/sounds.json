@@ -1,0 +1,17 @@
+{
+  "burmaldeniya_ambient_music": {
+    "sounds": [
+      {
+        "name": "minecraft:music/menu/menu1",
+        "stream": true
+      }
+    ]
+  },
+  "drunny_collider_ambient": {
+    "sounds": [
+      {
+        "name": "minecraft:ambient/cave/cave1"
+      }
+    ]
+  }
+}

@@ -4,7 +4,9 @@ import com.infdimmod.Blocks.custom.PortalFluid;
 import com.infdimmod.Blocks.custom.PortalFluidBlock;
 import com.infdimmod.Blocks.custom.PortalGunCrafter;
 import com.infdimmod.Blocks.custom.PortalGunCrafterEntity;
+import com.infdimmod.Blocks.custom.DrunnyCollider;
 import com.infdimmod.InfDimMod;
+import com.infdimmod.burmaldeniya.BurmaldeniyaConstants;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.fluid.FlowableFluid;
@@ -47,6 +49,12 @@ public class ModBlocks {
             new Block(AbstractBlock.Settings.create().sounds(BlockSoundGroup.NETHERRACK).strength(1.5f)
                     .mapColor(MapColor.LIME)),
             "polytech_block",
+            true
+    );
+    public static final Block DrunnyCollider = register(
+            new DrunnyCollider(AbstractBlock.Settings.create().sounds(BlockSoundGroup.AMETHYST_BLOCK).strength(1.8f)
+                    .mapColor(MapColor.PURPLE)),
+            BurmaldeniyaConstants.DRUNNY_COLLIDER_BLOCK_ID,
             true
     );
 

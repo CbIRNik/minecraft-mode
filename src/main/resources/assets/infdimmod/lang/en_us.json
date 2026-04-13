@@ -1,7 +1,9 @@
 {
   "item.infdimmod.sausage": "Sausage",
+  "item.infdimmod.burmaldushka": "Burmaldushka",
   "itemTooltip.infdimmod.sausage": "Tasty!",
   "block.infdimmod.portal_gun_crafter": "Portal gun crafter",
+  "block.infdimmod.drunny_collider": "Drunny Collider",
   "block.infdimmod.polytech_block": "Polytech block",
   "block.infdimmod.mystic_portal_frame": "Mystic Portal Frame",
   "block.infdimmod.mystic_portal": "Mystic Portal",
@@ -13,5 +15,7 @@
   "category.infdimmod.controls": "InfDimMod",
   "item.infdimmod.portal_fluid_bucket": "Portal fluid bucket",
   "key.infdimmod.toggle_mode": "Toggle portal gun mode",
-  "container.portal_gun_crafter": "Create portal gun"
+  "container.portal_gun_crafter": "Create portal gun",
+  "concept.infdimmod.burmaldot": "Burmaldot protocol",
+  "dimension.infdimmod.burmaldeniya": "Burmaldeniya"
 }

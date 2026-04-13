@@ -3,8 +3,11 @@ package com.infdimmod.items;
 import com.infdimmod.Blocks.ModBlocks;
 import com.infdimmod.InfDimMod;
 import com.infdimmod.items.custom.PortalFluidItem;
+import com.infdimmod.items.custom.burmaldushka.Burmaldushka;
+import com.infdimmod.items.custom.burmaldushka.BurmaldushkaComponents;
 import com.infdimmod.items.custom.portalgun.PortalGun;
 import com.infdimmod.items.custom.portalgun.PortalGunComponents;
+import com.infdimmod.burmaldeniya.BurmaldeniyaConstants;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.item.BucketItem;
@@ -29,6 +32,12 @@ public class ModItems {
             .build();
 
     public static final Item Sausage = register(new Item(new Item.Settings().food(Sosiska)), "sausage");
+    public static final Item Burmaldushka = register(
+            new Burmaldushka(new Item.Settings()
+                    .maxCount(1)
+                    .component(BurmaldushkaComponents.BURMALDUSHKA_STATE, new BurmaldushkaComponents.BurmaldushkaState(0, 1))),
+            BurmaldeniyaConstants.BURMALDUSHKA_ITEM_ID
+    );
     public static final Item PortalFluidItem = register(new PortalFluidItem(new Item.Settings().maxCount(1).fireproof().rarity(Rarity.RARE)), "portal_fluid_item");
     public static final Item PortalFluidBucket = register(new BucketItem(ModBlocks.STILL_PORTAL_FLUID, new Item.Settings().maxCount(1)), "portal_fluid_bucket");
     public static final Item PortalGun = register(new PortalGun(new Item.Settings()
@@ -50,11 +59,12 @@ public class ModItems {
         ItemGroupEvents.modifyEntriesEvent(MODGROUPKEY).register(itemGroup ->
         {
             itemGroup.add(ModItems.Sausage);
+            itemGroup.add(ModItems.Burmaldushka);
             itemGroup.add(ModBlocks.PortalGunCrafter);
+            itemGroup.add(ModBlocks.DrunnyCollider);
             itemGroup.add(ModItems.PortalGun);
             itemGroup.add(ModItems.PortalFluidItem);
             itemGroup.add(ModItems.PortalFluidBucket);
         });
     }
 }
-

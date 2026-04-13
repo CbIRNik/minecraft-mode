@@ -2,9 +2,12 @@
   "block.infdimmod.mystic_portal": "Мистический портал",
   "block.infdimmod.mystic_portal_frame": "Рамка мистического портала",
   "block.infdimmod.portal_gun_crafter": "Создатель портальной пушки",
+  "block.infdimmod.drunny_collider": "Дранни коллайдер",
   "block.infdimmod.polytech_block": "Блок Политеха",
+  "dimension.infdimmod.burmaldeniya": "Бурмальдения",
   "item.infdimmod.portal_fluid_item": "Портальная жидкость",
   "item.infdimmod.portal_gun": "Портальная пушка",
+  "item.infdimmod.burmaldushka": "Бурмалдушка",
   "item.infdimmod.sausage": "Сосиска",
   "itemGroup.idm": "InfDimMod",
   "itemTooltip.infdimmod.sausage": "Вкусно!",
@@ -13,5 +16,6 @@
   "category.infdimmod.controls": "InfDimMod",
   "item.infdimmod.portal_fluid_bucket": "Ведро портальной жидкости",
   "key.infdimmod.toggle_mode": "Переключить режим портальной пушки",
-  "container.portal_gun_crafter": "Создать портальную пушку"
+  "container.portal_gun_crafter": "Создать портальную пушку",
+  "concept.infdimmod.burmaldot": "Протокол Бурмалдот"
 }

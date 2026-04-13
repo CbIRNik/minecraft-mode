@@ -2,6 +2,7 @@ package com.infdimmod;
 
 import com.infdimmod.Blocks.ModBlocks;
 import com.infdimmod.Entities.ModEntities;
+import com.infdimmod.items.custom.burmaldushka.BurmaldushkaComponents;
 import com.infdimmod.items.ModItems;
 import com.infdimmod.items.custom.portalgun.PortalGun;
 import com.infdimmod.items.custom.portalgun.PortalGunComponents;
@@ -12,6 +13,7 @@ import com.infdimmod.network.UpdatePortalHistoryPayload;
 import com.infdimmod.network.UpdatePortalFavoritesPayload;
 import com.infdimmod.particle.ModParticles;
 import com.infdimmod.recipe.PortalGunRecipe;
+import com.infdimmod.sound.ModSounds;
 import com.infdimmod.util.PortalGunCrafterScreenHandler;
 import com.infdimmod.world.ModWorldManager;
 import com.infdimmod.world.generator.DeterministicChaosGenerator;
@@ -71,6 +73,8 @@ public class InfDimMod implements ModInitializer {
         });
 
         PortalGunComponents.register();
+        BurmaldushkaComponents.register();
+        ModSounds.register();
 
         ModEntities.registerModEntities();
 
