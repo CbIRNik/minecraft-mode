@@ -421,7 +421,7 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
 
         while (worldY <= maxY && !world.getBlockState(mutable).isAir()) {
             worldY++;
-            mutable.setY(worldY);
+            mutable.set(worldX, worldY, worldZ);
         }
         if (worldY > maxY) {
             return world.getBottomY() - 1;
