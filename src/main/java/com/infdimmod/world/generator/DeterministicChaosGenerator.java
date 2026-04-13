@@ -683,7 +683,7 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
     }
 
     private BlockState sampleSeparatorMaterial(int x, int y, int z) {
-        double blend = hash3d(x >> 1, y, z >> 1, 0xD1F1_5EEPL);
+        double blend = hash3d(x >> 1, y, z >> 1, 0xD1F1_5EEEL);
         if (blend > 0.3) {
             return Blocks.DEEPSLATE.getDefaultState();
         }
