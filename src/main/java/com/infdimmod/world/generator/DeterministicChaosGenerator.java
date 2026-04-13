@@ -1,10 +1,14 @@
 package com.infdimmod.world.generator;
 
+import com.infdimmod.Entities.ModEntities;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.entity.mob.ZombieEntity;
+import net.minecraft.entity.passive.VillagerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.ChunkRegion;
@@ -69,6 +73,8 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
                 }
             }
         }
+
+        placeDormitoryScaffolding(chunk, chunkPos);
         return CompletableFuture.completedFuture(chunk);
     }
 
@@ -78,6 +84,7 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
     @Override public int getWorldHeight() { return 384; }
     @Override public int getSeaLevel() { return 63; }
     @Override public int getMinimumY() { return -64; }
+
     @Override
     public int getHeight(int x, int z, Heightmap.Type heightmap, HeightLimitView world, NoiseConfig noiseConfig) {
         int bottomY = world.getBottomY();
@@ -90,7 +97,25 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
         }
         return bottomY;
     }
-    @Override public void populateEntities(ChunkRegion region) {}
+
+    @Override
+    public void populateEntities(ChunkRegion region) {
+        ServerWorld world = region.toServerWorld();
+        ChunkPos chunkPos = region.getCenterPos();
+
+        if (isDormChunk(chunkPos)) {
+            spawnResident(world, chunkPos, 6, 6, 0.0f);
+            spawnResident(world, chunkPos, 10, 9, 180.0f);
+            spawnFogi(world, chunkPos, 12, 4, 90.0f);
+            return;
+        }
+
+        double patrolChance = hash2d(chunkPos.x, chunkPos.z, 0xD0A4_5001L);
+        if (patrolChance > 0.86) {
+            spawnFogi(world, chunkPos, 8, 8, 0.0f);
+        }
+    }
+
     @Override
     public VerticalBlockSample getColumnSample(int x, int z, HeightLimitView world, NoiseConfig noiseConfig) {
         int bottomY = world.getBottomY();
@@ -101,7 +126,88 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
         }
         return new VerticalBlockSample(bottomY, states);
     }
-    @Override public void getDebugHudText(java.util.List<String> text, NoiseConfig noiseConfig, BlockPos pos) { text.add("Burmaldeniya two-layer generator"); }
+
+    @Override
+    public void getDebugHudText(java.util.List<String> text, NoiseConfig noiseConfig, BlockPos pos) {
+        text.add("Burmaldeniya two-layer generator");
+        text.add("Dorm chunk: " + (isDormChunk(new ChunkPos(pos)) ? "yes" : "no"));
+    }
+
+    private void placeDormitoryScaffolding(Chunk chunk, ChunkPos chunkPos) {
+        if (!isDormChunk(chunkPos)) {
+            return;
+        }
+
+        int centerX = chunkPos.getStartX() + 8;
+        int centerZ = chunkPos.getStartZ() + 8;
+        int floorY = sampleSurfaceHeight(centerX, centerZ) + 1;
+
+        for (int dx = -4; dx <= 4; dx++) {
+            for (int dz = -3; dz <= 3; dz++) {
+                int worldX = centerX + dx;
+                int worldZ = centerZ + dz;
+
+                setBlockInChunk(chunk, worldX, floorY - 1, worldZ, Blocks.STONE_BRICKS.getDefaultState());
+                setBlockInChunk(chunk, worldX, floorY, worldZ, Blocks.OAK_PLANKS.getDefaultState());
+
+                boolean wall = Math.abs(dx) == 4 || Math.abs(dz) == 3;
+                for (int dy = 1; dy <= 3; dy++) {
+                    setBlockInChunk(chunk, worldX, floorY + dy, worldZ,
+                            wall ? Blocks.SPRUCE_PLANKS.getDefaultState() : Blocks.AIR.getDefaultState());
+                }
+
+                setBlockInChunk(chunk, worldX, floorY + 4, worldZ, Blocks.DARK_OAK_PLANKS.getDefaultState());
+            }
+        }
+
+        setBlockInChunk(chunk, centerX, floorY + 1, centerZ + 3, Blocks.AIR.getDefaultState());
+        setBlockInChunk(chunk, centerX, floorY + 2, centerZ + 3, Blocks.AIR.getDefaultState());
+        setBlockInChunk(chunk, centerX - 3, floorY + 1, centerZ, Blocks.TORCH.getDefaultState());
+        setBlockInChunk(chunk, centerX + 3, floorY + 1, centerZ, Blocks.TORCH.getDefaultState());
+    }
+
+    private void setBlockInChunk(Chunk chunk, int worldX, int worldY, int worldZ, BlockState state) {
+        int localX = worldX - chunk.getPos().getStartX();
+        int localZ = worldZ - chunk.getPos().getStartZ();
+
+        if (localX < 0 || localX > 15 || localZ < 0 || localZ > 15) {
+            return;
+        }
+        if (worldY < chunk.getBottomY() || worldY >= chunk.getTopY()) {
+            return;
+        }
+
+        chunk.setBlockState(new BlockPos(localX, worldY, localZ), state, false);
+    }
+
+    private void spawnResident(ServerWorld world, ChunkPos chunkPos, int offsetX, int offsetZ, float yaw) {
+        int worldX = chunkPos.getStartX() + offsetX;
+        int worldZ = chunkPos.getStartZ() + offsetZ;
+        int worldY = sampleSurfaceHeight(worldX, worldZ) + 1;
+
+        VillagerEntity resident = new VillagerEntity(ModEntities.RESIDENT_ENTITY_TYPE, world);
+        resident.refreshPositionAndAngles(worldX + 0.5, worldY, worldZ + 0.5, yaw, 0.0f);
+        resident.setPersistent();
+        world.spawnEntity(resident);
+    }
+
+    private void spawnFogi(ServerWorld world, ChunkPos chunkPos, int offsetX, int offsetZ, float yaw) {
+        int worldX = chunkPos.getStartX() + offsetX;
+        int worldZ = chunkPos.getStartZ() + offsetZ;
+        int worldY = sampleSurfaceHeight(worldX, worldZ) + 1;
+
+        ZombieEntity fogi = new ZombieEntity(ModEntities.FOGI_ENTITY_TYPE, world);
+        fogi.refreshPositionAndAngles(worldX + 0.5, worldY, worldZ + 0.5, yaw, 0.0f);
+        fogi.setPersistent();
+        world.spawnEntity(fogi);
+    }
+
+    private boolean isDormChunk(ChunkPos chunkPos) {
+        if (Math.floorMod(chunkPos.x, 12) != 0 || Math.floorMod(chunkPos.z, 12) != 0) {
+            return false;
+        }
+        return hash2d(chunkPos.x, chunkPos.z, 0x0D05_4510L) > -0.25;
+    }
 
     private BlockState sampleBlockState(int x, int y, int z) {
         if (y <= getMinimumY() + 1) {

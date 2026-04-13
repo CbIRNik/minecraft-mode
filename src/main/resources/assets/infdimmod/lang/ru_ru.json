@@ -22,5 +22,8 @@
   "concept.infdimmod.burmaldot": "Протокол Бурмалдот",
   "gui.infdimmod.crafter.rotation_hint": "Подсказка бурмалдушки №%s",
   "gui.infdimmod.crafter.rotation_version": "Версия ротации: %s",
-  "gui.infdimmod.crafter.next_rotation_seconds": "Следующая ротация через %sс"
+  "gui.infdimmod.crafter.next_rotation_seconds": "Следующая ротация через %sс",
+  "entity.infdimmod.resident": "Житель Бурмальдении",
+  "entity.infdimmod.fogi": "Фоги",
+  "structure.infdimmod.dormitory": "Общежитие Бурмальдении"
 }

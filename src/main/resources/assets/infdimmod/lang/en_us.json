@@ -22,5 +22,8 @@
   "dimension.infdimmod.burmaldeniya": "Burmaldeniya",
   "gui.infdimmod.crafter.rotation_hint": "Burmaldushka hint #%s",
   "gui.infdimmod.crafter.rotation_version": "Rotation version: %s",
-  "gui.infdimmod.crafter.next_rotation_seconds": "Next rotation in %ss"
+  "gui.infdimmod.crafter.next_rotation_seconds": "Next rotation in %ss",
+  "entity.infdimmod.resident": "Burmaldeniya Resident",
+  "entity.infdimmod.fogi": "Fogi",
+  "structure.infdimmod.dormitory": "Burmaldeniya Dormitory"
 }
