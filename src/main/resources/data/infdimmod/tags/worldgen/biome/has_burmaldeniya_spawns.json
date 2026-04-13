@@ -1,6 +1,9 @@
 {
   "replace": false,
   "values": [
-    "infdimmod:murino"
+    {
+      "id": "infdimmod:murino",
+      "required": false
+    }
   ]
 }
