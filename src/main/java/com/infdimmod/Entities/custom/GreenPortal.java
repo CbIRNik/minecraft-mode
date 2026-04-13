@@ -20,7 +20,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
@@ -100,7 +99,6 @@ public class GreenPortal extends Entity {
                 backPortalCreated = true;
             }
 
-            if (currentAge == 1) setChunkForceLoaded(true);
             if (currentAge >= TOTAL_LIFETIME) {
                 this.discard();
                 return;
@@ -139,8 +137,6 @@ public class GreenPortal extends Entity {
         if (targetWorld != null) {
             Vec3d targetPos = PortalTeleportSafety.resolveSafeTarget(targetWorld, getPortalTargetPos());
             setPortalTargetPos(targetPos);
-
-            setTargetChunkForceLoaded(targetWorld, targetPos, true);
 
             net.minecraft.util.math.Box searchBox = new net.minecraft.util.math.Box(
                     targetPos.x - 2, targetPos.y - 2, targetPos.z - 2,
@@ -287,34 +283,8 @@ public class GreenPortal extends Entity {
         return hash;
     }
 
-    private void setChunkForceLoaded(boolean forced) {
-        if (this.getWorld() instanceof ServerWorld serverWorld) {
-            BlockPos pos = this.getBlockPos();
-            int chunkX = pos.getX() >> 4;
-            int chunkZ = pos.getZ() >> 4;
-
-            serverWorld.setChunkForced(chunkX, chunkZ, forced);
-        }
-    }
-
-    private void setTargetChunkForceLoaded(ServerWorld targetWorld, Vec3d pos, boolean forced) {
-        int chunkX = (int)pos.x >> 4;
-        int chunkZ = (int)pos.z >> 4;
-        targetWorld.setChunkForced(chunkX, chunkZ, forced);
-    }
-
     @Override
     public void onRemoved() {
-        if (!this.getWorld().isClient) {
-            setChunkForceLoaded(false);
-            MinecraftServer server = this.getServer();
-            if (server != null) {
-                ServerWorld targetWorld = resolveTargetWorld(server, getDimensionCode());
-                if (targetWorld != null) {
-                    setTargetChunkForceLoaded(targetWorld, getPortalTargetPos(), false);
-                }
-            }
-        }
         super.onRemoved();
     }
 

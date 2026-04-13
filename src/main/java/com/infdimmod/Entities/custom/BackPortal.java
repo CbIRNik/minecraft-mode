@@ -16,7 +16,6 @@ import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.TeleportTarget;
@@ -58,9 +57,7 @@ public class BackPortal extends Entity {
         long currentAge = getPortalAge();
 
         if (!this.getWorld().isClient) {
-            if (currentAge == 1) setChunkForceLoaded(true);
             if (currentAge >= TOTAL_LIFETIME) {
-                setChunkForceLoaded(false);
                 this.discard();
                 return;
             }
@@ -204,19 +201,6 @@ public class BackPortal extends Entity {
             hash = 31 * hash + code.charAt(i);
         }
         return hash;
-    }
-
-    private void setChunkForceLoaded(boolean forced) {
-        if (this.getWorld() instanceof ServerWorld serverWorld) {
-            BlockPos pos = this.getBlockPos();
-            serverWorld.setChunkForced(pos.getX() >> 4, pos.getZ() >> 4, forced);
-        }
-    }
-
-    @Override
-    public void onRemoved() {
-        if (!this.getWorld().isClient) setChunkForceLoaded(false);
-        super.onRemoved();
     }
 
     @Override
