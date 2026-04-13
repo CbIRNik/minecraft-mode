@@ -64,7 +64,7 @@ public class FatOmayGadnostEntity extends IronGolemEntity {
         List<HostileEntity> hostiles = this.getWorld().getEntitiesByClass(
                 HostileEntity.class,
                 Box.of(this.getPos(), 14.0, 6.0, 14.0),
-                entity -> entity.isAlive() && entity != this
+                LivingEntity::isAlive
         );
         for (HostileEntity hostile : hostiles) {
             hostile.takeKnockback(1.1f, this.getX() - hostile.getX(), this.getZ() - hostile.getZ());
