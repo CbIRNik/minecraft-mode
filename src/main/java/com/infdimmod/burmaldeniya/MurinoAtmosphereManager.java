@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.Set;
 
 public final class MurinoAtmosphereManager {
-    private static final long DUSK_TIME = 12_600L;
     private static final Map<Identifier, WeatherCycleState> WEATHER_STATES = new HashMap<>();
 
     private MurinoAtmosphereManager() {
@@ -27,8 +26,8 @@ public final class MurinoAtmosphereManager {
             Identifier worldId = world.getRegistryKey().getValue();
             activeWorldIds.add(worldId);
 
-            if (world.getTimeOfDay() != DUSK_TIME) {
-                world.setTimeOfDay(DUSK_TIME);
+            if (world.getTimeOfDay() != BurmaldeniyaConfig.Murino.FIXED_TIME_OF_DAY) {
+                world.setTimeOfDay(BurmaldeniyaConfig.Murino.FIXED_TIME_OF_DAY);
             }
 
             WeatherCycleState state = WEATHER_STATES.computeIfAbsent(worldId, ignored -> WeatherCycleState.createInitial(world));

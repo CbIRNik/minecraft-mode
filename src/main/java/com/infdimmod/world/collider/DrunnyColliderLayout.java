@@ -1,5 +1,6 @@
 package com.infdimmod.world.collider;
 
+import com.infdimmod.burmaldeniya.BurmaldeniyaConfig;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 
@@ -7,8 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class DrunnyColliderLayout {
-    public static final int GRID_SPACING_CHUNKS = 40;
-    public static final int COMPLEX_RADIUS_BLOCKS = 52;
+    public static final int GRID_SPACING_CHUNKS = BurmaldeniyaConfig.Collider.GRID_SPACING_CHUNKS;
+    public static final int COMPLEX_RADIUS_BLOCKS = BurmaldeniyaConfig.Collider.COMPLEX_RADIUS_BLOCKS;
 
     private DrunnyColliderLayout() {
     }
@@ -44,6 +45,30 @@ public final class DrunnyColliderLayout {
 
     public static BlockPos coreBlockPos(ChunkPos coreChunk, int coreY) {
         return new BlockPos(coreChunk.getStartX() + 8, coreY, coreChunk.getStartZ() + 8);
+    }
+
+    public static BlockPos findNearestCoreBlockPos(BlockPos pos, long worldSeed, int coreY, int searchRangeChunks) {
+        ChunkPos centerChunk = new ChunkPos(pos);
+        BlockPos nearest = null;
+        double nearestDistance = Double.MAX_VALUE;
+
+        for (ChunkPos coreChunk : findNearbyCoreChunks(centerChunk, worldSeed, searchRangeChunks)) {
+            BlockPos candidate = coreBlockPos(coreChunk, coreY);
+            double distance = candidate.getSquaredDistance(pos);
+            if (distance < nearestDistance) {
+                nearest = candidate;
+                nearestDistance = distance;
+            }
+        }
+
+        return nearest;
+    }
+
+    public static boolean isCoreInterior(BlockPos pos, BlockPos corePos) {
+        int dx = pos.getX() - corePos.getX();
+        int dy = pos.getY() - corePos.getY();
+        int dz = pos.getZ() - corePos.getZ();
+        return dx * dx + dz * dz <= 9 && Math.abs(dy) <= 3;
     }
 
     private static double hash2d(int x, int z, long seed, long salt) {

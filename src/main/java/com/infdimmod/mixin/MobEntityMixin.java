@@ -1,7 +1,6 @@
 package com.infdimmod.mixin;
 
-import com.infdimmod.burmaldeniya.MurinoWorldgenHooks;
-import net.minecraft.entity.EntityType;
+import com.infdimmod.burmaldeniya.MurinoBiomeHelper;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
@@ -15,13 +14,8 @@ public abstract class MobEntityMixin {
     private void infdimmod$immuneToSunInMurino(CallbackInfoReturnable<Boolean> cir) {
         MobEntity self = (MobEntity) (Object) this;
         World world = self.getWorld();
-        if (world != null && !world.isClient()) {
-            if (world.getRegistryManager().get(net.minecraft.registry.RegistryKeys.BIOME)
-                    .getKey(world.getBiome(self.getBlockPos()).value())
-                    .map(k -> k.equals(MurinoWorldgenHooks.MURINO_BIOME_KEY)).orElse(false)) {
-                // If in Murino biome, sun doesn't affect them
-                cir.setReturnValue(false);
-            }
+        if (world != null && !world.isClient() && MurinoBiomeHelper.isMurino(world, self.getBlockPos())) {
+            cir.setReturnValue(false);
         }
     }
 }

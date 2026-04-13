@@ -1,5 +1,6 @@
 package com.infdimmod.world.generator;
 
+import com.infdimmod.burmaldeniya.BurmaldeniyaConfig;
 import com.infdimmod.burmaldeniya.MurinoWorldgenHooks;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
@@ -13,7 +14,7 @@ import net.minecraft.world.biome.source.util.MultiNoiseUtil;
 import java.util.stream.Stream;
 
 public final class MurinoBlendBiomeSource extends BiomeSource {
-    private static final double DEFAULT_MURINO_CHANCE = 0.24D;
+    private static final double DEFAULT_MURINO_CHANCE = BurmaldeniyaConfig.Murino.BIOME_CHANCE;
 
     public static final MapCodec<MurinoBlendBiomeSource> CODEC = RecordCodecBuilder.mapCodec(instance ->
             instance.group(

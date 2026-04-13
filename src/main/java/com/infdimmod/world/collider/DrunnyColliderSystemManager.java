@@ -4,23 +4,29 @@ import com.infdimmod.Blocks.ModBlocks;
 import com.infdimmod.Entities.ModEntities;
 import com.infdimmod.Entities.custom.DrunGuardEntity;
 import com.infdimmod.Entities.custom.DrunnyParticleOrbitEntity;
+import com.infdimmod.burmaldeniya.BurmaldeniyaConfig;
+import com.infdimmod.InfDimMod;
+import com.infdimmod.util.SafeZoneHelper;
 import com.infdimmod.world.generator.DeterministicChaosGenerator;
 import net.minecraft.datafixer.DataFixTypes;
+import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.registry.tag.TagKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.PersistentStateManager;
-import net.minecraft.world.World;
 
 import java.util.HashSet;
 import java.util.List;
@@ -31,10 +37,14 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class DrunnyColliderSystemManager {
     private static final String STATE_ID = "drunny_collider_core_state";
-    private static final int RADIATION_RADIUS = 24;
-    private static final int GUARD_RADIUS = 20;
-    private static final int OVERHEAT_THRESHOLD = 1600;
-    private static final float MELTDOWN_EXPLOSION_POWER = 36.0F;
+    private static final TagKey<EntityType<?>> BURMALDENIYA_HOSTILES = TagKey.of(
+            RegistryKeys.ENTITY_TYPE,
+            Identifier.of(InfDimMod.MOD_ID, "burmaldeniya_hostiles")
+    );
+    private static final TagKey<EntityType<?>> BURMALDENIYA_RESIDENTS = TagKey.of(
+            RegistryKeys.ENTITY_TYPE,
+            Identifier.of(InfDimMod.MOD_ID, "burmaldeniya_residents")
+    );
 
     private DrunnyColliderSystemManager() {
     }
@@ -58,7 +68,11 @@ public final class DrunnyColliderSystemManager {
 
         for (var player : world.getPlayers()) {
             ChunkPos chunkPos = new ChunkPos(player.getBlockPos());
-            List<ChunkPos> nearbyCoreChunks = DrunnyColliderLayout.findNearbyCoreChunks(chunkPos, generator.getWorldSeed(), 9);
+            List<ChunkPos> nearbyCoreChunks = DrunnyColliderLayout.findNearbyCoreChunks(
+                    chunkPos,
+                    generator.getWorldSeed(),
+                    BurmaldeniyaConfig.Collider.ACTIVE_SEARCH_RANGE_CHUNKS
+            );
             for (ChunkPos coreChunk : nearbyCoreChunks) {
                 activeCores.add(DrunnyColliderLayout.coreBlockPos(coreChunk, generator.getColliderCoreY()));
             }
@@ -96,15 +110,27 @@ public final class DrunnyColliderSystemManager {
     }
 
     private static void applyRadiation(ServerWorld world, BlockPos corePos) {
-        Box auraBox = Box.of(corePos.toCenterPos(), RADIATION_RADIUS * 2.0, 26.0, RADIATION_RADIUS * 2.0);
+        Box auraBox = Box.of(
+                corePos.toCenterPos(),
+                BurmaldeniyaConfig.Collider.RADIATION_RADIUS * 2.0,
+                26.0,
+                BurmaldeniyaConfig.Collider.RADIATION_RADIUS * 2.0
+        );
         List<LivingEntity> targets = world.getEntitiesByClass(LivingEntity.class, auraBox, entity -> entity.isAlive() && !entity.isSpectator());
         for (LivingEntity entity : targets) {
-            if (entity instanceof DrunGuardEntity) {
+            if (isRadiationImmune(world, entity)) {
                 continue;
             }
             entity.addStatusEffect(new StatusEffectInstance(StatusEffects.POISON, 100, 0, true, true, true));
             entity.addStatusEffect(new StatusEffectInstance(StatusEffects.NAUSEA, 120, 0, true, false, true));
         }
+    }
+
+    private static boolean isRadiationImmune(ServerWorld world, LivingEntity entity) {
+        if (SafeZoneHelper.isInsideDormitory(world, entity.getBlockPos())) {
+            return true;
+        }
+        return entity.getType().isIn(BURMALDENIYA_HOSTILES) || entity.getType().isIn(BURMALDENIYA_RESIDENTS);
     }
 
     private static void spawnOrbitParticleIfMissing(ServerWorld world, BlockPos corePos) {
@@ -120,14 +146,18 @@ public final class DrunnyColliderSystemManager {
     }
 
     private static void spawnGuards(ServerWorld world, BlockPos corePos) {
-        Box guardArea = Box.of(corePos.toCenterPos(), GUARD_RADIUS * 2.0, 12.0, GUARD_RADIUS * 2.0);
+        Box guardArea = Box.of(
+                corePos.toCenterPos(),
+                BurmaldeniyaConfig.Collider.GUARD_RADIUS * 2.0,
+                12.0,
+                BurmaldeniyaConfig.Collider.GUARD_RADIUS * 2.0
+        );
         List<DrunGuardEntity> guards = world.getEntitiesByClass(DrunGuardEntity.class, guardArea, entity -> entity.isAlive());
-        int guardTargetCount = 4;
-        if (guards.size() >= guardTargetCount) {
+        if (guards.size() >= BurmaldeniyaConfig.Collider.TARGET_GUARD_COUNT) {
             return;
         }
 
-        for (int i = guards.size(); i < guardTargetCount; i++) {
+        for (int i = guards.size(); i < BurmaldeniyaConfig.Collider.TARGET_GUARD_COUNT; i++) {
             int offsetX = (i % 2 == 0 ? 1 : -1) * (8 + world.random.nextBetween(0, 4));
             int offsetZ = (i < 2 ? 1 : -1) * (8 + world.random.nextBetween(0, 4));
             BlockPos spawnPos = corePos.add(offsetX, 0, offsetZ);
@@ -153,18 +183,18 @@ public final class DrunnyColliderSystemManager {
         int nearbyTargets = world.getEntitiesByClass(LivingEntity.class, chamber, entity -> entity.isAlive() && !entity.isSpectator() && !(entity instanceof DrunGuardEntity)).size();
 
         if (nearbyTargets > 0) {
-            heat += nearbyTargets * 4;
+            heat += nearbyTargets * BurmaldeniyaConfig.Collider.OVERHEAT_PER_NEARBY_TARGET;
         } else {
-            heat = Math.max(0, heat - 3);
+            heat = Math.max(0, heat - BurmaldeniyaConfig.Collider.PASSIVE_COOLDOWN_PER_TICK);
         }
 
         if (isCoreControlPowered(world, corePos)) {
-            heat += 12;
+            heat += BurmaldeniyaConfig.Collider.REDSTONE_OVERHEAT_BONUS;
         }
 
         state.setOverheat(corePos, heat);
 
-        if (heat >= OVERHEAT_THRESHOLD) {
+        if (heat >= BurmaldeniyaConfig.Collider.OVERHEAT_THRESHOLD) {
             triggerMeltdown(world, corePos, state);
         }
     }
@@ -177,24 +207,57 @@ public final class DrunnyColliderSystemManager {
         return false;
     }
 
-    public static void forceMeltdown(ServerWorld world, BlockPos corePos) {
-        triggerMeltdown(world, corePos, getState(world));
+    public static void forceMeltdown(ServerWorld world, BlockPos triggerPos) {
+        BlockPos corePos = resolveColliderCore(world, triggerPos);
+        if (corePos != null) {
+            triggerMeltdown(world, corePos, getState(world));
+        }
     }
     
     public static void absorbStudent(ServerWorld world, BlockPos corePos) {
+        BlockPos resolvedCore = resolveColliderCore(world, corePos);
+        if (resolvedCore == null) {
+            return;
+        }
+
         ColliderCoreState state = getState(world);
-        state.setOverheat(corePos, Math.max(0, state.getOverheat(corePos) - 400));
+        state.setOverheat(
+                resolvedCore,
+                Math.max(0, state.getOverheat(resolvedCore) - BurmaldeniyaConfig.Collider.STUDENT_ABSORB_COOLDOWN)
+        );
+    }
+
+    private static BlockPos resolveColliderCore(ServerWorld world, BlockPos triggerPos) {
+        if (!(world.getChunkManager().getChunkGenerator() instanceof DeterministicChaosGenerator generator)) {
+            return null;
+        }
+
+        BlockPos candidate = DrunnyColliderLayout.findNearestCoreBlockPos(
+                triggerPos,
+                generator.getWorldSeed(),
+                generator.getColliderCoreY(),
+                BurmaldeniyaConfig.Collider.ACTIVE_SEARCH_RANGE_CHUNKS
+        );
+        if (candidate == null || !world.isChunkLoaded(candidate)) {
+            return null;
+        }
+        if (!world.getBlockState(candidate).isOf(ModBlocks.DRUNNY_ATOM)) {
+            return null;
+        }
+        if (triggerPos.equals(candidate) || DrunnyColliderLayout.isCoreInterior(triggerPos, candidate)) {
+            return candidate;
+        }
+        return null;
     }
 
     private static void triggerMeltdown(ServerWorld world, BlockPos corePos, ColliderCoreState state) {
+        if (state.isExploded(corePos)) {
+            return;
+        }
+
         state.markExploded(corePos);
         state.setOverheat(corePos, 0);
-        
-        // Use the asynchronous and lag-friendly Cataclysm Manager
-        // which deletes everything in a 100 block radius including bedrock
         CataclysmManager.startCataclysm(world, corePos);
-        
-        // Play critical feedback explosion sound and generic huge boom
         world.playSound(
                 null,
                 corePos.getX() + 0.5,

@@ -10,6 +10,7 @@ import com.infdimmod.Entities.custom.FogiEntity;
 import com.infdimmod.Entities.custom.LittleTastyBabyEntity;
 import com.infdimmod.Entities.custom.ResidentEntity;
 import com.infdimmod.Entities.custom.StudentEntity;
+import com.infdimmod.burmaldeniya.BurmaldeniyaConfig;
 import com.infdimmod.world.collider.DrunnyColliderLayout;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
@@ -18,8 +19,8 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.ChunkRegion;
 import net.minecraft.world.HeightLimitView;
 import net.minecraft.world.Heightmap;
@@ -47,13 +48,13 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
     );
 
     private static final int COLLIDER_RADIUS_CHUNKS = 5;
-    private static final int COLLIDER_HALF_HEIGHT = 22;
-    private static final int DORM_FLOOR_HEIGHT = 3;
-    private static final int MURINO_DORM_GRID_SPACING_CHUNKS = 4;
-    private static final int OTHER_DORM_GRID_SPACING_CHUNKS = 10;
-    private static final double MURINO_DORM_THRESHOLD = -0.55D;
-    private static final double OTHER_DORM_THRESHOLD = 0.2D;
-    private static final double MURINO_BIOME_CHANCE = 0.24D;
+    private static final int COLLIDER_HALF_HEIGHT = BurmaldeniyaConfig.Collider.COMPLEX_HALF_HEIGHT;
+    private static final int DORM_FLOOR_HEIGHT = BurmaldeniyaConfig.Dormitory.FLOOR_HEIGHT;
+    private static final int MURINO_DORM_GRID_SPACING_CHUNKS = BurmaldeniyaConfig.Dormitory.MURINO_GRID_SPACING_CHUNKS;
+    private static final int OTHER_DORM_GRID_SPACING_CHUNKS = BurmaldeniyaConfig.Dormitory.OTHER_GRID_SPACING_CHUNKS;
+    private static final double MURINO_DORM_THRESHOLD = BurmaldeniyaConfig.Dormitory.MURINO_THRESHOLD;
+    private static final double OTHER_DORM_THRESHOLD = BurmaldeniyaConfig.Dormitory.OTHER_THRESHOLD;
+    private static final double MURINO_BIOME_CHANCE = BurmaldeniyaConfig.Murino.BIOME_CHANCE;
 
     private final long worldSeed;
     private final int surfaceBase;
@@ -90,18 +91,13 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
             for (int z = 0; z < 16; z++) {
                 int worldX = chunkPos.getStartX() + x;
                 int worldZ = chunkPos.getStartZ() + z;
-                boolean hasSolid = false;
+                ColumnProfile profile = sampleColumnProfile(worldX, worldZ);
 
                 for (int y = bottomY; y < topY; y++) {
-                    BlockState blockState = sampleBlockState(worldX, y, worldZ);
+                    BlockState blockState = sampleBlockState(worldX, y, worldZ, profile);
                     if (!blockState.isAir()) {
                         chunk.setBlockState(mutable.set(x, y, z), blockState, false);
-                        hasSolid = true;
                     }
-                }
-
-                if (!hasSolid) {
-                    placeFallbackTerrainColumn(chunk, x, worldX, worldZ, bottomY, topY);
                 }
             }
         }
@@ -122,10 +118,9 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
     public int getHeight(int x, int z, Heightmap.Type heightmap, HeightLimitView world, NoiseConfig noiseConfig) {
         int bottomY = world.getBottomY();
         int topY = world.getTopY();
-        boolean fallbackTerrain = isAllAirColumn(x, z, bottomY, topY);
-        int fallbackY = fallbackFloorY(x, z, bottomY, topY);
+        ColumnProfile profile = sampleColumnProfile(x, z);
         for (int y = topY - 1; y >= bottomY; y--) {
-            BlockState state = sampleBlockStateWithFallback(x, y, z, fallbackTerrain, fallbackY);
+            BlockState state = sampleBlockState(x, y, z, profile);
             if (state != null && heightmap.getBlockPredicate().test(state)) {
                 return y + 1;
             }
@@ -140,17 +135,25 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
 
         DormitoryPlan dormitoryPlan = getDormitoryPlanForAnchor(chunkPos);
         if (dormitoryPlan != null) {
-            spawnDormitoryPopulation(world, dormitoryPlan);
+            if (!hasDormitoryPopulation(world, dormitoryPlan)) {
+                spawnDormitoryPopulation(world, dormitoryPlan);
+            }
             return;
         }
 
         if (isColliderCoreChunk(chunkPos)) {
-            spawnDrunGuard(world, chunkPos, 8, 8, 0.0f);
-            spawnDrunGuard(world, chunkPos, 4, 11, 90.0f);
-            spawnDrunGuard(world, chunkPos, 11, 4, 180.0f);
-            if (hash2d(chunkPos.x, chunkPos.z, 0x8A70_1134L) > 0.42) {
-                spawnFatOmayGadnost(world, chunkPos, 13, 13, 90.0f);
+            if (!hasColliderPopulation(world, chunkPos)) {
+                spawnDrunGuard(world, chunkPos, 8, 8, 0.0f);
+                spawnDrunGuard(world, chunkPos, 4, 11, 90.0f);
+                spawnDrunGuard(world, chunkPos, 11, 4, 180.0f);
+                if (hash2d(chunkPos.x, chunkPos.z, 0x8A70_1134L) > 0.42) {
+                    spawnFatOmayGadnost(world, chunkPos, 13, 13, 90.0f);
+                }
             }
+            return;
+        }
+
+        if (hasAmbientThreat(world, chunkPos)) {
             return;
         }
 
@@ -166,11 +169,10 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
     public VerticalBlockSample getColumnSample(int x, int z, HeightLimitView world, NoiseConfig noiseConfig) {
         int bottomY = world.getBottomY();
         int topY = world.getTopY();
-        boolean fallbackTerrain = isAllAirColumn(x, z, bottomY, topY);
-        int fallbackY = fallbackFloorY(x, z, bottomY, topY);
+        ColumnProfile profile = sampleColumnProfile(x, z);
         BlockState[] states = new BlockState[topY - bottomY];
         for (int y = bottomY; y < topY; y++) {
-            states[y - bottomY] = sampleBlockStateWithFallback(x, y, z, fallbackTerrain, fallbackY);
+            states[y - bottomY] = sampleBlockState(x, y, z, profile);
         }
         return new VerticalBlockSample(bottomY, states);
     }
@@ -201,6 +203,45 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
             }
         }
         return false;
+    }
+
+    private boolean hasDormitoryPopulation(ServerWorld world, DormitoryPlan plan) {
+        Box dormitoryBox = new Box(
+                plan.centerX - plan.xHalf() - 2,
+                plan.baseY,
+                plan.centerZ - plan.zHalf() - 2,
+                plan.centerX + plan.xHalf() + 2,
+                plan.baseY + plan.floors * DORM_FLOOR_HEIGHT + 3,
+                plan.centerZ + plan.zHalf() + 2
+        );
+        return !world.getEntitiesByClass(ResidentEntity.class, dormitoryBox, entity -> entity.isAlive()).isEmpty()
+                || !world.getEntitiesByClass(StudentEntity.class, dormitoryBox, entity -> entity.isAlive()).isEmpty();
+    }
+
+    private boolean hasColliderPopulation(ServerWorld world, ChunkPos chunkPos) {
+        Box area = new Box(
+                chunkPos.getStartX(),
+                getColliderCoreY() - 4,
+                chunkPos.getStartZ(),
+                chunkPos.getEndX() + 1,
+                getColliderCoreY() + 6,
+                chunkPos.getEndZ() + 1
+        );
+        return !world.getEntitiesByClass(DrunGuardEntity.class, area, entity -> entity.isAlive()).isEmpty()
+                || !world.getEntitiesByClass(FatOmayGadnostEntity.class, area, entity -> entity.isAlive()).isEmpty();
+    }
+
+    private boolean hasAmbientThreat(ServerWorld world, ChunkPos chunkPos) {
+        Box area = new Box(
+                chunkPos.getStartX(),
+                world.getBottomY(),
+                chunkPos.getStartZ(),
+                chunkPos.getEndX() + 1,
+                world.getTopY(),
+                chunkPos.getEndZ() + 1
+        );
+        return !world.getEntitiesByClass(FogiEntity.class, area, entity -> entity.isAlive()).isEmpty()
+                || !world.getEntitiesByClass(FogiApexEntity.class, area, entity -> entity.isAlive()).isEmpty();
     }
 
     private void placeColliderComplex(Chunk chunk, ChunkPos chunkPos) {
@@ -576,7 +617,6 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
 
         FogiEntity fogi = new FogiEntity(ModEntities.FOGI_ENTITY_TYPE, world);
         fogi.refreshPositionAndAngles(worldX + 0.5, worldY, worldZ + 0.5, yaw, 0.0f);
-        fogi.setPersistent();
         world.spawnEntity(fogi);
     }
 
@@ -590,7 +630,6 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
 
         FogiApexEntity fogiApex = new FogiApexEntity(ModEntities.FOGI_APEX_ENTITY_TYPE, world);
         fogiApex.refreshPositionAndAngles(worldX + 0.5, worldY, worldZ + 0.5, yaw, 0.0f);
-        fogiApex.setPersistent();
         world.spawnEntity(fogiApex);
     }
 
@@ -633,15 +672,20 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
         return core.x == chunkPos.x && core.z == chunkPos.z;
     }
 
-    private BlockState sampleBlockState(int x, int y, int z) {
+    private ColumnProfile sampleColumnProfile(int x, int z) {
+        int upperFloor = sampleSurfaceHeight(x, z);
+        return new ColumnProfile(
+                upperFloor,
+                sampleUpperCeilingHeight(x, z, upperFloor),
+                lowerLayerCeiling + 1,
+                upperFloor - 1
+        );
+    }
+
+    private BlockState sampleBlockState(int x, int y, int z, ColumnProfile profile) {
         if (y <= getMinimumY() + 1) {
             return Blocks.BEDROCK.getDefaultState();
         }
-
-        int upperFloor = sampleSurfaceHeight(x, z);
-        int upperCeiling = sampleUpperCeilingHeight(x, z, upperFloor);
-        int separatorBottom = lowerLayerCeiling + 1;
-        int separatorTop = upperFloor - 1;
 
         if (y <= lowerLayerCeiling) {
             if (isLowerCave(x, y, z)) {
@@ -650,70 +694,34 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
             return sampleLowerLayerMaterial(x, y, z);
         }
 
-        if (y <= separatorTop) {
-            if (isLayerConnector(x, y, z, separatorBottom, separatorTop)) {
+        if (y <= profile.separatorTop()) {
+            if (isLayerConnector(x, y, z, profile.separatorBottom(), profile.separatorTop())) {
                 return Blocks.AIR.getDefaultState();
             }
             return sampleSeparatorMaterial(x, y, z);
         }
 
-        if (y > upperCeiling) {
+        if (y > profile.upperCeiling()) {
             return Blocks.STONE.getDefaultState();
         }
 
-        if (y == upperFloor) {
+        if (y == profile.upperFloor()) {
             return Blocks.BASALT.getDefaultState();
         }
 
-        if (y >= upperCeiling - 2) {
+        if (y >= profile.upperCeiling() - 2) {
             return Blocks.STONE.getDefaultState();
         }
 
-        if (y <= upperFloor + 2) {
+        if (y <= profile.upperFloor() + 2) {
             return sampleUpperLayerMaterial(x, y, z);
         }
 
-        if (isUpperPillar(x, y, z, upperFloor, upperCeiling)) {
+        if (isUpperPillar(x, y, z, profile.upperFloor(), profile.upperCeiling())) {
             return sampleUpperLayerMaterial(x, y, z);
         }
 
         return Blocks.AIR.getDefaultState();
-    }
-
-    private BlockState sampleBlockStateWithFallback(int x, int y, int z, boolean fallbackTerrain, int fallbackY) {
-        BlockState sampled = sampleBlockState(x, y, z);
-        if (!sampled.isAir() || !fallbackTerrain) {
-            return sampled;
-        }
-        if (y == fallbackY) {
-            return Blocks.STONE.getDefaultState();
-        }
-        if (y == fallbackY - 1) {
-            return Blocks.DEEPSLATE.getDefaultState();
-        }
-        return sampled;
-    }
-
-    private boolean isAllAirColumn(int x, int z, int bottomY, int topY) {
-        for (int y = bottomY; y < topY; y++) {
-            if (!sampleBlockState(x, y, z).isAir()) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private int fallbackFloorY(int x, int z, int bottomY, int topY) {
-        int sampledSurface = sampleSurfaceHeight(x, z);
-        int targetFloor = Math.max(bottomY + 6, sampledSurface);
-        return MathHelper.clamp(targetFloor, bottomY + 1, topY - 2);
-    }
-
-    private void placeFallbackTerrainColumn(Chunk chunk, int localX, int worldX, int worldZ, int bottomY, int topY) {
-        int floorY = fallbackFloorY(worldX, worldZ, bottomY, topY);
-        BlockPos.Mutable mutable = new BlockPos.Mutable();
-        chunk.setBlockState(mutable.set(localX, floorY - 1, worldZ - chunk.getPos().getStartZ()), Blocks.DEEPSLATE.getDefaultState(), false);
-        chunk.setBlockState(mutable.set(localX, floorY, worldZ - chunk.getPos().getStartZ()), Blocks.STONE.getDefaultState(), false);
     }
 
     private BlockState sampleLowerLayerMaterial(int x, int y, int z) {
@@ -848,6 +856,9 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
         mixed = mixed ^ (mixed >>> 31);
         double normalized = (mixed >>> 11) * 0x1.0p-53;
         return normalized * 2.0 - 1.0;
+    }
+
+    private record ColumnProfile(int upperFloor, int upperCeiling, int separatorBottom, int separatorTop) {
     }
 
     private static final class DormitoryPlan {
