@@ -76,29 +76,13 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
 
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
-                double rx = (chunkPos.getStartX() + x) * xSpread;
-                double rz = (chunkPos.getStartZ() + z) * zSpread;
+                int worldX = chunkPos.getStartX() + x;
+                int worldZ = chunkPos.getStartZ() + z;
 
                 for (int y = chunk.getBottomY(); y < chunk.getTopY(); y++) {
-                    double ry = y * ySpread;
-
-                    // 1. Вносим деформацию координат (Domain Warping)
-                    // Это превращает "сетку" в плавные органические формы
-                    double dx = Math.sin(ry * mathConstants[0] + rz * mathConstants[1]) * distortion;
-                    double dy = Math.cos(rx * mathConstants[2] + rz * mathConstants[3]) * distortion;
-                    double dz = Math.sin(rx * mathConstants[4] + ry * mathConstants[5]) * distortion;
-
-                    // 2. Основная формула шума с учетом деформации
-                    double noise = Math.sin(rx + dx) + Math.cos(ry + dy) + Math.sin(rz + dz);
-
-                    // Добавляем "второй слой" для детализации (микро-рельеф)
-                    noise += (Math.sin(rx * 3) * Math.cos(rz * 3) * Math.sin(ry * 3)) * 0.5;
-
-                    // 3. Фильтрация по порогу
-                    if (noise > noiseThreshold) {
-                        // Выбор блока на основе высоты и шума для эффекта слоистости
-                        int blockIndex = (int) (Math.abs(noise * 5 + (y * 0.1)) % palette.size());
-                        chunk.setBlockState(mutable.set(x, y, z), palette.get(blockIndex), false);
+                    BlockState blockState = sampleBlockState(worldX, y, worldZ);
+                    if (blockState != null) {
+                        chunk.setBlockState(mutable.set(x, y, z), blockState, false);
                     }
                 }
             }
@@ -123,15 +107,57 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
         return Blocks.STONE.getDefaultState();
     }
 
-    // --- Остальные методы без изменений (carve, buildSurface, etc.) ---
     @Override public void carve(ChunkRegion chunkRegion, long seed, NoiseConfig noiseConfig, BiomeAccess biomeAccess, StructureAccessor structureAccessor, Chunk chunk, GenerationStep.Carver carverStep) {}
     @Override protected MapCodec<? extends ChunkGenerator> getCodec() { return CODEC; }
     @Override public void buildSurface(ChunkRegion region, StructureAccessor structures, NoiseConfig noiseConfig, Chunk chunk) {}
     @Override public int getWorldHeight() { return 384; }
     @Override public int getSeaLevel() { return -64; }
     @Override public int getMinimumY() { return -64; }
-    @Override public int getHeight(int x, int z, Heightmap.Type heightmap, HeightLimitView world, NoiseConfig noiseConfig) { return 0; }
+    @Override
+    public int getHeight(int x, int z, Heightmap.Type heightmap, HeightLimitView world, NoiseConfig noiseConfig) {
+        int bottomY = world.getBottomY();
+        int topY = world.getTopY();
+        for (int y = topY - 1; y >= bottomY; y--) {
+            BlockState state = sampleBlockState(x, y, z);
+            if (state != null && heightmap.getBlockPredicate().test(state)) {
+                return y + 1;
+            }
+        }
+        return bottomY;
+    }
     @Override public void populateEntities(ChunkRegion region) {}
-    @Override public VerticalBlockSample getColumnSample(int x, int z, HeightLimitView world, NoiseConfig noiseConfig) { return new VerticalBlockSample(world.getBottomY(), new BlockState[0]); }
+    @Override
+    public VerticalBlockSample getColumnSample(int x, int z, HeightLimitView world, NoiseConfig noiseConfig) {
+        int bottomY = world.getBottomY();
+        int topY = world.getTopY();
+        BlockState[] states = new BlockState[topY - bottomY];
+        for (int y = bottomY; y < topY; y++) {
+            BlockState state = sampleBlockState(x, y, z);
+            states[y - bottomY] = state == null ? Blocks.AIR.getDefaultState() : state;
+        }
+        return new VerticalBlockSample(bottomY, states);
+    }
     @Override public void getDebugHudText(java.util.List<String> text, NoiseConfig noiseConfig, BlockPos pos) { text.add("Rick & Morty Infinite Variety Generator"); }
+
+    private BlockState sampleBlockState(int x, int y, int z) {
+        double noise = sampleNoise(x, y, z);
+        if (noise <= noiseThreshold) {
+            return null;
+        }
+        int blockIndex = (int) (Math.abs(noise * 5 + (y * 0.1)) % palette.size());
+        return palette.get(blockIndex);
+    }
+
+    private double sampleNoise(int x, int y, int z) {
+        double rx = x * xSpread;
+        double ry = y * ySpread;
+        double rz = z * zSpread;
+
+        double dx = Math.sin(ry * mathConstants[0] + rz * mathConstants[1]) * distortion;
+        double dy = Math.cos(rx * mathConstants[2] + rz * mathConstants[3]) * distortion;
+        double dz = Math.sin(rx * mathConstants[4] + ry * mathConstants[5]) * distortion;
+
+        double noise = Math.sin(rx + dx) + Math.cos(ry + dy) + Math.sin(rz + dz);
+        return noise + (Math.sin(rx * 3) * Math.cos(rz * 3) * Math.sin(ry * 3)) * 0.5;
+    }
 }
