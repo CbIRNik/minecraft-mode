@@ -264,6 +264,88 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
         return Blocks.AIR.getDefaultState();
     }
 
+    private void forEachNearbyDormitoryPlan(ChunkPos centerChunk, int anchorRadius, Consumer<DormitoryPlan> consumer) {
+        for (int chunkX = centerChunk.x - anchorRadius; chunkX <= centerChunk.x + anchorRadius; chunkX++) {
+            for (int chunkZ = centerChunk.z - anchorRadius; chunkZ <= centerChunk.z + anchorRadius; chunkZ++) {
+                DormitoryPlan plan = getDormitoryPlanForAnchor(new ChunkPos(chunkX, chunkZ));
+                if (plan != null) {
+                    consumer.accept(plan);
+                }
+            }
+        }
+    }
+
+    private DormitoryPlan getDormitoryPlanForAnchor(ChunkPos anchorChunk) {
+        boolean murinoDistrict = isMurinoDistrict(anchorChunk.x, anchorChunk.z);
+        int spacing = murinoDistrict ? MURINO_DORM_GRID_SPACING_CHUNKS : OTHER_DORM_GRID_SPACING_CHUNKS;
+        if (Math.floorMod(anchorChunk.x, spacing) != 0 || Math.floorMod(anchorChunk.z, spacing) != 0) {
+            return null;
+        }
+
+        double threshold = murinoDistrict ? MURINO_DORM_THRESHOLD : OTHER_DORM_THRESHOLD;
+        if (hash2d(anchorChunk.x, anchorChunk.z, 0x0D05_4510L) <= threshold) {
+            return null;
+        }
+
+        int centerX = anchorChunk.getStartX() + 8 + (int) Math.round(hash2d(anchorChunk.x, anchorChunk.z, 0x7F4A_7C15L) * 3.0);
+        int centerZ = anchorChunk.getStartZ() + 8 + (int) Math.round(hash2d(anchorChunk.x, anchorChunk.z, 0x27D4_EB4FL) * 3.0);
+        int baseY = Math.max(getMinimumY() + 6, sampleSurfaceHeight(centerX, centerZ) + 1);
+
+        double floorNoise = hash2d(anchorChunk.x, anchorChunk.z, 0x4B1D_A3F7L);
+        int floors;
+        int widthX;
+        int widthZ;
+        if (murinoDistrict) {
+            floors = 8 + (int) Math.floor((floorNoise + 1.0) * 2.5);
+            widthX = 13 + (int) Math.floor(Math.abs(hash2d(anchorChunk.x, anchorChunk.z, 0xB58A_62ECL)) * 4.0);
+            widthZ = 11 + (int) Math.floor(Math.abs(hash2d(anchorChunk.x, anchorChunk.z, 0xC19F_4B5DL)) * 4.0);
+        } else {
+            floors = 4 + (int) Math.floor((floorNoise + 1.0) * 1.75);
+            widthX = 9 + (int) Math.floor(Math.abs(hash2d(anchorChunk.x, anchorChunk.z, 0x9A67_11C3L)) * 3.0);
+            widthZ = 7 + (int) Math.floor(Math.abs(hash2d(anchorChunk.x, anchorChunk.z, 0x8F22_DA4BL)) * 3.0);
+        }
+
+        widthX |= 1;
+        widthZ |= 1;
+        floors = Math.max(3, floors);
+        boolean longAxisX = hash2d(anchorChunk.x, anchorChunk.z, 0xBB67_AE85L) > 0.0;
+
+        return new DormitoryPlan(
+                anchorChunk.x,
+                anchorChunk.z,
+                centerX,
+                centerZ,
+                baseY,
+                floors,
+                widthX,
+                widthZ,
+                longAxisX,
+                murinoDistrict
+        );
+    }
+
+    private boolean isMurinoDistrict(int chunkX, int chunkZ) {
+        int biomeX = Math.floorDiv(chunkX * 16, 4);
+        int biomeZ = Math.floorDiv(chunkZ * 16, 4);
+        long continentalX = Math.floorDiv(biomeX, 6);
+        long continentalZ = Math.floorDiv(biomeZ, 6);
+        long regionalX = Math.floorDiv(biomeX, 2);
+        long regionalZ = Math.floorDiv(biomeZ, 2);
+        double continental = normalizedHash(continentalX, continentalZ, 0xA6C8_7E11_D7E9_194DL);
+        double regional = normalizedHash(regionalX, regionalZ, 0x56B2_1B75_3CF5_6E4BL);
+        return continental * 0.72D + regional * 0.28D < MURINO_BIOME_CHANCE;
+    }
+
+    private double normalizedHash(long x, long z, long salt) {
+        long mixed = worldSeed ^ salt;
+        mixed ^= x * 0x9E37_79B9_7F4A_7C15L;
+        mixed ^= z * 0xC2B2_AE3D_27D4_EB4FL;
+        mixed = (mixed ^ (mixed >>> 30)) * 0xBF58_476D_1CE4_E5B9L;
+        mixed = (mixed ^ (mixed >>> 27)) * 0x94D0_49BB_1331_11EBL;
+        mixed = mixed ^ (mixed >>> 31);
+        return (mixed >>> 11) * 0x1.0p-53;
+    }
+
     private void placeDormitories(Chunk chunk, ChunkPos chunkPos) {
         forEachNearbyDormitoryPlan(chunkPos, 2, plan -> placeDormitoryInChunk(chunk, plan));
     }
@@ -513,10 +595,7 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
     }
 
     private boolean isDormChunk(ChunkPos chunkPos) {
-        if (Math.floorMod(chunkPos.x, 12) != 0 || Math.floorMod(chunkPos.z, 12) != 0) {
-            return false;
-        }
-        return hash2d(chunkPos.x, chunkPos.z, 0x0D05_4510L) > -0.25;
+        return getDormitoryPlanForAnchor(chunkPos) != null;
     }
 
     private boolean isColliderCoreChunk(ChunkPos chunkPos) {
@@ -701,5 +780,50 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
         mixed = mixed ^ (mixed >>> 31);
         double normalized = (mixed >>> 11) * 0x1.0p-53;
         return normalized * 2.0 - 1.0;
+    }
+
+    private static final class DormitoryPlan {
+        private final int anchorX;
+        private final int anchorZ;
+        private final int centerX;
+        private final int centerZ;
+        private final int baseY;
+        private final int floors;
+        private final int widthX;
+        private final int widthZ;
+        private final boolean longAxisX;
+        private final boolean murinoDistrict;
+
+        private DormitoryPlan(
+                int anchorX,
+                int anchorZ,
+                int centerX,
+                int centerZ,
+                int baseY,
+                int floors,
+                int widthX,
+                int widthZ,
+                boolean longAxisX,
+                boolean murinoDistrict
+        ) {
+            this.anchorX = anchorX;
+            this.anchorZ = anchorZ;
+            this.centerX = centerX;
+            this.centerZ = centerZ;
+            this.baseY = baseY;
+            this.floors = floors;
+            this.widthX = widthX;
+            this.widthZ = widthZ;
+            this.longAxisX = longAxisX;
+            this.murinoDistrict = murinoDistrict;
+        }
+
+        private int xHalf() {
+            return widthX / 2;
+        }
+
+        private int zHalf() {
+            return widthZ / 2;
+        }
     }
 }
