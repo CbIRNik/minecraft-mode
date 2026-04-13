@@ -7,20 +7,31 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.screen.ArrayPropertyDelegate;
+import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 
 public class PortalGunCrafterScreenHandler extends ScreenHandler {
     private final Inventory inventory;
+    private final PropertyDelegate propertyDelegate;
 
     public PortalGunCrafterScreenHandler(int syncId, PlayerInventory playerInventory) {
-        this(syncId, playerInventory, new SimpleInventory(7));
+        this(syncId, playerInventory, new SimpleInventory(7), new ArrayPropertyDelegate(3));
     }
 
     public PortalGunCrafterScreenHandler(int syncId, PlayerInventory playerInventory, Inventory inventory) {
+        this(syncId, playerInventory, inventory,
+                inventory instanceof PortalGunCrafterEntity entity ? entity.getPropertyDelegate() : new ArrayPropertyDelegate(3));
+    }
+
+    public PortalGunCrafterScreenHandler(int syncId, PlayerInventory playerInventory, Inventory inventory, PropertyDelegate propertyDelegate) {
         super(InfDimMod.PORTAL_GUN_CRAFTER_SH, syncId);
         checkSize(inventory, 7);
         this.inventory = inventory;
+        this.propertyDelegate = propertyDelegate;
+        checkDataCount(this.propertyDelegate, 3);
+        addProperties(this.propertyDelegate);
 
         for (int row = 0; row < 2; row++) {
             for (int col = 0; col < 3; col++) {
@@ -35,9 +46,23 @@ public class PortalGunCrafterScreenHandler extends ScreenHandler {
             }
 
             @Override
+            public boolean canTakeItems(PlayerEntity player) {
+                if (inventory instanceof PortalGunCrafterEntity entity) {
+                    return entity.canTakeCraftResult(player);
+                }
+                return super.canTakeItems(player);
+            }
+
+            @Override
             public void onTakeItem(PlayerEntity player, ItemStack stack) {
-                for (int i = 0; i < 6; i++) {
-                    inventory.removeStack(i, 1);
+                if (inventory instanceof PortalGunCrafterEntity entity) {
+                    if (!entity.tryConsumeIngredientsForCraft(player, stack)) {
+                        return;
+                    }
+                } else {
+                    for (int i = 0; i < 6; i++) {
+                        inventory.removeStack(i, 1);
+                    }
                 }
                 super.onTakeItem(player, stack);
             }
@@ -76,6 +101,18 @@ public class PortalGunCrafterScreenHandler extends ScreenHandler {
     @Override
     public boolean canUse(PlayerEntity player) {
         return this.inventory.canPlayerUse(player);
+    }
+
+    public int getRotationIndexHint() {
+        return propertyDelegate.get(0);
+    }
+
+    public int getRotationVersionHint() {
+        return propertyDelegate.get(1);
+    }
+
+    public int getSecondsUntilNextRotationHint() {
+        return propertyDelegate.get(2);
     }
 
     private void addPlayerInventory(PlayerInventory playerInventory) {

@@ -36,6 +36,23 @@ public class PortalGunCrafterScreen extends HandledScreen<PortalGunCrafterScreen
     }
 
     @Override
+    protected void drawForeground(DrawContext context, int mouseX, int mouseY) {
+        super.drawForeground(context, mouseX, mouseY);
+        int rotationIndex = handler.getRotationIndexHint();
+        int rotationVersion = handler.getRotationVersionHint();
+        int secondsLeft = handler.getSecondsUntilNextRotationHint();
+        context.drawText(textRenderer,
+                Text.translatable("gui.infdimmod.crafter.rotation_hint", rotationIndex + 1),
+                8, 6, 0x606060, false);
+        context.drawText(textRenderer,
+                Text.translatable("gui.infdimmod.crafter.rotation_version", rotationVersion),
+                8, 16, 0x606060, false);
+        context.drawText(textRenderer,
+                Text.translatable("gui.infdimmod.crafter.next_rotation_seconds", secondsLeft),
+                8, 26, 0x606060, false);
+    }
+
+    @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         renderBackground(context, mouseX, mouseY, delta);
         super.render(context, mouseX, mouseY, delta);

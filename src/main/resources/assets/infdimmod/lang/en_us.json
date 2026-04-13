@@ -17,5 +17,8 @@
   "key.infdimmod.toggle_mode": "Toggle portal gun mode",
   "container.portal_gun_crafter": "Create portal gun",
   "concept.infdimmod.burmaldot": "Burmaldot protocol",
-  "dimension.infdimmod.burmaldeniya": "Burmaldeniya"
+  "dimension.infdimmod.burmaldeniya": "Burmaldeniya",
+  "gui.infdimmod.crafter.rotation_hint": "Burmaldushka hint #%s",
+  "gui.infdimmod.crafter.rotation_version": "Rotation version: %s",
+  "gui.infdimmod.crafter.next_rotation_seconds": "Next rotation in %ss"
 }

@@ -1,5 +1,7 @@
 package com.infdimmod.recipe;
 
+import com.infdimmod.burmaldeniya.BurmaldushkaRotationManager;
+import com.infdimmod.items.ModItems;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.item.ItemStack;
@@ -12,11 +14,14 @@ import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.world.World;
 
-public record PortalGunRecipe(DefaultedList<Ingredient> ingredients, ItemStack result) implements Recipe<RecipeInput> {
+public record PortalGunRecipe(DefaultedList<Ingredient> ingredients, ItemStack result, boolean rotatingBurmaldushka) implements Recipe<RecipeInput> {
 
     @Override
     public boolean matches(RecipeInput input, World world) {
         if (world.isClient) return false;
+        if (this.rotatingBurmaldushka && result.isOf(ModItems.Burmaldushka)) {
+            return BurmaldushkaRotationManager.matchesCurrentRotation(input, world);
+        }
         java.util.List<ItemStack> inputStacks = new java.util.ArrayList<>();
         for (int i = 0; i < 6; i++) {
             ItemStack stack = input.getStackInSlot(i);
@@ -85,6 +90,8 @@ public record PortalGunRecipe(DefaultedList<Ingredient> ingredients, ItemStack r
                         }, ingredients -> ingredients)
                         .forGetter(PortalGunRecipe::ingredients),
                 ItemStack.CODEC.fieldOf("result").forGetter(PortalGunRecipe::result)
+                ,
+                com.mojang.serialization.Codec.BOOL.optionalFieldOf("rotating_burmaldushka", false).forGetter(PortalGunRecipe::rotatingBurmaldushka)
         ).apply(inst, PortalGunRecipe::new));
 
         public static final PacketCodec<RegistryByteBuf, PortalGunRecipe> PACKET_CODEC = PacketCodec.tuple(
@@ -98,6 +105,7 @@ public record PortalGunRecipe(DefaultedList<Ingredient> ingredients, ItemStack r
                         }, list -> list),
                 PortalGunRecipe::ingredients,
                 ItemStack.PACKET_CODEC, PortalGunRecipe::result,
+                PacketCodecs.BOOL, PortalGunRecipe::rotatingBurmaldushka,
                 PortalGunRecipe::new
         );
 
