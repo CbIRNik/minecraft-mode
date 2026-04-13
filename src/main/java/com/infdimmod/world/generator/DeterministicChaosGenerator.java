@@ -1,10 +1,10 @@
 package com.infdimmod.world.generator;
 
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.registry.Registries;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.ChunkRegion;
@@ -20,8 +20,6 @@ import net.minecraft.world.gen.chunk.ChunkGenerator;
 import net.minecraft.world.gen.chunk.VerticalBlockSample;
 import net.minecraft.world.gen.noise.NoiseConfig;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 
@@ -29,44 +27,28 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
     public static final MapCodec<DeterministicChaosGenerator> CODEC = RecordCodecBuilder.mapCodec(instance ->
             instance.group(
                     BiomeSource.CODEC.fieldOf("biome_source").forGetter(generator -> generator.biomeSource),
-                    MapCodec.unit(0L).fieldOf("seed").forGetter(generator -> generator.worldSeed)
+                    Codec.LONG.fieldOf("seed").forGetter(generator -> generator.worldSeed)
             ).apply(instance, instance.stable(DeterministicChaosGenerator::new))
     );
 
     private final long worldSeed;
-    private final List<BlockState> palette = new ArrayList<>();
-    private final double[] mathConstants = new double[10]; // Увеличили количество констант для сложности
-
-    private final double xSpread, ySpread, zSpread;
-    private final double noiseThreshold;
-    private final double distortion;
+    private final int surfaceBase;
+    private final int lowerLayerCeiling;
+    private final int lavaLevel;
+    private final double terrainFrequencyA;
+    private final double terrainFrequencyB;
+    private final double caveFrequency;
 
     public DeterministicChaosGenerator(BiomeSource biomeSource, long seed) {
         super(biomeSource);
         this.worldSeed = seed;
-        Random r = new Random(seed);
-
-        // Заполняем палитру (как в прошлом шаге)
-        int paletteSize = 5 + r.nextInt(11);
-        for (int i = 0; i < paletteSize; i++) {
-            palette.add(pickStableBlock(r));
-        }
-
-        // --- ГЕНОМ МИРА ---
-        // Эти параметры определяют ТИП ландшафта
-        this.xSpread = 0.01 + r.nextDouble() * 0.08;
-        this.ySpread = 0.01 + r.nextDouble() * 0.08;
-        this.zSpread = 0.01 + r.nextDouble() * 0.08;
-
-        // Порог плотности (0.1 - пустота с редкими островами, 0.8 - монолит с дырами)
-        this.noiseThreshold = 0.1 + r.nextDouble() * 0.7;
-
-        // Сила искривления (0 - прямые стены/плиты, 5.0+ - безумные узлы)
-        this.distortion = r.nextDouble() * 7.0;
-
-        for (int i = 0; i < mathConstants.length; i++) {
-            mathConstants[i] = (r.nextDouble() - 0.5);
-        }
+        Random random = new Random(seed ^ 0xC00F_FEEEL);
+        this.surfaceBase = 68 + random.nextInt(6);
+        this.lowerLayerCeiling = 18 + random.nextInt(10);
+        this.lavaLevel = this.lowerLayerCeiling - 8;
+        this.terrainFrequencyA = 0.012 + random.nextDouble() * 0.006;
+        this.terrainFrequencyB = 0.02 + random.nextDouble() * 0.01;
+        this.caveFrequency = 0.05 + random.nextDouble() * 0.02;
     }
 
     @Override
@@ -81,7 +63,7 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
 
                 for (int y = chunk.getBottomY(); y < chunk.getTopY(); y++) {
                     BlockState blockState = sampleBlockState(worldX, y, worldZ);
-                    if (blockState != null) {
+                    if (!blockState.isAir()) {
                         chunk.setBlockState(mutable.set(x, y, z), blockState, false);
                     }
                 }
@@ -90,28 +72,11 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
         return CompletableFuture.completedFuture(chunk);
     }
 
-    private BlockState pickStableBlock(Random r) {
-        int size = Registries.BLOCK.size();
-        for (int i = 0; i < 500; i++) {
-            var block = Registries.BLOCK.get(r.nextInt(size));
-            if (block != null) {
-                BlockState state = block.getDefaultState();
-                if (state.isFullCube(null, null)
-                        && !state.hasBlockEntity()
-                        && !state.isAir()
-                        && block != Blocks.BEDROCK) {
-                    return state;
-                }
-            }
-        }
-        return Blocks.STONE.getDefaultState();
-    }
-
     @Override public void carve(ChunkRegion chunkRegion, long seed, NoiseConfig noiseConfig, BiomeAccess biomeAccess, StructureAccessor structureAccessor, Chunk chunk, GenerationStep.Carver carverStep) {}
     @Override protected MapCodec<? extends ChunkGenerator> getCodec() { return CODEC; }
     @Override public void buildSurface(ChunkRegion region, StructureAccessor structures, NoiseConfig noiseConfig, Chunk chunk) {}
     @Override public int getWorldHeight() { return 384; }
-    @Override public int getSeaLevel() { return -64; }
+    @Override public int getSeaLevel() { return 63; }
     @Override public int getMinimumY() { return -64; }
     @Override
     public int getHeight(int x, int z, Heightmap.Type heightmap, HeightLimitView world, NoiseConfig noiseConfig) {
@@ -132,32 +97,113 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
         int topY = world.getTopY();
         BlockState[] states = new BlockState[topY - bottomY];
         for (int y = bottomY; y < topY; y++) {
-            BlockState state = sampleBlockState(x, y, z);
-            states[y - bottomY] = state == null ? Blocks.AIR.getDefaultState() : state;
+            states[y - bottomY] = sampleBlockState(x, y, z);
         }
         return new VerticalBlockSample(bottomY, states);
     }
-    @Override public void getDebugHudText(java.util.List<String> text, NoiseConfig noiseConfig, BlockPos pos) { text.add("Rick & Morty Infinite Variety Generator"); }
+    @Override public void getDebugHudText(java.util.List<String> text, NoiseConfig noiseConfig, BlockPos pos) { text.add("Burmaldeniya two-layer generator"); }
 
     private BlockState sampleBlockState(int x, int y, int z) {
-        double noise = sampleNoise(x, y, z);
-        if (noise <= noiseThreshold) {
-            return null;
+        if (y <= getMinimumY() + 1) {
+            return Blocks.BEDROCK.getDefaultState();
         }
-        int blockIndex = (int) (Math.abs(noise * 5 + (y * 0.1)) % palette.size());
-        return palette.get(blockIndex);
+
+        int surfaceHeight = sampleSurfaceHeight(x, z);
+        if (y > surfaceHeight) {
+            return Blocks.AIR.getDefaultState();
+        }
+
+        if (y > lowerLayerCeiling && isUpperCave(x, y, z)) {
+            return Blocks.AIR.getDefaultState();
+        }
+
+        if (y <= lowerLayerCeiling) {
+            if (isLowerCave(x, y, z)) {
+                return y <= lavaLevel ? Blocks.LAVA.getDefaultState() : Blocks.AIR.getDefaultState();
+            }
+            return sampleLowerLayerMaterial(x, y, z);
+        }
+
+        if (y == surfaceHeight) {
+            return Blocks.GRASS_BLOCK.getDefaultState();
+        }
+
+        if (y >= surfaceHeight - 3) {
+            return Blocks.DIRT.getDefaultState();
+        }
+
+        if (y < 16) {
+            return Blocks.DEEPSLATE.getDefaultState();
+        }
+
+        return Blocks.STONE.getDefaultState();
     }
 
-    private double sampleNoise(int x, int y, int z) {
-        double rx = x * xSpread;
-        double ry = y * ySpread;
-        double rz = z * zSpread;
+    private BlockState sampleLowerLayerMaterial(int x, int y, int z) {
+        double heat = hash3d(x, y, z, 0x5F37_59DFL);
+        if (y <= lavaLevel - 2 && heat > 0.45) {
+            return Blocks.MAGMA_BLOCK.getDefaultState();
+        }
+        if (heat > 0.65) {
+            return Blocks.BASALT.getDefaultState();
+        }
+        if (heat < -0.55) {
+            return Blocks.BLACKSTONE.getDefaultState();
+        }
+        if (y >= lowerLayerCeiling - 2 && heat < -0.2) {
+            return Blocks.SOUL_SAND.getDefaultState();
+        }
+        return Blocks.NETHERRACK.getDefaultState();
+    }
 
-        double dx = Math.sin(ry * mathConstants[0] + rz * mathConstants[1]) * distortion;
-        double dy = Math.cos(rx * mathConstants[2] + rz * mathConstants[3]) * distortion;
-        double dz = Math.sin(rx * mathConstants[4] + ry * mathConstants[5]) * distortion;
+    private int sampleSurfaceHeight(int x, int z) {
+        double rolling = Math.sin((x + worldSeed * 0.03125) * terrainFrequencyA) * 10.0
+                + Math.cos((z - worldSeed * 0.015625) * terrainFrequencyA) * 9.0;
+        double ridges = Math.sin((x + z) * terrainFrequencyB) * 4.0
+                + Math.cos((x - z) * terrainFrequencyB * 0.8) * 3.0;
+        double seeded = hash2d(x >> 2, z >> 2, 0xB529_7A4DL) * 6.0;
+        int surface = surfaceBase + (int) Math.round(rolling + ridges + seeded);
+        return Math.max(lowerLayerCeiling + 8, surface);
+    }
 
-        double noise = Math.sin(rx + dx) + Math.cos(ry + dy) + Math.sin(rz + dz);
-        return noise + (Math.sin(rx * 3) * Math.cos(rz * 3) * Math.sin(ry * 3)) * 0.5;
+    private boolean isUpperCave(int x, int y, int z) {
+        if (y >= 56) {
+            return false;
+        }
+        double cave = Math.abs(hash3d(x, y, z, 0x9E37_79B9L))
+                + Math.abs(hash3d(x * 2, y, z * 2, 0x7F4A_7C15L)) * 0.5;
+        return cave < 0.23 && y < sampleSurfaceHeight(x, z) - 2;
+    }
+
+    private boolean isLowerCave(int x, int y, int z) {
+        double base = Math.abs(hash3d(
+                (int) Math.floor(x * caveFrequency),
+                (int) Math.floor(y * caveFrequency * 0.9),
+                (int) Math.floor(z * caveFrequency),
+                0xC2B2_AE3DL
+        ));
+        double detail = Math.abs(hash3d(
+                (int) Math.floor(x * caveFrequency * 1.8),
+                (int) Math.floor(y * caveFrequency * 1.3),
+                (int) Math.floor(z * caveFrequency * 1.8),
+                0x1656_67B1L
+        ));
+        return base + detail * 0.55 < 0.62;
+    }
+
+    private double hash2d(int x, int z, long salt) {
+        return hash3d(x, 0, z, salt);
+    }
+
+    private double hash3d(int x, int y, int z, long salt) {
+        long mixed = worldSeed ^ salt;
+        mixed ^= (long) x * 0x9E37_79B9_7F4A_7C15L;
+        mixed ^= (long) y * 0xC2B2_AE3D_27D4_EB4FL;
+        mixed ^= (long) z * 0x1656_67B1_9E37_79F9L;
+        mixed = (mixed ^ (mixed >>> 30)) * 0xBF58_476D_1CE4_E5B9L;
+        mixed = (mixed ^ (mixed >>> 27)) * 0x94D0_49BB_1331_11EBL;
+        mixed = mixed ^ (mixed >>> 31);
+        double normalized = (mixed >>> 11) * 0x1.0p-53;
+        return normalized * 2.0 - 1.0;
     }
 }

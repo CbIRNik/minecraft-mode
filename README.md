@@ -29,3 +29,4 @@ The built JAR is generated under `build/libs/`.
 
 - Mod ID: `infdimmod`
 - Maven group: `com.infdimmod`
+- Burmaldeniya runtime dimensions use a deterministic two-layer chunk generator (surface + hostile underground).
