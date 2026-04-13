@@ -134,6 +134,7 @@ public final class DrunnyColliderSystemManager {
 
             DrunGuardEntity guard = new DrunGuardEntity(ModEntities.DRUN_GUARD_ENTITY_TYPE, world);
             guard.refreshPositionAndAngles(spawnPos.getX() + 0.5, corePos.getY(), spawnPos.getZ() + 0.5, world.random.nextFloat() * 360.0F, 0.0F);
+            guard.setGuardPost(spawnPos.withY(corePos.getY()));
             guard.setPersistent();
 
             if (world.isSpaceEmpty(guard)) {

@@ -24,11 +24,18 @@
   "gui.infdimmod.crafter.rotation_version": "Rotation version: %s",
   "gui.infdimmod.crafter.next_rotation_seconds": "Next rotation in %ss",
   "entity.infdimmod.resident": "Burmaldeniya Resident",
+  "entity.infdimmod.student": "Student",
+  "entity.infdimmod.arthur": "Arthur",
   "entity.infdimmod.fogi": "Fogi",
+  "entity.infdimmod.fogi_apex": "Fogi Apex",
+  "entity.infdimmod.drun_guard": "Drun Guard",
+  "entity.infdimmod.fat_omay_gadnost": "Fat Omay Gadnost",
+  "entity.infdimmod.little_tasty_baby": "Little Tasty Baby",
+  "entity.infdimmod.drunny_particle_orbit": "Drunny Particle Orbit",
   "structure.infdimmod.dormitory": "Burmaldeniya Dormitory",
   "biome.infdimmod.murino": "Murino",
   "block.infdimmod.drunny_atom": "Drunny Atom",
-  "entity.infdimmod.drun_guard": "Drun Guard",
-  "entity.infdimmod.drunny_particle_orbit": "Drunny Particle Orbit",
-  "structure.infdimmod.drunny_collider_complex": "Drunny Collider Complex"
+  "structure.infdimmod.drunny_collider_complex": "Drunny Collider Complex",
+  "item.infdimmod.arthur_greeting": "Say \"Hello Arthur\"",
+  "itemTooltip.infdimmod.arthur_greeting": "Use near Arthur before he gets offended"
 }

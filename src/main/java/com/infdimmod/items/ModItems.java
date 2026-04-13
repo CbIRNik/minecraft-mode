@@ -2,12 +2,13 @@ package com.infdimmod.items;
 
 import com.infdimmod.Blocks.ModBlocks;
 import com.infdimmod.InfDimMod;
+import com.infdimmod.burmaldeniya.BurmaldeniyaConstants;
+import com.infdimmod.items.custom.ArthurGreetingItem;
 import com.infdimmod.items.custom.PortalFluidItem;
 import com.infdimmod.items.custom.burmaldushka.Burmaldushka;
 import com.infdimmod.items.custom.burmaldushka.BurmaldushkaComponents;
 import com.infdimmod.items.custom.portalgun.PortalGun;
 import com.infdimmod.items.custom.portalgun.PortalGunComponents;
-import com.infdimmod.burmaldeniya.BurmaldeniyaConstants;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.item.BucketItem;
@@ -40,6 +41,7 @@ public class ModItems {
     );
     public static final Item PortalFluidItem = register(new PortalFluidItem(new Item.Settings().maxCount(1).fireproof().rarity(Rarity.RARE)), "portal_fluid_item");
     public static final Item PortalFluidBucket = register(new BucketItem(ModBlocks.STILL_PORTAL_FLUID, new Item.Settings().maxCount(1)), "portal_fluid_bucket");
+    public static final Item ArthurGreeting = register(new ArthurGreetingItem(new Item.Settings().maxCount(1).rarity(Rarity.UNCOMMON)), BurmaldeniyaConstants.ARTHUR_GREETING_ITEM_ID);
     public static final Item PortalGun = register(new PortalGun(new Item.Settings()
             .maxCount(1)
             .maxDamage(42)
@@ -65,6 +67,7 @@ public class ModItems {
             itemGroup.add(ModItems.PortalGun);
             itemGroup.add(ModItems.PortalFluidItem);
             itemGroup.add(ModItems.PortalFluidBucket);
+            itemGroup.add(ModItems.ArthurGreeting);
         });
     }
 }

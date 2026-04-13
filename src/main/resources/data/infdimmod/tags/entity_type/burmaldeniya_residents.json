@@ -1,6 +1,10 @@
 {
   "replace": false,
   "values": [
-    "infdimmod:resident"
+    "infdimmod:resident",
+    "infdimmod:student",
+    "infdimmod:arthur",
+    "infdimmod:little_tasty_baby",
+    "infdimmod:fat_omay_gadnost"
   ]
 }

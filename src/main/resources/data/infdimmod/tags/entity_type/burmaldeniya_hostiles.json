@@ -2,6 +2,7 @@
   "replace": false,
   "values": [
     "infdimmod:fogi",
+    "infdimmod:fogi_apex",
     "infdimmod:drun_guard"
   ]
 }

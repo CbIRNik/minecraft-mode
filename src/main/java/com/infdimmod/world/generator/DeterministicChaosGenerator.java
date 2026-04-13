@@ -2,9 +2,14 @@ package com.infdimmod.world.generator;
 
 import com.infdimmod.Blocks.ModBlocks;
 import com.infdimmod.Entities.ModEntities;
+import com.infdimmod.Entities.custom.ArthurEntity;
 import com.infdimmod.Entities.custom.DrunGuardEntity;
+import com.infdimmod.Entities.custom.FatOmayGadnostEntity;
+import com.infdimmod.Entities.custom.FogiApexEntity;
 import com.infdimmod.Entities.custom.FogiEntity;
+import com.infdimmod.Entities.custom.LittleTastyBabyEntity;
 import com.infdimmod.Entities.custom.ResidentEntity;
+import com.infdimmod.Entities.custom.StudentEntity;
 import com.infdimmod.world.collider.DrunnyColliderLayout;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
@@ -30,6 +35,7 @@ import net.minecraft.world.gen.noise.NoiseConfig;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 public class DeterministicChaosGenerator extends ChunkGenerator {
     public static final MapCodec<DeterministicChaosGenerator> CODEC = RecordCodecBuilder.mapCodec(instance ->
@@ -41,6 +47,12 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
 
     private static final int COLLIDER_RADIUS_CHUNKS = 5;
     private static final int COLLIDER_HALF_HEIGHT = 22;
+    private static final int DORM_FLOOR_HEIGHT = 3;
+    private static final int MURINO_DORM_GRID_SPACING_CHUNKS = 4;
+    private static final int OTHER_DORM_GRID_SPACING_CHUNKS = 10;
+    private static final double MURINO_DORM_THRESHOLD = -0.55D;
+    private static final double OTHER_DORM_THRESHOLD = 0.2D;
+    private static final double MURINO_BIOME_CHANCE = 0.24D;
 
     private final long worldSeed;
     private final int surfaceBase;
@@ -86,7 +98,7 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
         }
 
         placeColliderComplex(chunk, chunkPos);
-        placeDormitoryScaffolding(chunk, chunkPos);
+        placeDormitories(chunk, chunkPos);
         return CompletableFuture.completedFuture(chunk);
     }
 
@@ -115,10 +127,9 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
         ServerWorld world = region.toServerWorld();
         ChunkPos chunkPos = region.getCenterPos();
 
-        if (isDormChunk(chunkPos)) {
-            spawnResident(world, chunkPos, 6, 6, 0.0f);
-            spawnResident(world, chunkPos, 10, 9, 180.0f);
-            spawnFogi(world, chunkPos, 12, 4, 90.0f);
+        DormitoryPlan dormitoryPlan = getDormitoryPlanForAnchor(chunkPos);
+        if (dormitoryPlan != null) {
+            spawnDormitoryPopulation(world, dormitoryPlan);
             return;
         }
 
@@ -126,11 +137,16 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
             spawnDrunGuard(world, chunkPos, 8, 8, 0.0f);
             spawnDrunGuard(world, chunkPos, 4, 11, 90.0f);
             spawnDrunGuard(world, chunkPos, 11, 4, 180.0f);
+            if (hash2d(chunkPos.x, chunkPos.z, 0x8A70_1134L) > 0.42) {
+                spawnFatOmayGadnost(world, chunkPos, 13, 13, 90.0f);
+            }
             return;
         }
 
         double patrolChance = hash2d(chunkPos.x, chunkPos.z, 0xD0A4_5001L);
-        if (patrolChance > 0.86) {
+        if (patrolChance > 0.88) {
+            spawnFogiApex(world, chunkPos, 8, 8, 0.0f);
+        } else if (patrolChance > 0.73) {
             spawnFogi(world, chunkPos, 8, 8, 0.0f);
         }
     }
@@ -248,37 +264,102 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
         return Blocks.AIR.getDefaultState();
     }
 
-    private void placeDormitoryScaffolding(Chunk chunk, ChunkPos chunkPos) {
-        if (!isDormChunk(chunkPos)) {
-            return;
-        }
+    private void placeDormitories(Chunk chunk, ChunkPos chunkPos) {
+        forEachNearbyDormitoryPlan(chunkPos, 2, plan -> placeDormitoryInChunk(chunk, plan));
+    }
 
-        int centerX = chunkPos.getStartX() + 8;
-        int centerZ = chunkPos.getStartZ() + 8;
-        int floorY = sampleSurfaceHeight(centerX, centerZ) + 1;
+    private void placeDormitoryInChunk(Chunk chunk, DormitoryPlan plan) {
+        int xHalf = plan.xHalf();
+        int zHalf = plan.zHalf();
+        int roofY = plan.baseY + plan.floors * DORM_FLOOR_HEIGHT;
 
-        for (int dx = -4; dx <= 4; dx++) {
-            for (int dz = -3; dz <= 3; dz++) {
-                int worldX = centerX + dx;
-                int worldZ = centerZ + dz;
+        for (int dx = -xHalf - 1; dx <= xHalf + 1; dx++) {
+            for (int dz = -zHalf - 1; dz <= zHalf + 1; dz++) {
+                int worldX = plan.centerX + dx;
+                int worldZ = plan.centerZ + dz;
+                boolean inFootprint = Math.abs(dx) <= xHalf && Math.abs(dz) <= zHalf;
 
-                setBlockInChunk(chunk, worldX, floorY - 1, worldZ, Blocks.STONE_BRICKS.getDefaultState());
-                setBlockInChunk(chunk, worldX, floorY, worldZ, Blocks.OAK_PLANKS.getDefaultState());
-
-                boolean wall = Math.abs(dx) == 4 || Math.abs(dz) == 3;
-                for (int dy = 1; dy <= 3; dy++) {
-                    setBlockInChunk(chunk, worldX, floorY + dy, worldZ,
-                            wall ? Blocks.SPRUCE_PLANKS.getDefaultState() : Blocks.AIR.getDefaultState());
+                if (!inFootprint) {
+                    if (Math.abs(dx) <= xHalf + 1 && Math.abs(dz) <= zHalf + 1
+                            && Math.floorMod(dx + dz + plan.anchorX + plan.anchorZ, 2) == 0) {
+                        setBlockInChunk(chunk, worldX, plan.baseY - 1, worldZ, Blocks.CRACKED_STONE_BRICKS.getDefaultState());
+                    }
+                    continue;
                 }
 
-                setBlockInChunk(chunk, worldX, floorY + 4, worldZ, Blocks.DARK_OAK_PLANKS.getDefaultState());
+                setBlockInChunk(chunk, worldX, plan.baseY - 2, worldZ, Blocks.COBBLED_DEEPSLATE.getDefaultState());
+                setBlockInChunk(chunk, worldX, plan.baseY - 1, worldZ, Blocks.STONE_BRICKS.getDefaultState());
+
+                for (int floor = 0; floor < plan.floors; floor++) {
+                    int floorBase = plan.baseY + floor * DORM_FLOOR_HEIGHT;
+                    setBlockInChunk(chunk, worldX, floorBase, worldZ, Blocks.STONE.getDefaultState());
+
+                    boolean wall = Math.abs(dx) == xHalf || Math.abs(dz) == zHalf;
+                    boolean corner = Math.abs(dx) == xHalf && Math.abs(dz) == zHalf;
+                    boolean longSide = (plan.longAxisX && Math.abs(dz) == zHalf) || (!plan.longAxisX && Math.abs(dx) == xHalf);
+                    boolean windowColumn = Math.floorMod((plan.longAxisX ? dx : dz) + floor, 4) == 0;
+                    boolean hasWindow = wall && !corner && longSide && windowColumn;
+
+                    for (int localY = 1; localY <= 2; localY++) {
+                        BlockState state;
+                        if (!wall) {
+                            state = Blocks.AIR.getDefaultState();
+                        } else if (hasWindow) {
+                            state = Blocks.LIGHT_GRAY_STAINED_GLASS_PANE.getDefaultState();
+                        } else if (localY == 1 && Math.floorMod(dx + dz + floor, 6) == 0) {
+                            state = Blocks.POLISHED_ANDESITE.getDefaultState();
+                        } else {
+                            state = Blocks.STONE_BRICKS.getDefaultState();
+                        }
+                        setBlockInChunk(chunk, worldX, floorBase + localY, worldZ, state);
+                    }
+                }
+
+                setBlockInChunk(chunk, worldX, roofY, worldZ, Blocks.DEEPSLATE_TILES.getDefaultState());
+                if (Math.abs(dx) == xHalf || Math.abs(dz) == zHalf) {
+                    setBlockInChunk(chunk, worldX, roofY + 1, worldZ, Blocks.DEEPSLATE_BRICKS.getDefaultState());
+                }
             }
         }
 
-        setBlockInChunk(chunk, centerX, floorY + 1, centerZ + 3, Blocks.AIR.getDefaultState());
-        setBlockInChunk(chunk, centerX, floorY + 2, centerZ + 3, Blocks.AIR.getDefaultState());
-        setBlockInChunk(chunk, centerX - 3, floorY + 1, centerZ, Blocks.TORCH.getDefaultState());
-        setBlockInChunk(chunk, centerX + 3, floorY + 1, centerZ, Blocks.TORCH.getDefaultState());
+        carveDormitoryEntrance(chunk, plan);
+        carveDormitoryShaft(chunk, plan, roofY);
+    }
+
+    private void carveDormitoryEntrance(Chunk chunk, DormitoryPlan plan) {
+        int entranceX = plan.centerX + (plan.longAxisX ? 0 : plan.xHalf());
+        int entranceZ = plan.centerZ + (plan.longAxisX ? plan.zHalf() : 0);
+        int outsideX = entranceX + (plan.longAxisX ? 0 : 1);
+        int outsideZ = entranceZ + (plan.longAxisX ? 1 : 0);
+
+        for (int lateral = -1; lateral <= 1; lateral++) {
+            int doorX = entranceX + (plan.longAxisX ? lateral : 0);
+            int doorZ = entranceZ + (plan.longAxisX ? 0 : lateral);
+            setBlockInChunk(chunk, doorX, plan.baseY + 1, doorZ, Blocks.AIR.getDefaultState());
+            setBlockInChunk(chunk, doorX, plan.baseY + 2, doorZ, Blocks.AIR.getDefaultState());
+            setBlockInChunk(chunk, doorX, plan.baseY, doorZ, Blocks.POLISHED_ANDESITE.getDefaultState());
+        }
+
+        for (int lateral = -2; lateral <= 2; lateral++) {
+            int pathX = outsideX + (plan.longAxisX ? lateral : 0);
+            int pathZ = outsideZ + (plan.longAxisX ? 0 : lateral);
+            setBlockInChunk(chunk, pathX, plan.baseY - 1, pathZ, Blocks.STONE_BRICKS.getDefaultState());
+            setBlockInChunk(chunk, pathX, plan.baseY, pathZ, Blocks.STONE.getDefaultState());
+        }
+    }
+
+    private void carveDormitoryShaft(Chunk chunk, DormitoryPlan plan, int roofY) {
+        int shaftCenterX = plan.centerX + (plan.longAxisX ? -2 : 0);
+        int shaftCenterZ = plan.centerZ + (plan.longAxisX ? 0 : -2);
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                int worldX = shaftCenterX + dx;
+                int worldZ = shaftCenterZ + dz;
+                for (int y = plan.baseY + 1; y < roofY; y++) {
+                    setBlockInChunk(chunk, worldX, y, worldZ, Blocks.AIR.getDefaultState());
+                }
+            }
+        }
     }
 
     private void setBlockInChunk(Chunk chunk, int worldX, int worldY, int worldZ, BlockState state) {
@@ -295,26 +376,114 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
         chunk.setBlockState(new BlockPos(localX, worldY, localZ), state, false);
     }
 
-    private void spawnResident(ServerWorld world, ChunkPos chunkPos, int offsetX, int offsetZ, float yaw) {
-        int worldX = chunkPos.getStartX() + offsetX;
-        int worldZ = chunkPos.getStartZ() + offsetZ;
-        int worldY = sampleSurfaceHeight(worldX, worldZ) + 1;
-
+    private void spawnResident(ServerWorld world, int worldX, int worldZ, float yaw) {
+        int worldY = findSpawnY(world, worldX, worldZ);
+        if (worldY < world.getBottomY()) {
+            return;
+        }
         ResidentEntity resident = new ResidentEntity(ModEntities.RESIDENT_ENTITY_TYPE, world);
         resident.refreshPositionAndAngles(worldX + 0.5, worldY, worldZ + 0.5, yaw, 0.0f);
         resident.setPersistent();
         world.spawnEntity(resident);
     }
 
+    private void spawnStudent(ServerWorld world, int worldX, int worldZ, float yaw) {
+        int worldY = findSpawnY(world, worldX, worldZ);
+        if (worldY < world.getBottomY()) {
+            return;
+        }
+        StudentEntity student = new StudentEntity(ModEntities.STUDENT_ENTITY_TYPE, world);
+        student.refreshPositionAndAngles(worldX + 0.5, worldY, worldZ + 0.5, yaw, 0.0f);
+        student.setPersistent();
+        world.spawnEntity(student);
+    }
+
+    private void spawnDormitoryPopulation(ServerWorld world, DormitoryPlan plan) {
+        int spawnX = plan.centerX + (plan.longAxisX ? 0 : plan.xHalf() + 2);
+        int spawnZ = plan.centerZ + (plan.longAxisX ? plan.zHalf() + 2 : 0);
+
+        spawnResident(world, spawnX, spawnZ, 180.0f);
+        spawnResident(world, spawnX + (plan.longAxisX ? 3 : 0), spawnZ + (plan.longAxisX ? 0 : 3), 90.0f);
+        spawnStudent(world, spawnX - (plan.longAxisX ? 3 : 0), spawnZ - (plan.longAxisX ? 0 : 3), 0.0f);
+        spawnStudent(world, spawnX + (plan.longAxisX ? -2 : 2), spawnZ + (plan.longAxisX ? 2 : -2), 45.0f);
+
+        if (plan.floors >= 9 || plan.murinoDistrict) {
+            spawnResident(world, spawnX + (plan.longAxisX ? 5 : 0), spawnZ + (plan.longAxisX ? 0 : 5), 270.0f);
+            spawnStudent(world, spawnX + (plan.longAxisX ? -5 : 0), spawnZ + (plan.longAxisX ? 0 : -5), 225.0f);
+        }
+    }
+
+    private int findSpawnY(ServerWorld world, int worldX, int worldZ) {
+        int minY = world.getBottomY() + 1;
+        int maxY = world.getTopY() - 2;
+        int worldY = Math.max(minY, Math.min(maxY, sampleSurfaceHeight(worldX, worldZ) + 1));
+        BlockPos.Mutable mutable = new BlockPos.Mutable(worldX, worldY, worldZ);
+
+        while (worldY <= maxY && !world.getBlockState(mutable).isAir()) {
+            worldY++;
+            mutable.setY(worldY);
+        }
+        if (worldY > maxY) {
+            return world.getBottomY() - 1;
+        }
+        return worldY;
+    }
+
+    private void spawnArthur(ServerWorld world, ChunkPos chunkPos, int offsetX, int offsetZ, float yaw) {
+        int worldX = chunkPos.getStartX() + offsetX;
+        int worldZ = chunkPos.getStartZ() + offsetZ;
+        int worldY = findSpawnY(world, worldX, worldZ);
+        if (worldY < world.getBottomY()) {
+            return;
+        }
+
+        ArthurEntity arthur = new ArthurEntity(ModEntities.ARTHUR_ENTITY_TYPE, world);
+        arthur.refreshPositionAndAngles(worldX + 0.5, worldY, worldZ + 0.5, yaw, 0.0f);
+        arthur.setPersistent();
+        world.spawnEntity(arthur);
+    }
+
+    private void spawnLittleTastyBaby(ServerWorld world, ChunkPos chunkPos, int offsetX, int offsetZ, float yaw) {
+        int worldX = chunkPos.getStartX() + offsetX;
+        int worldZ = chunkPos.getStartZ() + offsetZ;
+        int worldY = findSpawnY(world, worldX, worldZ);
+        if (worldY < world.getBottomY()) {
+            return;
+        }
+
+        LittleTastyBabyEntity baby = new LittleTastyBabyEntity(ModEntities.LITTLE_TASTY_BABY_ENTITY_TYPE, world);
+        baby.refreshPositionAndAngles(worldX + 0.5, worldY, worldZ + 0.5, yaw, 0.0f);
+        baby.setPersistent();
+        baby.setBreedingAge(-24_000);
+        world.spawnEntity(baby);
+    }
+
     private void spawnFogi(ServerWorld world, ChunkPos chunkPos, int offsetX, int offsetZ, float yaw) {
         int worldX = chunkPos.getStartX() + offsetX;
         int worldZ = chunkPos.getStartZ() + offsetZ;
-        int worldY = sampleSurfaceHeight(worldX, worldZ) + 1;
+        int worldY = findSpawnY(world, worldX, worldZ);
+        if (worldY < world.getBottomY()) {
+            return;
+        }
 
         FogiEntity fogi = new FogiEntity(ModEntities.FOGI_ENTITY_TYPE, world);
         fogi.refreshPositionAndAngles(worldX + 0.5, worldY, worldZ + 0.5, yaw, 0.0f);
         fogi.setPersistent();
         world.spawnEntity(fogi);
+    }
+
+    private void spawnFogiApex(ServerWorld world, ChunkPos chunkPos, int offsetX, int offsetZ, float yaw) {
+        int worldX = chunkPos.getStartX() + offsetX;
+        int worldZ = chunkPos.getStartZ() + offsetZ;
+        int worldY = findSpawnY(world, worldX, worldZ);
+        if (worldY < world.getBottomY()) {
+            return;
+        }
+
+        FogiApexEntity fogiApex = new FogiApexEntity(ModEntities.FOGI_APEX_ENTITY_TYPE, world);
+        fogiApex.refreshPositionAndAngles(worldX + 0.5, worldY, worldZ + 0.5, yaw, 0.0f);
+        fogiApex.setPersistent();
+        world.spawnEntity(fogiApex);
     }
 
     private void spawnDrunGuard(ServerWorld world, ChunkPos chunkPos, int offsetX, int offsetZ, float yaw) {
@@ -324,8 +493,23 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
 
         DrunGuardEntity guard = new DrunGuardEntity(ModEntities.DRUN_GUARD_ENTITY_TYPE, world);
         guard.refreshPositionAndAngles(worldX + 0.5, worldY, worldZ + 0.5, yaw, 0.0f);
+        guard.setGuardPost(new BlockPos(worldX, worldY, worldZ));
         guard.setPersistent();
         world.spawnEntity(guard);
+    }
+
+    private void spawnFatOmayGadnost(ServerWorld world, ChunkPos chunkPos, int offsetX, int offsetZ, float yaw) {
+        int worldX = chunkPos.getStartX() + offsetX;
+        int worldZ = chunkPos.getStartZ() + offsetZ;
+        int worldY = findSpawnY(world, worldX, worldZ);
+        if (worldY < world.getBottomY()) {
+            return;
+        }
+
+        FatOmayGadnostEntity gadnost = new FatOmayGadnostEntity(ModEntities.FAT_OMAY_GADNOST_ENTITY_TYPE, world);
+        gadnost.refreshPositionAndAngles(worldX + 0.5, worldY, worldZ + 0.5, yaw, 0.0f);
+        gadnost.setPersistent();
+        world.spawnEntity(gadnost);
     }
 
     private boolean isDormChunk(ChunkPos chunkPos) {

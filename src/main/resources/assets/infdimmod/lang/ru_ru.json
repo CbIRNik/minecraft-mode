@@ -24,11 +24,18 @@
   "gui.infdimmod.crafter.rotation_version": "Версия ротации: %s",
   "gui.infdimmod.crafter.next_rotation_seconds": "Следующая ротация через %sс",
   "entity.infdimmod.resident": "Житель Бурмальдении",
+  "entity.infdimmod.student": "Студент",
+  "entity.infdimmod.arthur": "Артур",
   "entity.infdimmod.fogi": "Фоги",
+  "entity.infdimmod.fogi_apex": "Верховный Фоги",
   "structure.infdimmod.dormitory": "Общежитие Бурмальдении",
   "biome.infdimmod.murino": "Мурино",
   "block.infdimmod.drunny_atom": "Дранни атом",
   "entity.infdimmod.drun_guard": "Охранник Дранни",
+  "entity.infdimmod.fat_omay_gadnost": "Жирный Омай Гадность",
+  "entity.infdimmod.little_tasty_baby": "Маленький Вкусный Бейби",
   "entity.infdimmod.drunny_particle_orbit": "Орбитальная частица Дранни",
-  "structure.infdimmod.drunny_collider_complex": "Комплекс дранни-коллайдера"
+  "structure.infdimmod.drunny_collider_complex": "Комплекс дранни-коллайдера",
+  "item.infdimmod.arthur_greeting": "Привет Артур",
+  "itemTooltip.infdimmod.arthur_greeting": "Используйте рядом с Артуром, пока не поздно"
 }

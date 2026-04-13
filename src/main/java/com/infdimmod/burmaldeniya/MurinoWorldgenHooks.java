@@ -38,11 +38,65 @@ public final class MurinoWorldgenHooks {
 
         BiomeModifications.addSpawn(
                 BiomeSelectors.tag(BURMALDENIYA_SPAWN_BIOMES),
+                SpawnGroup.CREATURE,
+                ModEntities.STUDENT_ENTITY_TYPE,
+                45,
+                2,
+                5
+        );
+
+        BiomeModifications.addSpawn(
+                BiomeSelectors.tag(BURMALDENIYA_SPAWN_BIOMES),
+                SpawnGroup.CREATURE,
+                ModEntities.LITTLE_TASTY_BABY_ENTITY_TYPE,
+                26,
+                1,
+                2
+        );
+
+        BiomeModifications.addSpawn(
+                BiomeSelectors.tag(BURMALDENIYA_SPAWN_BIOMES),
+                SpawnGroup.CREATURE,
+                ModEntities.ARTHUR_ENTITY_TYPE,
+                9,
+                1,
+                1
+        );
+
+        BiomeModifications.addSpawn(
+                BiomeSelectors.tag(BURMALDENIYA_SPAWN_BIOMES),
+                SpawnGroup.CREATURE,
+                ModEntities.FAT_OMAY_GADNOST_ENTITY_TYPE,
+                4,
+                1,
+                1
+        );
+
+        BiomeModifications.addSpawn(
+                BiomeSelectors.tag(BURMALDENIYA_SPAWN_BIOMES),
                 SpawnGroup.MONSTER,
                 ModEntities.FOGI_ENTITY_TYPE,
-                80,
+                95,
+                2,
+                4
+        );
+
+        BiomeModifications.addSpawn(
+                BiomeSelectors.tag(BURMALDENIYA_SPAWN_BIOMES),
+                SpawnGroup.MONSTER,
+                ModEntities.DRUN_GUARD_ENTITY_TYPE,
+                68,
                 1,
-                3
+                2
+        );
+
+        BiomeModifications.addSpawn(
+                BiomeSelectors.tag(BURMALDENIYA_SPAWN_BIOMES),
+                SpawnGroup.MONSTER,
+                ModEntities.FOGI_APEX_ENTITY_TYPE,
+                24,
+                1,
+                1
         );
     }
 

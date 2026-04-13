@@ -28,6 +28,8 @@ import net.minecraft.client.item.ModelPredicateProviderRegistry;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.render.entity.VillagerEntityRenderer;
 import net.minecraft.client.render.entity.ZombieEntityRenderer;
+import net.minecraft.client.render.entity.IronGolemEntityRenderer;
+import net.minecraft.client.render.entity.ChickenEntityRenderer;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Identifier;
@@ -46,8 +48,13 @@ public class InfDimModClient implements ClientModInitializer {
         EntityRendererRegistry.register(ModEntities.GREEN_PORTAL_ENTITY_TYPE, GreenPortalRenderer::new);
         EntityRendererRegistry.register(ModEntities.BACK_PORTAL_ENTITY_TYPE, BackPortalRenderer::new);
         EntityRendererRegistry.register(ModEntities.RESIDENT_ENTITY_TYPE, VillagerEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.STUDENT_ENTITY_TYPE, VillagerEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.ARTHUR_ENTITY_TYPE, VillagerEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.FOGI_ENTITY_TYPE, ZombieEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.FOGI_APEX_ENTITY_TYPE, ZombieEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.DRUN_GUARD_ENTITY_TYPE, ZombieEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.FAT_OMAY_GADNOST_ENTITY_TYPE, IronGolemEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.LITTLE_TASTY_BABY_ENTITY_TYPE, ChickenEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.DRUNNY_PARTICLE_ORBIT_ENTITY_TYPE, DrunnyParticleOrbitRenderer::new);
 
         ModelPredicateProviderRegistry.register(
