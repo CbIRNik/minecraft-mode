@@ -1,10 +1,9 @@
 package com.infdimmod.world.generator;
 
+import com.infdimmod.world.generator.custom.*;
 import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.world.gen.chunk.ChunkGeneratorSettings;
-import net.minecraft.world.gen.chunk.NoiseChunkGenerator;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.biome.source.BiomeSource;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,25 +11,20 @@ public class DimTypeRegistry {
     private static final Map<String, DimGeneratorProvider> TYPES = new HashMap<>();
 
     static {
-        register("00", (server, seed, lookup) -> {
-            var overworldGenerator = server.getOverworld().getChunkManager().getChunkGenerator();
-            var biomeSource = overworldGenerator.getBiomeSource();
+        register("03", (s, seed, l) -> new SpongeGenerator(getVanillaBiomes(s), seed));
+        register("05", (s, seed, l) -> new SphericalClustersGenerator(getVanillaBiomes(s), seed));
+        register("08", (s, seed, l) -> new TorusRingGenerator(getVanillaBiomes(s), seed));
+        register("09", (s, seed, l) -> new LatticeGenerator(getVanillaBiomes(s), seed));
+        register("23", (s, seed, l) -> new DataFragmentsGenerator(getVanillaBiomes(s), seed));
+        register("39", (s, seed, l) -> new AshWastelandGenerator(getVanillaBiomes(s), seed));
+        register("43", (s, seed, l) -> new ShatteredSavannaPlusGenerator(getVanillaBiomes(s), seed));
+        register("46", (s, seed, l) -> new EndStyleOverworldGenerator(getVanillaBiomes(s), seed));
+    }
 
-            return new DeterministicChaosGenerator(biomeSource, seed);
-        });
-
-        register("AA", (server, seed, lookup) -> {
-            RegistryWrapper.Impl<ChunkGeneratorSettings> settingsWrapper =
-                    server.getRegistryManager().getWrapperOrThrow(RegistryKeys.CHUNK_GENERATOR_SETTINGS);
-
-            RegistryEntry<ChunkGeneratorSettings> settingsEntry =
-                    settingsWrapper.getOrThrow(ChunkGeneratorSettings.OVERWORLD);
-
-            var overworldGenerator = server.getOverworld().getChunkManager().getChunkGenerator();
-            var biomeSource = overworldGenerator.getBiomeSource();
-
-            return new NoiseChunkGenerator(biomeSource, settingsEntry);
-        });
+    private static BiomeSource getVanillaBiomes(MinecraftServer server) {
+        var overworldGenerator = server.getOverworld().getChunkManager().getChunkGenerator();
+        var biomeSource = overworldGenerator.getBiomeSource();
+        return biomeSource;
     }
 
     public static void register(String code, DimGeneratorProvider provider) {
@@ -38,6 +32,18 @@ public class DimTypeRegistry {
     }
 
     public static DimGeneratorProvider get(String code) {
-        return TYPES.getOrDefault(code, TYPES.get("00"));
+        if (TYPES.containsKey(code)) {
+            return TYPES.get(code);
+        }
+
+        return (server, seed, lookup) -> {
+            var noiseSettings = server.getRegistryManager()
+                    .getWrapperOrThrow(RegistryKeys.CHUNK_GENERATOR_SETTINGS)
+                    .getOrThrow(net.minecraft.world.gen.chunk.ChunkGeneratorSettings.OVERWORLD);
+            return new net.minecraft.world.gen.chunk.NoiseChunkGenerator(
+                    getVanillaBiomes(server),
+                    noiseSettings
+            );
+        };
     }
 }
