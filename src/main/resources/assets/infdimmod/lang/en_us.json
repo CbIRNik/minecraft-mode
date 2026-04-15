@@ -13,5 +13,11 @@
   "category.infdimmod.controls": "InfDimMod",
   "item.infdimmod.portal_fluid_bucket": "Portal fluid bucket",
   "key.infdimmod.toggle_mode": "Toggle portal gun mode",
-  "container.portal_gun_crafter": "Create portal gun"
+  "container.portal_gun_crafter": "Create portal gun",
+  "gui.infdimmod.portal_gun.title": "Portal Gun",
+  "gui.infdimmod.portal_gun.settings": "Portal Settings",
+  "gui.infdimmod.portal_gun.favorites": "Favorites",
+  "gui.infdimmod.portal_gun.history": "History",
+  "gui.infdimmod.portal_gun.submit": "Submit"
 }
+

@@ -27,43 +27,42 @@ public class PortalGunScreen extends Screen {
     private final List<PortalGunComponents.PortalEntry> FAVORITES = new ArrayList<>();
     private static final int MAX_HISTORY = 50;
 
-    // Параметры скроллинга
+    private final int ENTRY_HEIGHT = 28;
+    private final int MAX_VISIBLE = 5;
+    private final int PANEL_WIDTH = 220;
+    private final int GAPE = 30;
+    private final int INNER_GAPE = 4;
     private double favScroll = 0;
     private double histScroll = 0;
-    private final int ENTRY_HEIGHT = 22;
-    private final int MAX_VISIBLE_FAV = 5;
-    private final int MAX_VISIBLE_HIST = 5;
     private final List<ButtonWidget> scrollableButtons = new ArrayList<>();
 
     public PortalGunScreen() {
-        super(Text.literal("Portal Gun"));
+        super(Text.translatable("gui.infdimmod.portal_gun.title"));
     }
 
     @Override
     protected void init() {
         super.init();
-        if (client.player != null && client.world != null) {
+        if (client.player != null) {
             ItemStack stack = client.player.getMainHandStack();
-            if (!stack.isEmpty()) {
-                var historyComp = stack.get(PortalGunComponents.PORTAL_HISTORY);
-                if (historyComp != null) {
-                    this.HISTORY.clear();
-                    this.HISTORY.addAll(historyComp);
-                }
-                var favComp = stack.get(PortalGunComponents.PORTAL_FAVORITES);
-                if (favComp != null) {
-                    this.FAVORITES.clear();
-                    this.FAVORITES.addAll(favComp);
-                }
+            var historyComp = stack.get(PortalGunComponents.PORTAL_HISTORY);
+            if (historyComp != null) {
+                this.HISTORY.clear();
+                this.HISTORY.addAll(historyComp);
+            }
+            var favComp = stack.get(PortalGunComponents.PORTAL_FAVORITES);
+            if (favComp != null) {
+                this.FAVORITES.clear();
+                this.FAVORITES.addAll(favComp);
             }
         }
-        int leftPanelX = this.width / 4;
+        int centerX = this.width / 2;
         int centerY = this.height / 2;
-        setupMainUI(leftPanelX, centerY);
+        setupMainUI(centerX - PANEL_WIDTH - (GAPE / 2), centerY);
         refreshScrollablePanels();
     }
 
-    private void setupMainUI(int centerX, int centerY) {
+    private void setupMainUI(int leftX, int centerY) {
         PortalGunComponents.PortalCoords currentCoords = null;
         if (client.player != null) {
             ItemStack stack = client.player.getMainHandStack();
@@ -73,48 +72,54 @@ public class PortalGunScreen extends Screen {
             }
         }
 
+        int buttonSize = 20;
+        int textFieldWidth = PANEL_WIDTH - buttonSize - INNER_GAPE;
+
         // Поле кода
-        this.codeInput = new TextFieldWidget(this.textRenderer, centerX - 75, centerY - 65, 125, 20, Text.translatable("Code"));
+        this.codeInput = new TextFieldWidget(this.textRenderer, leftX, centerY - 65, textFieldWidth, 20, Text.empty());
         this.codeInput.setMaxLength(12);
-        this.codeInput.setText(this.displayedCode);
+        this.codeInput.setText(displayedCode);
         this.addDrawableChild(this.codeInput);
 
-        // Кнопка рандома
-        this.addDrawableChild(ButtonWidget.builder(Text.translatable("🎲"), b -> {
-            this.codeInput.setText(generateRandomCode(8));
-        }).dimensions(centerX + 55, centerY - 65, 20, 20).build());
+        // Кнопка рандома (зазор зафиксирован через INNER_GAPE)
+        this.addDrawableChild(ButtonWidget.builder(Text.literal("🎲"), b -> {
+            this.codeInput.setText(generateRandomCode(12));
+        }).dimensions(leftX + textFieldWidth + INNER_GAPE, centerY - 65, buttonSize, buttonSize).build());
 
-        // Поля координат
-        this.xInput = new TextFieldWidget(this.textRenderer, centerX - 75, centerY - 25, 40, 20, Text.translatable("X"));
-        this.yInput = new TextFieldWidget(this.textRenderer, centerX - 30, centerY - 25, 40, 20, Text.translatable("Y"));
-        this.zInput = new TextFieldWidget(this.textRenderer, centerX + 15, centerY - 25, 40, 20, Text.translatable("Z"));
+        // Поля координат (распределяем оставшееся место после вычета кнопки и зазора)
+        int coordsTotalWidth = textFieldWidth;
+        int fieldW = (coordsTotalWidth - 10) / 3; // 10 - это сумма мелких промежутков между X, Y и Z
+
+        this.xInput = new TextFieldWidget(this.textRenderer, leftX, centerY - 25, fieldW, 20, Text.literal("X"));
+        this.yInput = new TextFieldWidget(this.textRenderer, leftX + fieldW + 5, centerY - 25, fieldW, 20, Text.literal("Y"));
+        this.zInput = new TextFieldWidget(this.textRenderer, leftX + (fieldW + 5) * 2, centerY - 25, fieldW, 20, Text.literal("Z"));
 
         applyNumericFilter(xInput);
         applyNumericFilter(yInput);
         applyNumericFilter(zInput);
 
         if (currentCoords != null) {
-            this.xInput.setText(String.format("%.1f", currentCoords.x()).replace(',', '.'));
-            this.yInput.setText(String.format("%.1f", currentCoords.y()).replace(',', '.'));
-            this.zInput.setText(String.format("%.1f", currentCoords.z()).replace(',', '.'));
+            this.xInput.setText(formatCoord(currentCoords.x()));
+            this.yInput.setText(formatCoord(currentCoords.y()));
+            this.zInput.setText(formatCoord(currentCoords.z()));
         }
 
         this.addDrawableChild(this.xInput);
         this.addDrawableChild(this.yInput);
         this.addDrawableChild(this.zInput);
 
-        // Кнопка "Текущие координаты"
+        // Кнопка "Текущие координаты" (теперь зазор такой же, как у кнопки кода)
         this.addDrawableChild(ButtonWidget.builder(Text.literal("📍"), b -> {
             if (client.player != null) {
-                this.xInput.setText(String.format(java.util.Locale.ROOT, "%.1f", client.player.getX()));
-                this.yInput.setText(String.format(java.util.Locale.ROOT, "%.1f", client.player.getY()));
-                this.zInput.setText(String.format(java.util.Locale.ROOT, "%.1f", client.player.getZ()));
+                this.xInput.setText(formatCoord(client.player.getX()));
+                this.yInput.setText(formatCoord(client.player.getY()));
+                this.zInput.setText(formatCoord(client.player.getZ()));
             }
-        }).dimensions(centerX + 55, centerY - 25, 20, 20).build());
+        }).dimensions(leftX + textFieldWidth + INNER_GAPE, centerY - 25, buttonSize, buttonSize).build());
 
-        // Кнопка ввод
-        this.addDrawableChild(ButtonWidget.builder(Text.translatable("Ввод"), button -> submitData())
-                .dimensions(centerX - 40, centerY + 20, 80, 20)
+        // Кнопка ввод (теперь точно соответствует общей ширине полей и кнопок выше)
+        this.addDrawableChild(ButtonWidget.builder(Text.translatable("gui.infdimmod.portal_gun.submit"), button -> submitData())
+                .dimensions(leftX, centerY + 15, PANEL_WIDTH, 20)
                 .build());
     }
 
@@ -125,20 +130,19 @@ public class PortalGunScreen extends Screen {
         double y = parseDouble(yInput.getText());
         double z = parseDouble(zInput.getText());
         if (client.player != null) {
-            ItemStack stack = client.player.getMainHandStack();
-            if (stack.getItem() instanceof PortalGun) {
-                PortalGunComponents.PortalEntry newEntry = new PortalGunComponents.PortalEntry(code, x, y, z);
-                HISTORY.removeIf(e -> e.code().equals(code));
-                HISTORY.add(0, newEntry);
-                if (HISTORY.size() > MAX_HISTORY) {
-                    HISTORY.remove(HISTORY.size() - 1);
-                }
-                ClientPlayNetworking.send(new PortalCodePayload(code));
-                ClientPlayNetworking.send(new PortalCoordsPayload(x, y, z));
-                ClientPlayNetworking.send(new UpdatePortalHistoryPayload(new ArrayList<>(HISTORY)));
-                ClientPlayNetworking.send(new UpdatePortalFavoritesPayload(new ArrayList<>(FAVORITES)));
-                this.close();
-            }
+            PortalGunComponents.PortalEntry newEntry = new PortalGunComponents.PortalEntry(code, x, y, z);
+            // Исправленная логика истории: удаляем только если совпадает ВСЁ (код и координаты)
+            HISTORY.removeIf(e -> e.code().equals(code) &&
+                    Math.abs(e.x() - x) < 0.1 &&
+                    Math.abs(e.y() - y) < 0.1 &&
+                    Math.abs(e.z() - z) < 0.1);
+            HISTORY.add(0, newEntry);
+            if (HISTORY.size() > MAX_HISTORY) HISTORY.remove(HISTORY.size() - 1);
+            ClientPlayNetworking.send(new PortalCodePayload(code));
+            ClientPlayNetworking.send(new PortalCoordsPayload(x, y, z));
+            ClientPlayNetworking.send(new UpdatePortalHistoryPayload(new ArrayList<>(HISTORY)));
+            ClientPlayNetworking.send(new UpdatePortalFavoritesPayload(new ArrayList<>(FAVORITES)));
+            this.close();
         }
     }
 
@@ -146,51 +150,37 @@ public class PortalGunScreen extends Screen {
         scrollableButtons.forEach(this::remove);
         scrollableButtons.clear();
 
-        int rightX = (int) (this.width * 0.55);
-        int listWidth = (int) (this.width * 0.42);
+        int rightX = this.width / 2 + (GAPE / 2);
         int centerY = this.height / 2;
 
-        renderListWithScissor(FAVORITES, rightX, 25, (int) favScroll, MAX_VISIBLE_FAV, listWidth);
-        renderListWithScissor(HISTORY, rightX, centerY + 15, (int) histScroll, MAX_VISIBLE_HIST, listWidth);
+        renderList(FAVORITES, rightX, 30, (int) favScroll, MAX_VISIBLE);
+        renderList(HISTORY, rightX, centerY + 20, (int) histScroll, MAX_VISIBLE);
     }
 
-    private void renderListWithScissor(List<PortalGunComponents.PortalEntry> list, int x, int startY, int scroll, int maxVisible, int width) {
-        int listHeight = maxVisible * ENTRY_HEIGHT;
-
+    private void renderList(List<PortalGunComponents.PortalEntry> list, int x, int startY, int scroll, int maxVisible) {
         for (int i = 0; i < list.size(); i++) {
             int yPos = startY + (i * ENTRY_HEIGHT) - scroll;
-            if (yPos >= startY && (yPos + 20) <= (startY + listHeight)) {
-                addScrollableEntry(x, yPos, width, list.get(i));
+            if (yPos >= startY && (yPos + ENTRY_HEIGHT - 2) <= (startY + maxVisible * ENTRY_HEIGHT)) {
+                addScrollableEntry(x, yPos, list.get(i));
             }
         }
     }
 
-    private void renderList(List<PortalGunComponents.PortalEntry> list, int x, int startY, int scroll, int maxVisible, int width) {
-        for (int i = 0; i < list.size(); i++) {
-            int yPos = startY + (i * ENTRY_HEIGHT) - scroll;
-            if (yPos >= startY - 10 && yPos < startY + (maxVisible * ENTRY_HEIGHT)) {
-                addScrollableEntry(x, yPos, width, list.get(i));
-            }
-        }
-    }
-
-    private void addScrollableEntry(int x, int y, int width, PortalGunComponents.PortalEntry entry) {
-        // Форматируем текст для отображения и кода, и координат
-        String displayString = String.format("%s | %.0f, %.0f, %.0f", entry.code(), entry.x(), entry.y(), entry.z());
-
-        ButtonWidget btn = ButtonWidget.builder(Text.translatable(displayString), b -> {
+    private void addScrollableEntry(int x, int y, PortalGunComponents.PortalEntry entry) {
+        // Основная кнопка (пустая, текст рисуем вручную в render для контроля шрифта)
+        ButtonWidget btn = ButtonWidget.builder(Text.empty(), b -> {
             this.codeInput.setText(entry.code());
-            this.xInput.setText(String.valueOf(entry.x()));
-            this.yInput.setText(String.valueOf(entry.y()));
-            this.zInput.setText(String.valueOf(entry.z()));
-        }).dimensions(x, y, width - 25, 20).build();
+            this.xInput.setText(formatCoord(entry.x()));
+            this.yInput.setText(formatCoord(entry.y()));
+            this.zInput.setText(formatCoord(entry.z()));
+        }).dimensions(x, y, PANEL_WIDTH - 25, ENTRY_HEIGHT - 2).build();
 
-        boolean isFav = FAVORITES.stream().anyMatch(e -> e.code().equals(entry.code()));
-        ButtonWidget starBtn = ButtonWidget.builder(Text.translatable(isFav ? "★" : "☆"), b -> {
-            if (isFav) FAVORITES.removeIf(e -> e.code().equals(entry.code()));
+        boolean isFav = FAVORITES.stream().anyMatch(e -> e.code().equals(entry.code()) && e.x() == entry.x());
+        ButtonWidget starBtn = ButtonWidget.builder(Text.literal(isFav ? "★" : "☆"), b -> {
+            if (isFav) FAVORITES.removeIf(e -> e.code().equals(entry.code()) && e.x() == entry.x());
             else FAVORITES.add(0, entry);
             refreshScrollablePanels();
-        }).dimensions(x + width - 22, y, 20, 20).build();
+        }).dimensions(x + PANEL_WIDTH - 22, y, 20, ENTRY_HEIGHT - 2).build();
 
         this.addDrawableChild(btn);
         this.addDrawableChild(starBtn);
@@ -214,47 +204,61 @@ public class PortalGunScreen extends Screen {
         try { return Double.parseDouble(value.replace(',', '.')); } catch (Exception e) { return 0.0; }
     }
 
+    private String formatCoord(double val) {
+        return String.format(java.util.Locale.ROOT, "%.1f", val);
+    }
+
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         this.renderBackground(context, mouseX, mouseY, delta);
         super.render(context, mouseX, mouseY, delta);
 
-        int leftCenterX = this.width / 4;
-        int rightX = (int) (this.width * 0.55);
-        int listWidth = (int) (this.width * 0.42);
+        int centerX = this.width / 2;
+        int leftX = centerX - PANEL_WIDTH - (GAPE / 2);
+        int rightX = centerX + (GAPE / 2);
         int centerY = this.height / 2;
 
-        context.drawCenteredTextWithShadow(this.textRenderer, "Настройка портала", leftCenterX, centerY - 85, 0x00FFFF);
-        context.drawTextWithShadow(this.textRenderer, "Избранное", rightX, 10, 0xAAAAAA);
-        context.drawTextWithShadow(this.textRenderer, "История", rightX, centerY, 0xAAAAAA);
+        // Заголовки
+        context.drawCenteredTextWithShadow(this.textRenderer, Text.translatable("gui.infdimmod.portal_gun.settings"), leftX + PANEL_WIDTH/2, centerY - 85, 0x00FFFF);
+        context.drawTextWithShadow(this.textRenderer, Text.translatable("gui.infdimmod.portal_gun.favorites"), rightX, 15, 0xAAAAAA);
+        context.drawTextWithShadow(this.textRenderer, Text.translatable("gui.infdimmod.portal_gun.history"), rightX, centerY + 5, 0xAAAAAA);
 
-        drawScrollBar(context, rightX + listWidth + 2, 25, MAX_VISIBLE_FAV * ENTRY_HEIGHT, favScroll, FAVORITES.size(), MAX_VISIBLE_FAV);
-        drawScrollBar(context, rightX + listWidth + 2, centerY + 15, MAX_VISIBLE_HIST * ENTRY_HEIGHT, histScroll, HISTORY.size(), MAX_VISIBLE_HIST);
+        // Ручная отрисовка текста в кнопках истории (для двух строчек и разного размера)
+        renderEntryLabels(context, FAVORITES, rightX, 30, (int) favScroll);
+        renderEntryLabels(context, HISTORY, rightX, centerY + 20, (int) histScroll);
+    }
+
+    private void renderEntryLabels(DrawContext context, List<PortalGunComponents.PortalEntry> list, int x, int startY, int scroll) {
+        for (int i = 0; i < list.size(); i++) {
+            int yPos = startY + (i * ENTRY_HEIGHT) - scroll;
+            if (yPos >= startY && (yPos + ENTRY_HEIGHT - 5) <= (startY + MAX_VISIBLE * ENTRY_HEIGHT)) {
+                PortalGunComponents.PortalEntry e = list.get(i);
+                // Код (Обычный шрифт)
+                context.drawText(this.textRenderer, e.code(), x + 5, yPos + 3, 0xFFFFFF, false);
+
+                // Координаты (Мелкий шрифт)
+                context.getMatrices().push();
+                context.getMatrices().translate(x + 5, yPos + 14, 0);
+                context.getMatrices().scale(0.75f, 0.75f, 1.0f);
+                String coords = String.format("X: %.1f Y: %.1f Z: %.1f", e.x(), e.y(), e.z());
+                context.drawText(this.textRenderer, coords, 0, 0, 0xAAAAAA, false);
+                context.getMatrices().pop();
+            }
+        }
     }
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-        double scrollDelta = verticalAmount * 7;
-        if (mouseY < this.height / 2) {
-            favScroll = clampScroll(favScroll - scrollDelta, FAVORITES.size(), MAX_VISIBLE_FAV);
-        } else {
-            histScroll = clampScroll(histScroll - scrollDelta, HISTORY.size(), MAX_VISIBLE_HIST);
-        }
+        double delta = verticalAmount * 10;
+        if (mouseY < this.height / 2) favScroll = clampScroll(favScroll - delta, FAVORITES.size());
+        else histScroll = clampScroll(histScroll - delta, HISTORY.size());
         refreshScrollablePanels();
         return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
     }
 
-    private double clampScroll(double current, int size, int visible) {
-        int max = Math.max(0, (size - visible) * ENTRY_HEIGHT);
+    private double clampScroll(double current, int size) {
+        int max = Math.max(0, (size - MAX_VISIBLE) * ENTRY_HEIGHT);
         return Math.max(0, Math.min(current, max));
-    }
-
-    private void drawScrollBar(DrawContext context, int x, int y, int height, double scroll, int total, int visible) {
-        if (total <= visible) return;
-        int barHeight = (int) ((double) visible / total * height);
-        int barPos = (int) (scroll / (total * ENTRY_HEIGHT) * height);
-        context.fill(x, y, x + 2, y + height, 0x80000000);
-        context.fill(x, y + barPos, x + 2, y + barPos + barHeight, 0xFFFFFFFF);
     }
 
     @Override

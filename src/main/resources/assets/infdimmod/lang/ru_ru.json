@@ -13,5 +13,11 @@
   "category.infdimmod.controls": "InfDimMod",
   "item.infdimmod.portal_fluid_bucket": "Ведро портальной жидкости",
   "key.infdimmod.toggle_mode": "Переключить режим портальной пушки",
-  "container.portal_gun_crafter": "Создать портальную пушку"
+  "container.portal_gun_crafter": "Создать портальную пушку",
+  "gui.infdimmod.portal_gun.title": "Портальная пушка",
+  "gui.infdimmod.portal_gun.settings": "Настройка портала",
+  "gui.infdimmod.portal_gun.favorites": "Избранное",
+  "gui.infdimmod.portal_gun.history": "История",
+  "gui.infdimmod.portal_gun.submit": "Ввод"
+
 }
