@@ -59,23 +59,22 @@ public record PortalGunComponents(String portalcode) {
                     .codec(PortalCoords.CODEC)
                     .build();
 
-    // Режим пушки
+    // режим
     public static final ComponentType<Boolean> PORTAL_GUN_MODE =
             ComponentType.<Boolean>builder().codec(Codec.BOOL).build();
 
-    // История
+    // хистори
     public static final ComponentType<List<PortalEntry>> PORTAL_HISTORY =
             ComponentType.<List<PortalEntry>>builder()
                     .codec(PortalEntry.CODEC.listOf())
                     .build();
 
-    // Избранное
+    // избранное
     public static final ComponentType<List<PortalEntry>> PORTAL_FAVORITES =
             ComponentType.<List<PortalEntry>>builder()
                     .codec(PortalEntry.CODEC.listOf())
                     .build();
 
-    // Регистрация всех компонентов
     public static void register() {
         Registry.register(
                 Registries.DATA_COMPONENT_TYPE,

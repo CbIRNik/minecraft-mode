@@ -21,14 +21,13 @@ public class PortalFluidBlock extends FluidBlock {
     public void onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity) {
         if (!world.isClient) {
             if (entity instanceof LivingEntity livingEntity) {
-            // Накладываем эффект отравления при касании
             livingEntity.addStatusEffect(new StatusEffectInstance(
                     StatusEffects.POISON,
-                    40, // 2 секунд
-                    9,   // Уровень X
-                    false, // не от амбьена
-                    false,  // не показывает частицы
-                    false   // не показывает иконку
+                    40,
+                    9,
+                    false,
+                    false,
+                    false
             ));}
 
             if (entity instanceof ItemEntity itemEntity) {

@@ -68,7 +68,6 @@ public class PortalGun extends Item {
                 return TypedActionResult.pass(stack);
             }
             if (getPortalCode(stack) == "¯\\_(ツ)_/¯"){return TypedActionResult.pass(stack);}
-            // базовые вектора для обоих режимов
             Vec3d eyePos = user.getEyePos();
             Vec3d lookVec = user.getRotationVec(1.0F);
             Vec3d rightVec = lookVec.crossProduct(new Vec3d(0, 1, 0)).normalize();
@@ -104,7 +103,6 @@ public class PortalGun extends Item {
                 Vec3d directionToPlayer = eyePos.subtract(hitPos).normalize();
                 targetPos = hitPos.add(directionToPlayer); //смещение от стеныdirectionToPlayer.multiply(0.75)
 
-                // расчет времени
                 double distance = startPos.distanceTo(targetPos);
                 double speedFactor = 4.5;
                 flightTicks = (int) Math.max(2, Math.round(distance / speedFactor));

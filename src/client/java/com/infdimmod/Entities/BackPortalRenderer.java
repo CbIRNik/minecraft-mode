@@ -32,13 +32,11 @@ public class BackPortalRenderer extends EntityRenderer<BackPortal> {
         int ticksPerFrame = 6;
         int currentFrame = (entity.getAge() / ticksPerFrame) % frameCount;
 
-        // Рассчитываем UV-координаты для текущего кадра
         float vMin = (float) currentFrame / frameCount;
         float vMax = (float) (currentFrame + 1) / frameCount;
 
         VertexConsumer buffer = vertexConsumers.getBuffer(RenderLayer.getEntityCutout(TEXTURE));
 
-        // Передаем vMin и vMax в отрисовку
         drawRect(matrices.peek(), buffer, 0.5f, light, 255, vMin, vMax);
 
         matrices.pop();
@@ -50,13 +48,13 @@ public class BackPortalRenderer extends EntityRenderer<BackPortal> {
         float halfW = size * 1.125f; //18 пикселей
         float halfH = size * 1.875f;// 30 пикселей
 
-        // Лицевая сторона (используем vMin и vMax вместо 0 и 1)
+        // лицевая
         drawVertex(entry, buffer, -halfW, -halfH, light, 0, vMax, alpha);
         drawVertex(entry, buffer,  halfW, -halfH, light, 1, vMax, alpha);
         drawVertex(entry, buffer,  halfW,  halfH, light, 1, vMin, alpha);
         drawVertex(entry, buffer, -halfW,  halfH, light, 0, vMin, alpha);
 
-        // Задняя сторона
+        // задняя
         drawVertex(entry, buffer, -halfW,  halfH, light, 0, vMin, alpha);
         drawVertex(entry, buffer,  halfW,  halfH, light, 1, vMin, alpha);
         drawVertex(entry, buffer,  halfW, -halfH, light, 1, vMax, alpha);

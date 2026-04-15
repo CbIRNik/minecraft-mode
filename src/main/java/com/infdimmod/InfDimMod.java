@@ -86,7 +86,6 @@ public class InfDimMod implements ModInitializer {
         });
 
         //пакет координат
-        // Регистрируем тип пакета (Client to Server)
         PayloadTypeRegistry.playC2S().register(PortalCoordsPayload.ID, PortalCoordsPayload.CODEC);
 
         ServerPlayNetworking.registerGlobalReceiver(PortalCoordsPayload.ID, (payload, context) -> {

@@ -1,10 +1,7 @@
 package com.infdimmod.mixin;
 
 import com.infdimmod.Blocks.ModBlocks;
-import com.infdimmod.Blocks.custom.PortalFluid;
-import com.infdimmod.Blocks.custom.PortalFluidBlock;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.FluidBlock;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
@@ -71,27 +68,20 @@ public abstract class PortalFluidMixin extends Entity {
         float farch = 0.062f;
         Vec3d velocity = entity.getVelocity();
 
-        //Обработка вертикального движения (всплытие/погружение)
         if (this.jumping) {
-            // При прыжке - всплываем
             velocity = velocity.add(0, 0.1f, 0);
             this.setVelocity(velocity);
         } else {
-            // Без прыжка - медленно тонем или остаемся на плаву
             velocity = velocity.add(0, farch, 0);
             this.setVelocity(velocity);
         }
-        //Применяем сопротивление жидкости (замедление движения)
         velocity = velocity.multiply(dragCoefficient, 0.7, dragCoefficient);
-        //Ограничиваем максимальную скорость в жидкости
         double maxSpeed = 0.2;
         if (velocity.length() > maxSpeed) {
             velocity = velocity.normalize().multiply(maxSpeed);
         }
-        //Устанавливаем финальную скорость и перемещаем сущность
         this.setVelocity(velocity);
         this.move(MovementType.SELF, this.getVelocity());
-        //Сбрасываем прыжок после обработки
         this.jumping = false;
     }
 }

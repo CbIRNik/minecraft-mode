@@ -10,7 +10,4 @@ public class Sosiska {
             .nutrition(2)
             .statusEffect(new StatusEffectInstance(StatusEffects.STRENGTH, 6 * 20, 1), 1.0f)
             .build();
-
-
-
 }

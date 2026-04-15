@@ -73,7 +73,7 @@ public class PortalGunCrafterEntity extends BlockEntity implements NamedScreenHa
     @Override
     public void setStack(int slot, ItemStack stack) {
         getItems().set(slot, stack);
-        if (slot < 6) { // Если изменили ингредиент
+        if (slot < 6) {
             updateResult();
         }
         markDirty();

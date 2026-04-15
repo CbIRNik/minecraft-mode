@@ -44,19 +44,16 @@ public class GreenPortalRenderer extends EntityRenderer<GreenPortal> {
         int ticksPerFrame = 6;
         int currentFrame = (entity.getAge() / ticksPerFrame) % frameCount;
 
-        // Рассчитываем UV-координаты для текущего кадра
         float vMin = (float) currentFrame / frameCount;
         float vMax = (float) (currentFrame + 1) / frameCount;
 
         VertexConsumer buffer = vertexConsumers.getBuffer(RenderLayer.getEntityCutout(TEXTURE));
 
-        // Передаем vMin и vMax в отрисовку
         drawRect(matrices.peek(), buffer, 0.5f, light, 255, vMin, vMax);
 
         matrices.pop();
 
         // шлейф
-
         int maxAge = entity.getMaxAge();
         int currentAge = entity.getAge();
 
@@ -77,7 +74,6 @@ public class GreenPortalRenderer extends EntityRenderer<GreenPortal> {
                     Identifier trailTexture = TRAIL_TEXTURES.get(i);
                     VertexConsumer trailBuffer = vertexConsumers.getBuffer(RenderLayer.getEntityTranslucent(trailTexture));
 
-                    // Рассчитываем положение конкретного сегмента шлейфа
                     float segmentT = (float)(i + 1) / (numTrails + 1);
 
                     matrices.push();
@@ -104,13 +100,13 @@ public class GreenPortalRenderer extends EntityRenderer<GreenPortal> {
     }
 
     private void drawQuad(MatrixStack.Entry entry, VertexConsumer buffer, float size, int light, int alpha) {
-        // Лицевая сторона
+        // лицевая
         drawVertex(entry, buffer, -size, -size, light, 0, 1, alpha);
         drawVertex(entry, buffer, size, -size, light, 1, 1, alpha);
         drawVertex(entry, buffer, size, size, light, 1, 0, alpha);
         drawVertex(entry, buffer, -size, size, light, 0, 0, alpha);
 
-        // Задняя сторона
+        // задняя
         drawVertex(entry, buffer, -size, size, light, 0, 0, alpha);
         drawVertex(entry, buffer, size, size, light, 1, 0, alpha);
         drawVertex(entry, buffer, size, -size, light, 1, 1, alpha);
@@ -123,13 +119,13 @@ public class GreenPortalRenderer extends EntityRenderer<GreenPortal> {
         float halfW = size * 1.125f; //18 пикселей
         float halfH = size * 1.875f;// 30 пикселей
 
-        // Лицевая сторона (используем vMin и vMax вместо 0 и 1)
+        // лицевая
         drawVertex(entry, buffer, -halfW, -halfH, light, 0, vMax, alpha);
         drawVertex(entry, buffer,  halfW, -halfH, light, 1, vMax, alpha);
         drawVertex(entry, buffer,  halfW,  halfH, light, 1, vMin, alpha);
         drawVertex(entry, buffer, -halfW,  halfH, light, 0, vMin, alpha);
 
-        // Задняя сторона
+        // задняя
         drawVertex(entry, buffer, -halfW,  halfH, light, 0, vMin, alpha);
         drawVertex(entry, buffer,  halfW,  halfH, light, 1, vMin, alpha);
         drawVertex(entry, buffer,  halfW, -halfH, light, 1, vMax, alpha);

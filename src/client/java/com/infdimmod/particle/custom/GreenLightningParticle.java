@@ -17,10 +17,9 @@ public class GreenLightningParticle extends SpriteBillboardParticle {
         super(world, x, y, z, vx, vy, vz);
         this.spriteProvider = spriteProvider;
         this.maxAge = 4;
-        this.scale = 0.1f; // размер
+        this.scale = 0.1f;
         this.fixedRoll = world.random.nextFloat() * ((float)Math.PI * 2f);
 
-        // случайный кадр при появлении
         int startFrame = world.random.nextInt(8);
         this.setSprite(spriteProvider.getSprite(startFrame, 8));
     }
@@ -31,7 +30,6 @@ public class GreenLightningParticle extends SpriteBillboardParticle {
         float ly = (float)(MathHelper.lerp(tickDelta, this.prevPosY, this.y) - camera.getPos().y);
         float lz = (float)(MathHelper.lerp(tickDelta, this.prevPosZ, this.z) - camera.getPos().z);
 
-        // Рисуем две пересекающиеся плоскости для объема
         renderPlane(buffer, lx, ly, lz, fixedRoll, tickDelta);
         renderPlane(buffer, lx, ly, lz, fixedRoll + (float)Math.PI / 2f, tickDelta);
     }
@@ -75,7 +73,6 @@ public class GreenLightningParticle extends SpriteBillboardParticle {
     public void tick() {
         super.tick();
         if (this.age < this.maxAge) {
-            // случайное движение
             this.velocityX += (this.random.nextFloat() - 0.5f) * 0.02f;
             this.velocityY += (this.random.nextFloat() - 0.5f) * 0.02f;
             this.velocityZ += (this.random.nextFloat() - 0.5f) * 0.02f;

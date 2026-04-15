@@ -9,7 +9,6 @@ import net.minecraft.util.Identifier;
 public record PortalCodePayload(String code) implements CustomPayload {
     public static final Id<PortalCodePayload> ID = new Id<>(Identifier.of("infdimmod", "portal_code_packet"));
 
-    // Кодек для сериализации строки в байты
     public static final PacketCodec<RegistryByteBuf, PortalCodePayload> CODEC = PacketCodec.tuple(
             PacketCodecs.STRING, PortalCodePayload::code,
             PortalCodePayload::new

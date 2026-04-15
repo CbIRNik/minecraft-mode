@@ -35,7 +35,7 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
 
     private final long worldSeed;
     private final List<BlockState> palette = new ArrayList<>();
-    private final double[] mathConstants = new double[10]; // Увеличили количество констант для сложности
+    private final double[] mathConstants = new double[10];
 
     private final double xSpread, ySpread, zSpread;
     private final double noiseThreshold;
@@ -46,22 +46,17 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
         this.worldSeed = seed;
         Random r = new Random(seed);
 
-        // Заполняем палитру (как в прошлом шаге)
         int paletteSize = 5 + r.nextInt(11);
         for (int i = 0; i < paletteSize; i++) {
             palette.add(pickStableBlock(r));
         }
 
-        // --- ГЕНОМ МИРА ---
-        // Эти параметры определяют ТИП ландшафта
         this.xSpread = 0.01 + r.nextDouble() * 0.08;
         this.ySpread = 0.01 + r.nextDouble() * 0.08;
         this.zSpread = 0.01 + r.nextDouble() * 0.08;
 
-        // Порог плотности (0.1 - пустота с редкими островами, 0.8 - монолит с дырами)
         this.noiseThreshold = 0.1 + r.nextDouble() * 0.7;
 
-        // Сила искривления (0 - прямые стены/плиты, 5.0+ - безумные узлы)
         this.distortion = r.nextDouble() * 7.0;
 
         for (int i = 0; i < mathConstants.length; i++) {
@@ -82,21 +77,15 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
                 for (int y = chunk.getBottomY(); y < chunk.getTopY(); y++) {
                     double ry = y * ySpread;
 
-                    // 1. Вносим деформацию координат (Domain Warping)
-                    // Это превращает "сетку" в плавные органические формы
                     double dx = Math.sin(ry * mathConstants[0] + rz * mathConstants[1]) * distortion;
                     double dy = Math.cos(rx * mathConstants[2] + rz * mathConstants[3]) * distortion;
                     double dz = Math.sin(rx * mathConstants[4] + ry * mathConstants[5]) * distortion;
 
-                    // 2. Основная формула шума с учетом деформации
                     double noise = Math.sin(rx + dx) + Math.cos(ry + dy) + Math.sin(rz + dz);
 
-                    // Добавляем "второй слой" для детализации (микро-рельеф)
                     noise += (Math.sin(rx * 3) * Math.cos(rz * 3) * Math.sin(ry * 3)) * 0.5;
 
-                    // 3. Фильтрация по порогу
                     if (noise > noiseThreshold) {
-                        // Выбор блока на основе высоты и шума для эффекта слоистости
                         int blockIndex = (int) (Math.abs(noise * 5 + (y * 0.1)) % palette.size());
                         chunk.setBlockState(mutable.set(x, y, z), palette.get(blockIndex), false);
                     }
@@ -123,7 +112,6 @@ public class DeterministicChaosGenerator extends ChunkGenerator {
         return Blocks.STONE.getDefaultState();
     }
 
-    // --- Остальные методы без изменений (carve, buildSurface, etc.) ---
     @Override public void carve(ChunkRegion chunkRegion, long seed, NoiseConfig noiseConfig, BiomeAccess biomeAccess, StructureAccessor structureAccessor, Chunk chunk, GenerationStep.Carver carverStep) {}
     @Override protected MapCodec<? extends ChunkGenerator> getCodec() { return CODEC; }
     @Override public void buildSurface(ChunkRegion region, StructureAccessor structures, NoiseConfig noiseConfig, Chunk chunk) {}

@@ -25,13 +25,11 @@ public abstract class EntityMixin implements IEntityTeleportTracker {
         this.lastTeleportTick = tick;
     }
 
-    // Используем базовые методы записи NBT для Entity
     @Inject(method = "writeNbt", at = @At("TAIL"))
     private void writeTeleportData(NbtCompound nbt, CallbackInfoReturnable<NbtCompound> cir) {
         nbt.putLong("infdimmod_last_tp", lastTeleportTick);
     }
 
-    // Используем базовые методы чтения NBT для Entity
     @Inject(method = "readNbt", at = @At("TAIL"))
     private void readTeleportData(NbtCompound nbt, CallbackInfo ci) {
         if (nbt.contains("infdimmod_last_tp")) {

@@ -1,21 +1,19 @@
 package com.infdimmod.Entities.custom;
 
 import com.infdimmod.Entities.ModEntities;
-import com.infdimmod.items.custom.portalgun.PortalGunComponents;
 import com.infdimmod.particle.ModParticles;
 import com.infdimmod.util.IEntityTeleportTracker;
-import com.infdimmod.world.generator.DeterministicChaosGenerator;
+import com.infdimmod.world.generator.DimTypeRegistry;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
@@ -23,12 +21,16 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
+import net.minecraft.world.biome.Biome;
 import net.minecraft.world.dimension.DimensionTypes;
+import net.minecraft.world.gen.chunk.ChunkGenerator;
 import org.joml.Vector3f;
 import xyz.nucleoid.fantasy.Fantasy;
 import xyz.nucleoid.fantasy.RuntimeWorldConfig;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.UUID;
 
 public class GreenPortal extends Entity {
     private static final TrackedData<Vector3f> PORTAL_TARGET_VEC = DataTracker.registerData(GreenPortal.class, TrackedDataHandlerRegistry.VECTOR3F);
@@ -250,60 +252,57 @@ public class GreenPortal extends Entity {
     }
 
     private ServerWorld resolveTargetWorld(MinecraftServer server, String targetCode) {
-        RegistryKey<World> vanillaKey = switch (targetCode) {
+        RegistryKey<World> vanillaKey = switch (targetCode.toLowerCase()) {
             case "overworld" -> World.OVERWORLD;
-            case "nether", "the_nether" -> World.NETHER;
-            case "end", "the_end" -> World.END;
+            case "nether" -> World.NETHER;
+            case "end" -> World.END;
             default -> null;
         };
-
         if (vanillaKey != null) return server.getWorld(vanillaKey);
 
-        Identifier potentialId = Identifier.tryParse(targetCode);
-        if (potentialId != null && targetCode.contains(":")) {
-            ServerWorld world = server.getWorld(RegistryKey.of(RegistryKeys.WORLD, potentialId));
-            if (world != null) return world;
-        }
+        String fullCode = targetCode.length() < 12 ? (targetCode + "000000000000").substring(0, 12) : targetCode;
+        String typeCode = fullCode.substring(1, 3);
+        long targetSeed = this.getSeedFromCode(fullCode);
 
-        long targetSeed = this.getSeedFromCode(targetCode);
-        Identifier targetDimId = Identifier.of("infdimmod", "dim_" + targetSeed);
+        Identifier targetDimId = Identifier.of("infdimmod", "dim_" + fullCode.toLowerCase());
         Fantasy fantasy = Fantasy.get(server);
 
-        ServerWorld overworld = server.getOverworld();
-        GameRules overworldRules = overworld.getGameRules();
-        var biomeSource = overworld.getChunkManager().getChunkGenerator().getBiomeSource();
+        RegistryWrapper.Impl<Biome> biomeLookup = server.getRegistryManager().getWrapperOrThrow(RegistryKeys.BIOME);
+
+        ChunkGenerator generator = DimTypeRegistry.get(typeCode).createGenerator(server, targetSeed, biomeLookup);
+
         RuntimeWorldConfig config = new RuntimeWorldConfig()
                 .setDimensionType(DimensionTypes.OVERWORLD)
                 .setSeed(targetSeed)
-                .setGenerator(new DeterministicChaosGenerator(biomeSource, targetSeed));
+                .setGenerator(generator);
 
-        overworldRules.accept(new GameRules.Visitor() {
-            @Override
-            public <T extends GameRules.Rule<T>> void visit(GameRules.Key<T> key, GameRules.Type<T> type) {
-                if (key == GameRules.SPAWN_CHUNK_RADIUS) {
-                    config.setGameRule(GameRules.SPAWN_CHUNK_RADIUS, 0);
-                    return;
-                }
-
-                T rule = overworldRules.get(key);
-                if (rule instanceof GameRules.BooleanRule boolRule) {
-                    config.setGameRule((GameRules.Key<GameRules.BooleanRule>) key, boolRule.get());
-                } else if (rule instanceof GameRules.IntRule intRule) {
-                    config.setGameRule((GameRules.Key<GameRules.IntRule>) key, intRule.get());
-                }
-            }
-        });
+        copyGameRules(server.getOverworld().getGameRules(), config);
 
         return fantasy.getOrOpenPersistentWorld(targetDimId, config).asWorld();
     }
 
+    private void copyGameRules(GameRules source, RuntimeWorldConfig targetConfig) {
+        source.accept(new GameRules.Visitor() {
+            @Override
+            public <T extends GameRules.Rule<T>> void visit(GameRules.Key<T> key, GameRules.Type<T> type) {
+                if (key == GameRules.SPAWN_CHUNK_RADIUS) {
+                    targetConfig.setGameRule(GameRules.SPAWN_CHUNK_RADIUS, 0);
+                    return;
+                }
+
+                T rule = source.get(key);
+                if (rule instanceof GameRules.BooleanRule boolRule) {
+                    targetConfig.setGameRule((GameRules.Key<GameRules.BooleanRule>) key, boolRule.get());
+                } else if (rule instanceof GameRules.IntRule intRule) {
+                    targetConfig.setGameRule((GameRules.Key<GameRules.IntRule>) key, intRule.get());
+                }
+            }
+        });
+    }
+
     public long getSeedFromCode(String code) {
-        if (code == null) return 0L;
-        long hash = 7;
-        for (int i = 0; i < code.length(); i++) {
-            hash = 31 * hash + code.charAt(i);
-        }
-        return hash;
+        if (code == null || code.isEmpty()) return 0L;
+        return UUID.nameUUIDFromBytes(code.getBytes(StandardCharsets.UTF_8)).getMostSignificantBits();
     }
 
     private void setChunkForceLoaded(boolean forced) {
