@@ -29,8 +29,8 @@ public class PortalGunScreen extends Screen {
 
     private final int ENTRY_HEIGHT = 28;
     private final int MAX_VISIBLE = 5;
-    private final int PANEL_WIDTH = 220;
-    private final int GAPE = 30;
+    private final int PANEL_WIDTH = 230;
+    private final int GAPE = 15;
     private final int INNER_GAPE = 4;
     private double favScroll = 0;
     private double histScroll = 0;
@@ -79,6 +79,7 @@ public class PortalGunScreen extends Screen {
         this.codeInput = new TextFieldWidget(this.textRenderer, leftX, centerY - 65, textFieldWidth, 20, Text.empty());
         this.codeInput.setMaxLength(12);
         this.codeInput.setText(displayedCode);
+        this.codeInput.setTextPredicate(s -> s.matches("^[a-zA-Z0-9]*$"));
         this.addDrawableChild(this.codeInput);
 
         // Кнопка рандома (зазор зафиксирован через INNER_GAPE)

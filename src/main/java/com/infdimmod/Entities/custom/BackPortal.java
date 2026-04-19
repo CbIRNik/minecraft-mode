@@ -219,7 +219,18 @@ public class BackPortal extends Entity {
 
     public long getSeedFromCode(String code) {
         if (code == null || code.isEmpty()) return 0L;
-        return UUID.nameUUIDFromBytes(code.getBytes(StandardCharsets.UTF_8)).getMostSignificantBits();
+        String Code = code.toUpperCase(java.util.Locale.ROOT).replaceAll("[^A-Z0-9]", "0");
+        if (Code.length() < 12) {
+            Code = String.format("%12s", Code).replace(' ', '0');
+        } else if (Code.length() > 12) {
+            Code = Code.substring(0, 12);
+        }
+        try {
+            long rawVal = Long.parseLong(Code, 36);
+            return 4_000_000_000_000_000_000L + rawVal;
+        } catch (NumberFormatException e) {
+            return (long) Code.hashCode();
+        }
     }
 
     private void setChunkForceLoaded(boolean forced) {
