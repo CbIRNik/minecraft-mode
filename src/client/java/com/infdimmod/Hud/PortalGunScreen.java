@@ -75,21 +75,18 @@ public class PortalGunScreen extends Screen {
         int buttonSize = 20;
         int textFieldWidth = PANEL_WIDTH - buttonSize - INNER_GAPE;
 
-        // Поле кода
         this.codeInput = new TextFieldWidget(this.textRenderer, leftX, centerY - 65, textFieldWidth, 20, Text.empty());
         this.codeInput.setMaxLength(12);
         this.codeInput.setText(displayedCode);
-        this.codeInput.setTextPredicate(s -> s.matches("^[a-zA-Z0-9]*$"));
+        this.codeInput.setTextPredicate(s -> s.matches("^[a-z0-9]*$"));
         this.addDrawableChild(this.codeInput);
 
-        // Кнопка рандома (зазор зафиксирован через INNER_GAPE)
         this.addDrawableChild(ButtonWidget.builder(Text.literal("🎲"), b -> {
             this.codeInput.setText(generateRandomCode(12));
         }).dimensions(leftX + textFieldWidth + INNER_GAPE, centerY - 65, buttonSize, buttonSize).build());
 
-        // Поля координат (распределяем оставшееся место после вычета кнопки и зазора)
         int coordsTotalWidth = textFieldWidth;
-        int fieldW = (coordsTotalWidth - 10) / 3; // 10 - это сумма мелких промежутков между X, Y и Z
+        int fieldW = (coordsTotalWidth - 10) / 3;
 
         this.xInput = new TextFieldWidget(this.textRenderer, leftX, centerY - 25, fieldW, 20, Text.literal("X"));
         this.yInput = new TextFieldWidget(this.textRenderer, leftX + fieldW + 5, centerY - 25, fieldW, 20, Text.literal("Y"));
@@ -109,7 +106,6 @@ public class PortalGunScreen extends Screen {
         this.addDrawableChild(this.yInput);
         this.addDrawableChild(this.zInput);
 
-        // Кнопка "Текущие координаты" (теперь зазор такой же, как у кнопки кода)
         this.addDrawableChild(ButtonWidget.builder(Text.literal("📍"), b -> {
             if (client.player != null) {
                 this.xInput.setText(formatCoord(client.player.getX()));
@@ -118,7 +114,6 @@ public class PortalGunScreen extends Screen {
             }
         }).dimensions(leftX + textFieldWidth + INNER_GAPE, centerY - 25, buttonSize, buttonSize).build());
 
-        // Кнопка ввод (теперь точно соответствует общей ширине полей и кнопок выше)
         this.addDrawableChild(ButtonWidget.builder(Text.translatable("gui.infdimmod.portal_gun.submit"), button -> submitData())
                 .dimensions(leftX, centerY + 15, PANEL_WIDTH, 20)
                 .build());
@@ -132,7 +127,6 @@ public class PortalGunScreen extends Screen {
         double z = parseDouble(zInput.getText());
         if (client.player != null) {
             PortalGunComponents.PortalEntry newEntry = new PortalGunComponents.PortalEntry(code, x, y, z);
-            // Исправленная логика истории: удаляем только если совпадает ВСЁ (код и координаты)
             HISTORY.removeIf(e -> e.code().equals(code) &&
                     Math.abs(e.x() - x) < 0.1 &&
                     Math.abs(e.y() - y) < 0.1 &&
@@ -168,7 +162,6 @@ public class PortalGunScreen extends Screen {
     }
 
     private void addScrollableEntry(int x, int y, PortalGunComponents.PortalEntry entry) {
-        // Основная кнопка (пустая, текст рисуем вручную в render для контроля шрифта)
         ButtonWidget btn = ButtonWidget.builder(Text.empty(), b -> {
             this.codeInput.setText(entry.code());
             this.xInput.setText(formatCoord(entry.x()));
@@ -190,7 +183,7 @@ public class PortalGunScreen extends Screen {
     }
 
     private String generateRandomCode(int length) {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        String chars = "abcdefghijklmnopqrstuvwxyz0123456789";
         Random rnd = new Random();
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < length; i++) sb.append(chars.charAt(rnd.nextInt(chars.length())));
@@ -219,12 +212,10 @@ public class PortalGunScreen extends Screen {
         int rightX = centerX + (GAPE / 2);
         int centerY = this.height / 2;
 
-        // Заголовки
         context.drawCenteredTextWithShadow(this.textRenderer, Text.translatable("gui.infdimmod.portal_gun.settings"), leftX + PANEL_WIDTH/2, centerY - 85, 0x00FFFF);
         context.drawTextWithShadow(this.textRenderer, Text.translatable("gui.infdimmod.portal_gun.favorites"), rightX, 15, 0xAAAAAA);
         context.drawTextWithShadow(this.textRenderer, Text.translatable("gui.infdimmod.portal_gun.history"), rightX, centerY + 5, 0xAAAAAA);
 
-        // Ручная отрисовка текста в кнопках истории (для двух строчек и разного размера)
         renderEntryLabels(context, FAVORITES, rightX, 30, (int) favScroll);
         renderEntryLabels(context, HISTORY, rightX, centerY + 20, (int) histScroll);
     }
@@ -234,10 +225,8 @@ public class PortalGunScreen extends Screen {
             int yPos = startY + (i * ENTRY_HEIGHT) - scroll;
             if (yPos >= startY && (yPos + ENTRY_HEIGHT - 5) <= (startY + MAX_VISIBLE * ENTRY_HEIGHT)) {
                 PortalGunComponents.PortalEntry e = list.get(i);
-                // Код (Обычный шрифт)
                 context.drawText(this.textRenderer, e.code(), x + 5, yPos + 3, 0xFFFFFF, false);
 
-                // Координаты (Мелкий шрифт)
                 context.getMatrices().push();
                 context.getMatrices().translate(x + 5, yPos + 14, 0);
                 context.getMatrices().scale(0.75f, 0.75f, 1.0f);
