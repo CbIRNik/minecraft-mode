@@ -46,7 +46,7 @@ public class DimTypeRegistry {
 
         double veinFrequency = (getDigit(seed, 7) * 0.2) - 1.0;
         double veinThickness = 0.5 + (getDigit(seed, 8) * 0.5);
-        double veinGap = (getDigit(seed, 9) * 0.1); // Новая прерывистость жил
+        double veinGap = (getDigit(seed, 9) * 0.1);
 
         int seaLevel = 58 + (getDigit(seed, 4));
 

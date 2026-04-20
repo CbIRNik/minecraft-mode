@@ -264,9 +264,7 @@ public class GreenPortal extends Entity {
         String typeCode = fullCode.substring(1, 3);
         long targetSeed = this.getSeedFromCode(fullCode);
 
-        String uniqueId = fullCode.toLowerCase() + "_" + Long.toHexString(targetSeed);
-        Identifier targetDimId = Identifier.of("infdimmod", "dim_" + uniqueId);
-
+        Identifier targetDimId = Identifier.of("infdimmod", "dim_" + fullCode.toLowerCase());
         Fantasy fantasy = Fantasy.get(server);
 
         RegistryWrapper.Impl<Biome> biomeLookup = server.getRegistryManager().getWrapperOrThrow(RegistryKeys.BIOME);

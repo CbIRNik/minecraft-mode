@@ -126,25 +126,20 @@ public class BackPortal extends Entity {
     }
 
     private ServerWorld resolveTargetWorld(MinecraftServer server, String targetCode) {
-        RegistryKey<World> vanillaKey = switch (targetCode.toLowerCase()) {
-            case "overworld" -> World.OVERWORLD;
-            case "nether" -> World.NETHER;
-            case "end" -> World.END;
-            default -> null;
-        };
-        if (vanillaKey != null) return server.getWorld(vanillaKey);
+        Identifier potentialId = Identifier.tryParse(targetCode);
+        if (potentialId != null && targetCode.contains(":")) {
+            ServerWorld world = server.getWorld(RegistryKey.of(RegistryKeys.WORLD, potentialId));
+            if (world != null) return world;
+        }
 
         String fullCode = targetCode.length() < 12 ? (targetCode + "000000000000").substring(0, 12) : targetCode;
         String typeCode = fullCode.substring(1, 3);
         long targetSeed = this.getSeedFromCode(fullCode);
 
-        String uniqueId = fullCode.toLowerCase() + "_" + Long.toHexString(targetSeed);
-        Identifier targetDimId = Identifier.of("infdimmod", "dim_" + uniqueId);
-
+        Identifier targetDimId = Identifier.of("infdimmod", "dim_" + fullCode.toLowerCase());
         Fantasy fantasy = Fantasy.get(server);
 
         RegistryWrapper.Impl<Biome> biomeLookup = server.getRegistryManager().getWrapperOrThrow(RegistryKeys.BIOME);
-
         ChunkGenerator generator = DimTypeRegistry.get(typeCode).createGenerator(server, targetSeed, biomeLookup);
 
         RuntimeWorldConfig config = new RuntimeWorldConfig()
@@ -231,7 +226,7 @@ public class BackPortal extends Entity {
         }
         long hash = 0;
         for (int i = 0; i < code.length(); i++) {
-            hash = 63L * hash + code.charAt(i); 
+            hash = 63L * hash + code.charAt(i);
         }
         long base = 1_000_000_000_000_000_000L;
         long range = 8_223_372_036_854_775_807L;

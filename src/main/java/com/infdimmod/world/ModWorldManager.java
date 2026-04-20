@@ -10,17 +10,26 @@ import xyz.nucleoid.fantasy.Fantasy;
 import xyz.nucleoid.fantasy.RuntimeWorldConfig;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.UUID;
 import java.util.stream.Stream;
 
 public class ModWorldManager {
 
     public static long getSeedFromCode(String code) {
-        if (code == null || code.isEmpty()) return 0L;
-        return UUID.nameUUIDFromBytes(code.getBytes(StandardCharsets.UTF_8)).getMostSignificantBits();
+        if (code == null || code.isEmpty()) return 1_000_000_000_000_000_000L;
+        if (code.length() < 12) {
+            code = String.format("%12s", code).replace(' ', '0');
+        } else if (code.length() > 12) {
+            code = code.substring(0, 12);
+        }
+        long hash = 0;
+        for (int i = 0; i < code.length(); i++) {
+            hash = 63L * hash + code.charAt(i);
+        }
+        long base = 1_000_000_000_000_000_000L;
+        long range = 8_223_372_036_854_775_807L;
+        return base + (Math.abs(hash) % range);
     }
 
     public static void registerLifecycleEvents() {
