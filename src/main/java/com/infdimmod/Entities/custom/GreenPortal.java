@@ -264,7 +264,9 @@ public class GreenPortal extends Entity {
         String typeCode = fullCode.substring(1, 3);
         long targetSeed = this.getSeedFromCode(fullCode);
 
-        Identifier targetDimId = Identifier.of("infdimmod", "dim_" + fullCode.toLowerCase());
+        String uniqueId = fullCode.toLowerCase() + "_" + Long.toHexString(targetSeed);
+        Identifier targetDimId = Identifier.of("infdimmod", "dim_" + uniqueId);
+
         Fantasy fantasy = Fantasy.get(server);
 
         RegistryWrapper.Impl<Biome> biomeLookup = server.getRegistryManager().getWrapperOrThrow(RegistryKeys.BIOME);
@@ -301,19 +303,19 @@ public class GreenPortal extends Entity {
     }
 
     public long getSeedFromCode(String code) {
-        if (code == null || code.isEmpty()) return 0L;
-        String Code = code.toUpperCase(java.util.Locale.ROOT).replaceAll("[^A-Z0-9]", "0");
-        if (Code.length() < 12) {
-            Code = String.format("%12s", Code).replace(' ', '0');
-        } else if (Code.length() > 12) {
-            Code = Code.substring(0, 12);
+        if (code == null || code.isEmpty()) return 1_000_000_000_000_000_000L;
+        if (code.length() < 12) {
+            code = String.format("%12s", code).replace(' ', '0');
+        } else if (code.length() > 12) {
+            code = code.substring(0, 12);
         }
-        try {
-            long rawVal = Long.parseLong(Code, 36);
-            return 4_000_000_000_000_000_000L + rawVal;
-        } catch (NumberFormatException e) {
-            return (long) Code.hashCode();
+        long hash = 0;
+        for (int i = 0; i < code.length(); i++) {
+            hash = 63L * hash + code.charAt(i);
         }
+        long base = 1_000_000_000_000_000_000L;
+        long range = 8_223_372_036_854_775_807L;
+        return base + (Math.abs(hash) % range);
     }
 
     private void setChunkForceLoaded(boolean forced) {

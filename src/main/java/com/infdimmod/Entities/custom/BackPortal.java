@@ -126,20 +126,25 @@ public class BackPortal extends Entity {
     }
 
     private ServerWorld resolveTargetWorld(MinecraftServer server, String targetCode) {
-        Identifier potentialId = Identifier.tryParse(targetCode);
-        if (potentialId != null && targetCode.contains(":")) {
-            ServerWorld world = server.getWorld(RegistryKey.of(RegistryKeys.WORLD, potentialId));
-            if (world != null) return world;
-        }
+        RegistryKey<World> vanillaKey = switch (targetCode.toLowerCase()) {
+            case "overworld" -> World.OVERWORLD;
+            case "nether" -> World.NETHER;
+            case "end" -> World.END;
+            default -> null;
+        };
+        if (vanillaKey != null) return server.getWorld(vanillaKey);
 
         String fullCode = targetCode.length() < 12 ? (targetCode + "000000000000").substring(0, 12) : targetCode;
         String typeCode = fullCode.substring(1, 3);
         long targetSeed = this.getSeedFromCode(fullCode);
 
-        Identifier targetDimId = Identifier.of("infdimmod", "dim_" + fullCode.toLowerCase());
+        String uniqueId = fullCode.toLowerCase() + "_" + Long.toHexString(targetSeed);
+        Identifier targetDimId = Identifier.of("infdimmod", "dim_" + uniqueId);
+
         Fantasy fantasy = Fantasy.get(server);
 
         RegistryWrapper.Impl<Biome> biomeLookup = server.getRegistryManager().getWrapperOrThrow(RegistryKeys.BIOME);
+
         ChunkGenerator generator = DimTypeRegistry.get(typeCode).createGenerator(server, targetSeed, biomeLookup);
 
         RuntimeWorldConfig config = new RuntimeWorldConfig()
@@ -218,19 +223,19 @@ public class BackPortal extends Entity {
     }
 
     public long getSeedFromCode(String code) {
-        if (code == null || code.isEmpty()) return 0L;
-        String Code = code.toUpperCase(java.util.Locale.ROOT).replaceAll("[^A-Z0-9]", "0");
-        if (Code.length() < 12) {
-            Code = String.format("%12s", Code).replace(' ', '0');
-        } else if (Code.length() > 12) {
-            Code = Code.substring(0, 12);
+        if (code == null || code.isEmpty()) return 1_000_000_000_000_000_000L;
+        if (code.length() < 12) {
+            code = String.format("%12s", code).replace(' ', '0');
+        } else if (code.length() > 12) {
+            code = code.substring(0, 12);
         }
-        try {
-            long rawVal = Long.parseLong(Code, 36);
-            return 4_000_000_000_000_000_000L + rawVal;
-        } catch (NumberFormatException e) {
-            return (long) Code.hashCode();
+        long hash = 0;
+        for (int i = 0; i < code.length(); i++) {
+            hash = 63L * hash + code.charAt(i); 
         }
+        long base = 1_000_000_000_000_000_000L;
+        long range = 8_223_372_036_854_775_807L;
+        return base + (Math.abs(hash) % range);
     }
 
     private void setChunkForceLoaded(boolean forced) {
