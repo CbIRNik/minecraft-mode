@@ -27,10 +27,9 @@ public class PortalGunScreen extends Screen {
     private final List<PortalGunComponents.PortalEntry> FAVORITES = new ArrayList<>();
     private static final int MAX_HISTORY = 50;
 
-    private final int ENTRY_HEIGHT = 28;
-    private final int MAX_VISIBLE = 5;
+    private final int ENTRY_HEIGHT = 26;
     private final int PANEL_WIDTH = 230;
-    private final int GAPE = 15;
+    private final int GAPE = 12;
     private final int INNER_GAPE = 4;
     private double favScroll = 0;
     private double histScroll = 0;
@@ -148,15 +147,57 @@ public class PortalGunScreen extends Screen {
         int rightX = this.width / 2 + (GAPE / 2);
         int centerY = this.height / 2;
 
-        renderList(FAVORITES, rightX, 30, (int) favScroll, MAX_VISIBLE);
-        renderList(HISTORY, rightX, centerY + 20, (int) histScroll, MAX_VISIBLE);
+        renderList(FAVORITES, rightX, 30, (int) favScroll, 30, centerY - 5);
+        renderList(HISTORY, rightX, centerY + 20, (int) histScroll, centerY + 20, this.height - 10);
     }
 
-    private void renderList(List<PortalGunComponents.PortalEntry> list, int x, int startY, int scroll, int maxVisible) {
+    private void renderList(List<PortalGunComponents.PortalEntry> list, int x, int startY, int scroll, int minBound, int maxBound) {
         for (int i = 0; i < list.size(); i++) {
             int yPos = startY + (i * ENTRY_HEIGHT) - scroll;
-            if (yPos >= startY && (yPos + ENTRY_HEIGHT - 2) <= (startY + maxVisible * ENTRY_HEIGHT)) {
+            if (yPos >= minBound && (yPos + ENTRY_HEIGHT - 2) <= maxBound) {
                 addScrollableEntry(x, yPos, list.get(i));
+            }
+        }
+    }
+
+    @Override
+    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+        this.renderBackground(context, mouseX, mouseY, delta);
+        super.render(context, mouseX, mouseY, delta);
+
+        int centerX = this.width / 2;
+        int leftX = centerX - PANEL_WIDTH - (GAPE / 2);
+        int rightX = centerX + (GAPE / 2);
+        int centerY = this.height / 2;
+
+        context.drawCenteredTextWithShadow(this.textRenderer, Text.translatable("gui.infdimmod.portal_gun.settings"), leftX + PANEL_WIDTH/2, centerY - 85, 0x00FFFF);
+        context.drawTextWithShadow(this.textRenderer, Text.translatable("gui.infdimmod.portal_gun.favorites"), rightX, 15, 0xAAAAAA);
+        context.drawTextWithShadow(this.textRenderer, Text.translatable("gui.infdimmod.portal_gun.history"), rightX, centerY + 5, 0xAAAAAA);
+
+        int favTop = 30;
+        int favBottom = centerY - 5;
+        context.enableScissor(rightX, favTop, rightX + PANEL_WIDTH, favBottom);
+        renderEntryLabels(context, FAVORITES, rightX, favTop, (int) favScroll, favBottom);
+        context.disableScissor();
+        int histTop = centerY + 20;
+        int histBottom = this.height - 10;
+        context.enableScissor(rightX, histTop, rightX + PANEL_WIDTH, histBottom);
+        renderEntryLabels(context, HISTORY, rightX, histTop, (int) histScroll, histBottom);
+        context.disableScissor();
+    }
+
+    private void renderEntryLabels(DrawContext context, List<PortalGunComponents.PortalEntry> list, int x, int startY, int scroll, int limitY) {
+        for (int i = 0; i < list.size(); i++) {
+            int yPos = startY + (i * ENTRY_HEIGHT) - scroll;
+            if (yPos >= startY && (yPos + ENTRY_HEIGHT - 2) <= limitY) {
+                PortalGunComponents.PortalEntry e = list.get(i);
+                context.drawText(this.textRenderer, e.code(), x + 5, yPos + 3, 0xFFFFFF, false);
+                context.getMatrices().push();
+                context.getMatrices().translate(x + 5, yPos + 14, 0);
+                context.getMatrices().scale(0.75f, 0.75f, 1.0f);
+                String coords = String.format("X: %.1f Y: %.1f Z: %.1f", e.x(), e.y(), e.z());
+                context.drawText(this.textRenderer, coords, 0, 0, 0xAAAAAA, false);
+                context.getMatrices().pop();
             }
         }
     }
@@ -182,6 +223,27 @@ public class PortalGunScreen extends Screen {
         scrollableButtons.add(starBtn);
     }
 
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+        double delta = verticalAmount * 15;
+        int centerY = this.height / 2;
+        if (mouseY < centerY) {
+            int visibleHeight = (centerY - 10) - 30;
+            favScroll = clampScroll(favScroll - delta, FAVORITES.size(), visibleHeight);
+        } else {
+            int visibleHeight = (this.height - 10) - (centerY + 20);
+            histScroll = clampScroll(histScroll - delta, HISTORY.size(), visibleHeight);
+        }
+        refreshScrollablePanels();
+        return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
+    }
+
+    private double clampScroll(double current, int size, int visibleHeight) {
+        int contentHeight = size * ENTRY_HEIGHT;
+        int max = Math.max(0, contentHeight - visibleHeight);
+        return Math.max(0, Math.min(current, max));
+    }
+
     private String generateRandomCode(int length) {
         String chars = "abcdefghijklmnopqrstuvwxyz0123456789";
         Random rnd = new Random();
@@ -200,55 +262,6 @@ public class PortalGunScreen extends Screen {
 
     private String formatCoord(double val) {
         return String.format(java.util.Locale.ROOT, "%.1f", val);
-    }
-
-    @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        this.renderBackground(context, mouseX, mouseY, delta);
-        super.render(context, mouseX, mouseY, delta);
-
-        int centerX = this.width / 2;
-        int leftX = centerX - PANEL_WIDTH - (GAPE / 2);
-        int rightX = centerX + (GAPE / 2);
-        int centerY = this.height / 2;
-
-        context.drawCenteredTextWithShadow(this.textRenderer, Text.translatable("gui.infdimmod.portal_gun.settings"), leftX + PANEL_WIDTH/2, centerY - 85, 0x00FFFF);
-        context.drawTextWithShadow(this.textRenderer, Text.translatable("gui.infdimmod.portal_gun.favorites"), rightX, 15, 0xAAAAAA);
-        context.drawTextWithShadow(this.textRenderer, Text.translatable("gui.infdimmod.portal_gun.history"), rightX, centerY + 5, 0xAAAAAA);
-
-        renderEntryLabels(context, FAVORITES, rightX, 30, (int) favScroll);
-        renderEntryLabels(context, HISTORY, rightX, centerY + 20, (int) histScroll);
-    }
-
-    private void renderEntryLabels(DrawContext context, List<PortalGunComponents.PortalEntry> list, int x, int startY, int scroll) {
-        for (int i = 0; i < list.size(); i++) {
-            int yPos = startY + (i * ENTRY_HEIGHT) - scroll;
-            if (yPos >= startY && (yPos + ENTRY_HEIGHT - 5) <= (startY + MAX_VISIBLE * ENTRY_HEIGHT)) {
-                PortalGunComponents.PortalEntry e = list.get(i);
-                context.drawText(this.textRenderer, e.code(), x + 5, yPos + 3, 0xFFFFFF, false);
-
-                context.getMatrices().push();
-                context.getMatrices().translate(x + 5, yPos + 14, 0);
-                context.getMatrices().scale(0.75f, 0.75f, 1.0f);
-                String coords = String.format("X: %.1f Y: %.1f Z: %.1f", e.x(), e.y(), e.z());
-                context.drawText(this.textRenderer, coords, 0, 0, 0xAAAAAA, false);
-                context.getMatrices().pop();
-            }
-        }
-    }
-
-    @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-        double delta = verticalAmount * 10;
-        if (mouseY < this.height / 2) favScroll = clampScroll(favScroll - delta, FAVORITES.size());
-        else histScroll = clampScroll(histScroll - delta, HISTORY.size());
-        refreshScrollablePanels();
-        return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
-    }
-
-    private double clampScroll(double current, int size) {
-        int max = Math.max(0, (size - MAX_VISIBLE) * ENTRY_HEIGHT);
-        return Math.max(0, Math.min(current, max));
     }
 
     @Override
