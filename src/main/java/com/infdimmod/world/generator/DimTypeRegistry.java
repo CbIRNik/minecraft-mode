@@ -42,7 +42,15 @@ public class DimTypeRegistry {
 
         double vScale = 0.1 + (getDigit(seed, 0) * 0.4);
         double erosionOffset = (getDigit(seed, 1) * 0.6) - 3.0;
-        double depthOffset = (getDigit(seed, 2) * 0.4) - 1.5;
+        double depthOffset = (getDigit(seed, 2) * 0.1) - 0.1;
+        double tempOffset = (getDigit(seed, 3) * 0.05) - 0.2;
+        double vegOffset = (getDigit(seed, 6) * 0.1) - 0.5;
+        double ridgesScale = 1.0 + (getDigit(seed, 10) * 0.5);
+        double barrierScale = (getDigit(seed, 11) * 0.5);
+        double jaggedScale = (getDigit(seed, 15) * 0.2);
+        double floodOffset = (getDigit(seed, 12) * 0.1);
+        double fluidSpreadScale = 1.0 + (getDigit(seed, 13) * 0.2);
+        double lavaScale = 1.0 + (getDigit(seed, 14) * 0.5);
 
         double veinFrequency = (getDigit(seed, 7) * 0.2) - 1.0;
         double veinThickness = 0.5 + (getDigit(seed, 8) * 0.5);
@@ -53,17 +61,17 @@ public class DimTypeRegistry {
         NoiseRouter originalRouter = originalSettings.noiseRouter();
 
         NoiseRouter modifiedRouter = new NoiseRouter(
-                originalRouter.barrierNoise(),
-                originalRouter.fluidLevelFloodednessNoise(),
-                originalRouter.fluidLevelSpreadNoise(),
-                originalRouter.lavaNoise(),
-                originalRouter.temperature(),
-                originalRouter.vegetation(),
+                DensityFunctionTypes.mul(originalRouter.barrierNoise(), DensityFunctionTypes.constant(barrierScale)),
+                DensityFunctionTypes.add(originalRouter.fluidLevelFloodednessNoise(), DensityFunctionTypes.constant(floodOffset)),
+                DensityFunctionTypes.mul(originalRouter.fluidLevelSpreadNoise(), DensityFunctionTypes.constant(fluidSpreadScale)),
+                DensityFunctionTypes.mul(originalRouter.lavaNoise(), DensityFunctionTypes.constant(lavaScale)),
+                DensityFunctionTypes.add(originalRouter.temperature(), DensityFunctionTypes.constant(tempOffset)),
+                DensityFunctionTypes.add(originalRouter.vegetation(), DensityFunctionTypes.constant(vegOffset)),
                 originalRouter.continents(),
                 DensityFunctionTypes.add(originalRouter.erosion(), DensityFunctionTypes.constant(erosionOffset)),
                 DensityFunctionTypes.add(originalRouter.depth(), DensityFunctionTypes.constant(depthOffset)),
-                originalRouter.ridges(),
-                originalRouter.initialDensityWithoutJaggedness(),
+                DensityFunctionTypes.mul(originalRouter.ridges(), DensityFunctionTypes.constant(ridgesScale)),
+                DensityFunctionTypes.mul(originalRouter.initialDensityWithoutJaggedness(), DensityFunctionTypes.constant(jaggedScale)),
                 DensityFunctionTypes.mul(originalRouter.finalDensity(), DensityFunctionTypes.constant(vScale)),
                 DensityFunctionTypes.add(originalRouter.veinToggle(), DensityFunctionTypes.constant(veinFrequency)),
                 DensityFunctionTypes.mul(originalRouter.veinRidged(), DensityFunctionTypes.constant(veinThickness)),
