@@ -132,11 +132,10 @@ public class BackPortal extends Entity {
             if (world != null) return world;
         }
 
-        String fullCode = targetCode.length() < 12 ? (targetCode + "000000000000").substring(0, 12) : targetCode;
-        String typeCode = fullCode.substring(1, 3);
-        long targetSeed = this.getSeedFromCode(fullCode);
+        String typeCode = targetCode.substring(1, 3);
+        long targetSeed = this.getSeedFromCode(targetCode);
 
-        Identifier targetDimId = Identifier.of("infdimmod", "dim_" + fullCode.toLowerCase());
+        Identifier targetDimId = Identifier.of("infdimmod", "dim_" + targetCode.toLowerCase());
         Fantasy fantasy = Fantasy.get(server);
 
         RegistryWrapper.Impl<Biome> biomeLookup = server.getRegistryManager().getWrapperOrThrow(RegistryKeys.BIOME);

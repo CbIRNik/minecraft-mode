@@ -28,9 +28,7 @@ import org.joml.Vector3f;
 import xyz.nucleoid.fantasy.Fantasy;
 import xyz.nucleoid.fantasy.RuntimeWorldConfig;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.UUID;
 
 public class GreenPortal extends Entity {
     private static final TrackedData<Vector3f> PORTAL_TARGET_VEC = DataTracker.registerData(GreenPortal.class, TrackedDataHandlerRegistry.VECTOR3F);
@@ -260,11 +258,10 @@ public class GreenPortal extends Entity {
         };
         if (vanillaKey != null) return server.getWorld(vanillaKey);
 
-        String fullCode = targetCode.length() < 12 ? (targetCode + "000000000000").substring(0, 12) : targetCode;
-        String typeCode = fullCode.substring(1, 3);
-        long targetSeed = this.getSeedFromCode(fullCode);
+        String typeCode = targetCode.substring(1, 3);
+        long targetSeed = this.getSeedFromCode(targetCode);
 
-        Identifier targetDimId = Identifier.of("infdimmod", "dim_" + fullCode.toLowerCase());
+        Identifier targetDimId = Identifier.of("infdimmod", "dim_" + targetCode.toLowerCase());
         Fantasy fantasy = Fantasy.get(server);
 
         RegistryWrapper.Impl<Biome> biomeLookup = server.getRegistryManager().getWrapperOrThrow(RegistryKeys.BIOME);
