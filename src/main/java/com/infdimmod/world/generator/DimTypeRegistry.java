@@ -45,12 +45,12 @@ public class DimTypeRegistry {
         double erosionOffset = (getDigit(seed, 1) * 0.6) - 3.0;
         double tempOffset = (getDigit(seed, 3) * 0.05) - 0.2;
         double vegOffset = (getDigit(seed, 6) * 0.1) - 0.5;
-        double barrierScale = (getDigit(seed, 11) * 0.5);
-        double jaggedScale = (getDigit(seed, 15) * 0.2);
+        double barrierScale = 0.5 + (getDigit(seed, 11) * 0.2);
+        double jaggedScale = 0.1 + (getDigit(seed, 15) * 0.2);
         double floodOffset = (getDigit(seed, 12) * 0.1);
         double fluidSpreadScale = 1.0 + (getDigit(seed, 13) * 0.2);
         double lavaScale = 1.0 + (getDigit(seed, 14) * 0.5);
-        double ridgesScale = 1.0 + (getDigit(seed, 10) * 0.5);
+        double ridgesScale = 0.8 + (getDigit(seed, 10) * 0.05);
 
         double veinFrequency = (getDigit(seed, 7) * 0.2) - 1.0;
         double veinThickness = 0.5 + (getDigit(seed, 8) * 0.5);
@@ -68,7 +68,7 @@ public class DimTypeRegistry {
                 originalRouter.continents(),
                 DensityFunctionTypes.add(originalRouter.erosion(), DensityFunctionTypes.constant(erosionOffset)),
                 originalRouter.depth(),
-                DensityFunctionTypes.mul(originalRouter.ridges(), DensityFunctionTypes.constant(ridgesScale)),
+                DensityFunctionTypes.add(originalRouter.ridges(), DensityFunctionTypes.constant(ridgesScale)),
                 DensityFunctionTypes.mul(originalRouter.initialDensityWithoutJaggedness(), DensityFunctionTypes.constant(jaggedScale)),
                 originalRouter.finalDensity(),
                 DensityFunctionTypes.add(originalRouter.veinToggle(), DensityFunctionTypes.constant(veinFrequency)),
